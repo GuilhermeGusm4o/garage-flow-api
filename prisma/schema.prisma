@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  MECHANIC
+  SERVICE_ADVISOR
+  STOCK_CLERK
+}
+
+enum ServiceOrderStatus {
+  RECEIVED
+  IN_DIAGNOSIS
+  AWAITING_APPROVAL
+  IN_EXECUTION
+  FINALIZED
+  DELIVERED
+  CANCELED
+}
+
+enum UnitOfMeasure {
+  ML
+  G
+  KG
+  UNIT
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole
+
+  serviceOrders ServiceOrder[]
+
+  @@map("users")
+}
+
+model Client {
+  id       String  @id @default(uuid())
+  cpfCnpj  String  @unique @map("cpf_cnpj")
+  name     String
+  address  String
+  phone    String  @unique
+  email    String?
+  vehicles Vehicle[]
+
+  @@map("clients")
+}
+
+model Vehicle {
+  id           String @id @default(uuid())
+  brand        String
+  model        String
+  licensePlate String @unique @map("license_plate")
+  year         Int
+  clientId     String @map("client_id")
+
+  client        Client         @relation(fields: [clientId], references: [id])
+  serviceOrders ServiceOrder[]
+
+  @@map("vehicles")
+}
+
+model ServiceOrder {
+  id          String   @id @default(uuid())
+  vehicleId   String   @map("vehicle_id")
+  mechanicId  String?  @map("mechanic_id")
+  status      ServiceOrderStatus
+  approvedAt  DateTime? @map("approved_at")
+  totalAmount Decimal  @map("total_amount")
+
+  vehicle     Vehicle                @relation(fields: [vehicleId], references: [id])
+  mechanic    User?                  @relation(fields: [mechanicId], references: [id])
+  services    ServiceOrderService[]
+  inventory   ServiceOrderInventory[]
+
+  @@map("service_orders")
+}
+
+model Service {
+  id    String  @id @default(uuid())
+  name  String
+  price Decimal
+
+  osServices  ServiceOrderService[]
+
+  @@map("services")
+}
+
+model Inventory {
+  id            String        @id @default(uuid())
+  name          String
+  unitOfMeasure UnitOfMeasure @map("unit_of_measure")
+  unitPrice     Decimal       @map("unit_price")
+  quantity      Decimal
+
+  osInventory   ServiceOrderInventory[]
+
+  @@map("inventory")
+}
+
+model ServiceOrderService {
+  id            String        @id @default(uuid())
+  serviceId     String        @map("service_id")
+  serviceOrderId String        @map("os_id")
+  price         Decimal
+
+  service      Service      @relation(fields: [serviceId], references: [id])
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+
+  @@map("os_services")
+}
+
+model ServiceOrderInventory {
+  id            String        @id @default(uuid())
+  inventoryId   String        @map("inventory_id")
+  serviceOrderId String       @map("os_id")
+  quantity      Decimal
+  unitPrice     Decimal       @map("unit_price")
+
+  inventory     Inventory     @relation(fields: [inventoryId], references: [id])
+  serviceOrder  ServiceOrder  @relation(fields: [serviceOrderId], references: [id])
+
+  @@map("os_inventory")
+}
