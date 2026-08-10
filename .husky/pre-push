@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "🔍 Checking Prettier..."
+npm run format:check || exit 1
+
+echo "🔍 Checking ESLint..."
+npm run lint:check || exit 1
+
+echo "🧪 Running tests..."
+npm test -- --runInBand || exit 1
+
+echo "✅ All checks passed!"
