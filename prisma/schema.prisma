@@ -38,6 +38,10 @@ model User {
   passwordHash String   @map("password_hash")
   role         UserRole
 
+  created_at    DateTime @default(now()) @map("created_at")
+  updated_at    DateTime @updatedAt @map("updated_at")
+  deleted_at    DateTime? @map("deleted_at")
+
   serviceOrders ServiceOrder[]
 
   @@map("users")
@@ -50,6 +54,11 @@ model Client {
   address  String
   phone    String  @unique
   email    String?
+  
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+
   vehicles Vehicle[]
 
   @@map("clients")
@@ -62,6 +71,10 @@ model Vehicle {
   licensePlate String @unique @map("license_plate")
   year         Int
   clientId     String @map("client_id")
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
 
   client        Client         @relation(fields: [clientId], references: [id])
   serviceOrders ServiceOrder[]
@@ -77,6 +90,10 @@ model ServiceOrder {
   approvedAt  DateTime? @map("approved_at")
   totalAmount Decimal  @map("total_amount")
 
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+
   vehicle     Vehicle                @relation(fields: [vehicleId], references: [id])
   mechanic    User?                  @relation(fields: [mechanicId], references: [id])
   services    ServiceOrderService[]
@@ -90,6 +107,10 @@ model Service {
   name  String
   price Decimal
 
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+
   osServices  ServiceOrderService[]
 
   @@map("services")
@@ -102,6 +123,10 @@ model Inventory {
   unitPrice     Decimal       @map("unit_price")
   quantity      Decimal
 
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+
   osInventory   ServiceOrderInventory[]
 
   @@map("inventory")
@@ -112,6 +137,9 @@ model ServiceOrderService {
   serviceId     String        @map("service_id")
   serviceOrderId String        @map("os_id")
   price         Decimal
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
 
   service      Service      @relation(fields: [serviceId], references: [id])
   serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id])
@@ -125,6 +153,9 @@ model ServiceOrderInventory {
   serviceOrderId String       @map("os_id")
   quantity      Decimal
   unitPrice     Decimal       @map("unit_price")
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
 
   inventory     Inventory     @relation(fields: [inventoryId], references: [id])
   serviceOrder  ServiceOrder  @relation(fields: [serviceOrderId], references: [id])
