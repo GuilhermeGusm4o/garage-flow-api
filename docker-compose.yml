@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: garage-flow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: garage-flow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d garage-flow']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      args:
+        NODE_ENV: ${NODE_ENV}
+    ports:
+      - '3000:3000'
+      - '9229:9229'
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/garage-flow?schema=public
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy &&
+      if [ \"$NODE_ENV\" = \"production\" ];
+      then npm run start:prod;
+      else npm run start:debug;
+      fi"
+
+volumes:
+  postgres_data:

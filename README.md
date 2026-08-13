@@ -1,98 +1,276 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Garage Flow API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend de um sistema de gerenciamento para oficina mecânica, desenvolvido como um monólito utilizando **NestJS, TypeScript, PostgreSQL, Prisma e Docker**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tecnologias
 
-## Description
+* **NestJS + TypeScript**
+* **PostgreSQL**
+* **Prisma ORM**
+* **Docker / Docker Compose**
+* **Swagger**
+* **class-validator**
+* **Jest**
+* **ESLint + Prettier**
+* **Husky**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Arquitetura
 
-## Project setup
+O projeto utiliza **Domain-Driven Design (DDD)** combinado com **arquitetura em camadas**, dentro de um monólito.
 
-```bash
-$ npm install
+```text
+
+├── src/
+│   │
+│   ├── clients/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── events/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   └── dtos/
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/
+│   │   │   └── mappers/
+│   │   │
+│   │   └── presentation/
+│   │       ├── controllers/
+│   │       └── dtos/
+│   │
+│   ├── vehicles/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── events/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   └── dtos/
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/
+│   │   │   └── mappers/
+│   │   │
+│   │   └── presentation/
+│   │       ├── controllers/
+│   │       └── dtos/
+│   │
+│   ├── services/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── events/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   └── dtos/
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/
+│   │   │   └── mappers/
+│   │   │
+│   │   └── presentation/
+│   │       ├── controllers/
+│   │       └── dtos/
+│   │
+│   ├── service-orders/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── events/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   └── dtos/
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/
+│   │   │   └── mappers/
+│   │   │
+│   │   └── presentation/
+│   │       ├── controllers/
+│   │       └── dtos/
+│   │
+│   ├── inventory/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── events/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   └── dtos/
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/
+│   │   │   └── mappers/
+│   │   │
+│   │   └── presentation/
+│   │       ├── controllers/
+│   │       └── dtos/
+│   │
+│   ├── auth/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── events/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   └── dtos/
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/
+│   │   │   └── mappers/
+│   │   │
+│   │   └── presentation/
+│   │       ├── controllers/
+│   │       └── dtos/
+│   │
+│   ├── infra/
+│   │   ├── database/
+│   │   │   └── prisma/
+│   │   │       ├── prisma.module.ts
+│   │   │       └── prisma.service.ts
+│   │   │
+│   │   └── health/
+│   │       ├── health.module.ts
+│   │       ├── health.controller.ts
+│   │       └── health.service.ts
+│   │
+│   ├── common/
+│   │   ├── guards/
+│   │   ├── filters/
+│   │   ├── pipes/
+│   │   └── decorators/
+│   │
+│   ├── app.module.ts
+│   └── main.ts
 ```
 
-## Compile and run the project
+### Bounded Contexts
 
-```bash
-# development
-$ npm run start
+* **Auth:** autenticação, usuários, credenciais e papéis de acesso.
+* **Clients:** cadastro e gerenciamento dos clientes da oficina.
+* **Vehicles:** veículos associados aos clientes.
+* **Service Orders:** ciclo de vida da ordem de serviço, incluindo recebimento, diagnóstico, orçamento, aprovação, execução, finalização e entrega.
+* **Inventory:** peças, insumos e controle de estoque utilizados nas ordens de serviço.
+* **Services:** serviços padronizados da oficina, como troca de óleo, alinhamento etc., com preço/tabela de mão de obra.
 
-# watch mode
-$ npm run start:dev
+Além dos contextos de negócio, `common` contém elementos compartilhados pela aplicação e `infra` contém recursos de infraestrutura que não pertencem a um contexto específico.
 
-# production mode
-$ npm run start:prod
+## Executando o projeto
+
+### Pré-requisitos
+
+* Docker
+* Node.js 20+
+* npm
+
+### 1. Configuração
+
+Crie o arquivo `.env` a partir do `.env.example`:
+
+```env
+NODE_ENV=producttion
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/garage-flow?schema=public
 ```
 
-## Run tests
+O `NODE_ENV` determina o modo de execução da aplicação:
+
+* `development`: executa com `start:debug` e hot reload.
+* `production`: executa com `start:prod` utilizando o build da aplicação.
+
+### 2. Subir a aplicação
+
+Na raiz do projeto:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up --build
 ```
 
-## Deployment
+O Docker Compose inicia:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+* PostgreSQL;
+* API NestJS;
+* aplicação das migrations do Prisma.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+A aplicação aguarda o PostgreSQL estar saudável antes de iniciar.
+
+No modo `development`, o código da aplicação é montado como volume, permitindo **hot reload** durante o desenvolvimento.
+
+### 3. Acessos
+
+* **API:** `http://localhost:3000`
+* **Swagger:** `http://localhost:3000/api`
+
+### Prisma Studio
+
+Com o PostgreSQL em execução, o Prisma Studio pode ser aberto localmente:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx prisma studio
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Acesse:
 
-## Resources
+`http://localhost:5555`
 
-Check out a few resources that may come in handy when working with NestJS:
+O Prisma Studio é utilizado para visualizar e manipular os dados do banco durante o desenvolvimento.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Validações
 
-## Support
+A aplicação utiliza diferentes níveis de validação:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+* **class-validator:** validação dos dados recebidos pelos DTOs;
+* **regras de domínio:** validações específicas do negócio;
+* **Prisma/PostgreSQL:** integridade, relacionamentos, campos únicos e restrições do banco.
 
-## Stay in touch
+Antes de cada `git push`, o Husky executa automaticamente:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+* Prettier;
+* ESLint;
+* testes Jest.
 
-## License
+O push é interrompido caso alguma dessas verificações falhe.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Testes
+
+O projeto utiliza **Jest** para testes unitários e de integração. Todos os testes ficam na pasta `test/`, separados por tipo e organizados de acordo com os contextos e fluxos da aplicação.
+
+```text
+test/
+├── unit/
+│   ├── health/
+│   ├── clients/
+│   ├── vehicles/
+│   ├── services/
+│   ├── inventory/
+│   └── service-orders/
+│
+└── integration/
+    ├── clients/
+    ├── vehicles/
+    ├── services/
+    ├── inventory/
+    └── service-orders/
+```
+
+### Testes unitários
+
+Validam componentes de forma isolada, sem depender de outros componentes externos.
+
+### Testes de integração
+
+Validam a interação entre diferentes componentes da aplicação, incluindo a integração com **Prisma e PostgreSQL**. Alguns testes podem abranger mais de um contexto quando o fluxo exigir a interação entre eles.
+
+A organização por contexto facilita a localização e manutenção dos testes, sem limitar um teste de integração a apenas um contexto.
