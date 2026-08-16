@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-    
     {
       "name": "Debug Docker",
       "type": "node",
@@ -13,6 +12,47 @@
       "localRoot": "${workspaceFolder}",
       "remoteRoot": "/app",
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Prisma: Create Migration",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/prisma/build/index.js",
+      "args": ["migrate", "dev", "--name", "${input:migrationName}"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Prisma: Apply Migrations",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/prisma/build/index.js",
+      "args": ["migrate", "deploy"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Run Application",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:debug"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "pattern": "Nest application successfully started",
+        "uriFormat": "http://localhost:3000"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "migrationName",
+      "type": "promptString",
+      "description": "Nome da migration (ex: add_user_table)"
     }
   ]
 }
