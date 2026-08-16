@@ -1,0 +1,162 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import { CreateUserUseCase } from '../application/use-cases/create-user.use-case';
+import { DeleteUserUseCase } from '../application/use-cases/delete-user.use-case';
+import { GetUserByEmailUseCase } from '../application/use-cases/get-user-by-email.use-case';
+import { ListUsersUseCase } from '../application/use-cases/list-users.use-case';
+import { LoginUseCase } from '../application/use-cases/login-user.use-case';
+import { UpdateUserUseCase } from '../application/use-cases/update-user.use-case';
+
+import { CreateUserDto } from './dto/create-user.dto';
+import { LoginDto } from './dto/login-user.dto';
+import { LoginResponseDto } from './dto/login-user-response.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { Roles } from '../infrastructure/security/roles.decorator';
+import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
+import { RolesGuard } from '../infrastructure/security/roles.guard';
+
+@ApiTags('Auth')
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private readonly createUserUseCase: CreateUserUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly deleteUserUseCase: DeleteUserUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly listUsersUseCase: ListUsersUseCase,
+    private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
+  ) {}
+
+  @Get('users')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List all users',
+  })
+  @ApiOkResponse({
+    type: [UserResponseDto],
+  })
+  async listUsers(): Promise<UserResponseDto[]> {
+    const users = await this.listUsersUseCase.execute();
+
+    return users.map(UserResponseDto.fromDomain);
+  }
+
+  @Get('users/:email')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get a user by email',
+  })
+  @ApiOkResponse({
+    type: UserResponseDto,
+  })
+  async getUserByEmail(
+    @Param('email') email: string,
+  ): Promise<UserResponseDto> {
+    const user = await this.getUserByEmailUseCase.execute(email);
+
+    return UserResponseDto.fromDomain(user);
+  }
+
+  @Post('users')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Create a user',
+  })
+  @ApiCreatedResponse({
+    type: UserResponseDto,
+  })
+  async createUser(
+    @Body() dto: CreateUserDto,
+  ): Promise<UserResponseDto> {
+    const user = await this.createUserUseCase.execute(dto);
+
+    return UserResponseDto.fromDomain(user);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login user and generate JWT token',
+  })
+  @ApiOkResponse({
+    type: LoginResponseDto,
+  })
+  async login(
+    @Body() dto: LoginDto,
+  ): Promise<LoginResponseDto> {
+    const { access_token, user } =
+      await this.loginUseCase.execute({
+        email: dto.email,
+        password: dto.password,
+      });
+
+    return LoginResponseDto.create(
+      access_token,
+      user,
+    );
+  }
+
+  @Patch('users/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Update a user',
+  })
+  @ApiOkResponse({
+    type: UserResponseDto,
+  })
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    const user = await this.updateUserUseCase.execute({
+      id,
+      ...dto,
+    });
+
+    return UserResponseDto.fromDomain(user);
+  }
+
+  @Delete('users/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Soft delete a user',
+  })
+  @ApiNoContentResponse({
+    description: 'User successfully deleted',
+  })
+  async deleteUser(
+    @Param('id') id: string,
+  ): Promise<void> {
+    await this.deleteUserUseCase.execute(id);
+  }
+}
