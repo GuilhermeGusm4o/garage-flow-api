@@ -13,7 +13,6 @@
       "@service/infrastructure/*": ["src/service/infrastructure/*"],
       "@prisma/*": ["generated/prisma/*"]
     },
-    "ignoreDeprecations": "6.0",
     "sourceMap": true,
     "declaration": true,
     "removeComments": true,
