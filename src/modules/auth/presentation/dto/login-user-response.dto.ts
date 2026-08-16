@@ -14,10 +14,7 @@ export class LoginResponseDto {
   })
   user!: UserResponseDto;
 
-  static create(
-    access_token: string,
-    user: User,
-  ): LoginResponseDto {
+  static create(access_token: string, user: User): LoginResponseDto {
     const dto = new LoginResponseDto();
 
     dto.access_token = access_token;

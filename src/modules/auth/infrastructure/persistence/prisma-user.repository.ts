@@ -9,9 +9,7 @@ import { UserMapper } from './user.mapper';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(): Promise<User[]> {
     const users = await this.prisma.user.findMany({});

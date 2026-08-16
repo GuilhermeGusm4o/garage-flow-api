@@ -5,9 +5,7 @@ import { UserRepository } from '../../domain/repositories/user.repository';
 
 @Injectable()
 export class GetUserByEmailUseCase {
-  constructor(
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(email: string): Promise<User> {
     const user = await this.userRepository.findByEmail(email);

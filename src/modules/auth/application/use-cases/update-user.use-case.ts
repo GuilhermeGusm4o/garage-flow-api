@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import {
-  User,
-  UserRole,
-} from '../../domain/entities/user.entity';
+import { User, UserRole } from '../../domain/entities/user.entity';
 
 import { UserRepository } from '../../domain/repositories/user.repository';
 
@@ -44,8 +41,7 @@ export class UpdateUserUseCase {
     }
 
     if (input.password !== undefined) {
-      user.passwordHash =
-        await this.passwordHasher.hash(input.password);
+      user.passwordHash = await this.passwordHasher.hash(input.password);
     }
 
     user.updatedAt = new Date();

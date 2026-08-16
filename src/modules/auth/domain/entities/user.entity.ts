@@ -1,8 +1,4 @@
-export type UserRole =
-  | 'ADMIN'
-  | 'MECHANIC'
-  | 'SERVICE_ADVISOR'
-  | 'STOCK_CLERK';
+export type UserRole = 'ADMIN' | 'MECHANIC' | 'SERVICE_ADVISOR' | 'STOCK_CLERK';
 
 export class User {
   constructor(

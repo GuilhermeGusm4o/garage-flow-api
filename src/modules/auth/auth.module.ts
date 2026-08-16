@@ -52,9 +52,6 @@ import { RolesGuard } from './infrastructure/security/roles.guard';
     GetUserByEmailUseCase,
   ],
 
-  exports: [
-    JwtAuthGuard,
-    RolesGuard,
-  ],
+  exports: [JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

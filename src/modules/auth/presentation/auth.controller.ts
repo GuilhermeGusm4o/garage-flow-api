@@ -72,9 +72,7 @@ export class AuthController {
   @ApiOkResponse({
     type: UserResponseDto,
   })
-  async getUserByEmail(
-    @Param('email') email: string,
-  ): Promise<UserResponseDto> {
+  async getUserByEmail(@Param('email') email: string): Promise<UserResponseDto> {
     const user = await this.getUserByEmailUseCase.execute(email);
 
     return UserResponseDto.fromDomain(user);
@@ -90,9 +88,7 @@ export class AuthController {
   @ApiCreatedResponse({
     type: UserResponseDto,
   })
-  async createUser(
-    @Body() dto: CreateUserDto,
-  ): Promise<UserResponseDto> {
+  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
     const user = await this.createUserUseCase.execute(dto);
 
     return UserResponseDto.fromDomain(user);
@@ -106,19 +102,13 @@ export class AuthController {
   @ApiOkResponse({
     type: LoginResponseDto,
   })
-  async login(
-    @Body() dto: LoginDto,
-  ): Promise<LoginResponseDto> {
-    const { access_token, user } =
-      await this.loginUseCase.execute({
-        email: dto.email,
-        password: dto.password,
-      });
+  async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
+    const { access_token, user } = await this.loginUseCase.execute({
+      email: dto.email,
+      password: dto.password,
+    });
 
-    return LoginResponseDto.create(
-      access_token,
-      user,
-    );
+    return LoginResponseDto.create(access_token, user);
   }
 
   @Patch('users/:id')
@@ -131,10 +121,7 @@ export class AuthController {
   @ApiOkResponse({
     type: UserResponseDto,
   })
-  async updateUser(
-    @Param('id') id: string,
-    @Body() dto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UserResponseDto> {
     const user = await this.updateUserUseCase.execute({
       id,
       ...dto,
@@ -154,9 +141,7 @@ export class AuthController {
   @ApiNoContentResponse({
     description: 'User successfully deleted',
   })
-  async deleteUser(
-    @Param('id') id: string,
-  ): Promise<void> {
+  async deleteUser(@Param('id') id: string): Promise<void> {
     await this.deleteUserUseCase.execute(id);
   }
 }
