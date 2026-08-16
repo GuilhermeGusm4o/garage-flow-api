@@ -10,5 +10,6 @@ export class CreateServiceRequest {
   @ApiProperty({ example: 150.0, description: 'Preço do serviço' })
   @IsNumber()
   @IsPositive()
+  @IsNotEmpty()
   price!: number;
 }
