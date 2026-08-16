@@ -17,7 +17,7 @@ export class User {
   }
 
   toJSON() {
-    const { passwordHash, ...rest } = this;
+    const { passwordHash: _passwordHash, ...rest } = this;
 
     return rest;
   }
