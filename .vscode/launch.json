@@ -34,6 +34,30 @@
       "skipFiles": ["<node_internals>/**"]
     },
     {
+      "name": "Jest: Run All Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["--runInBand", "--no-coverage"],
+      "runtimeArgs": ["-r", "tsconfig-paths/register", "-r", "ts-node/register"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Jest: Run Current File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["${fileBasenameNoExtension}", "--runInBand", "--no-coverage"],
+      "runtimeArgs": ["-r", "tsconfig-paths/register", "-r", "ts-node/register"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
       "name": "Run Application",
       "type": "node",
       "request": "launch",
