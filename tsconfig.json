@@ -5,12 +5,22 @@
     "target": "ES2023",
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@common/*": ["src/common/*"],
+      "@service/application/*": ["src/service/application/*"],
+      "@service/domain/*": ["src/service/domain/*"],
+      "@service/presentation/*": ["src/service/presentation/*"],
+      "@service/infrastructure/*": ["src/service/infrastructure/*"],
+      "@prisma/*": ["generated/prisma/*"]
+    },
+    "ignoreDeprecations": "6.0",
     "sourceMap": true,
     "declaration": true,
     "removeComments": true,
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
+    "types": ["node"],
     "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
