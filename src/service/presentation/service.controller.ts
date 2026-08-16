@@ -14,6 +14,7 @@ import {
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateServiceUseCase } from '@service/application/use-cases/create-service.use-case';
@@ -37,6 +38,9 @@ export class ServiceController {
   ) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Creates a new service',
+  })
   @ApiCreatedResponse({ type: ServiceResponse })
   async create(@Body() body: CreateServiceRequest): Promise<ServiceResponse> {
     const service = await this.createServiceUseCase.execute(body.name, body.price);
@@ -44,6 +48,9 @@ export class ServiceController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'List all services',
+  })
   @ApiOkResponse({ type: [ServiceResponse] })
   async findAll(): Promise<ServiceResponse[]> {
     const services = await this.findAllServicesUseCase.execute();
@@ -51,6 +58,9 @@ export class ServiceController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Fetch a service by ID',
+  })
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async findOne(@Param('id') id: string): Promise<ServiceResponse> {
@@ -59,6 +69,9 @@ export class ServiceController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Updates a service by ID',
+  })
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async update(
@@ -71,6 +84,9 @@ export class ServiceController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Deletes a service by ID',
+  })
   @ApiNoContentResponse({ description: 'Service deleted successfully' })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async remove(@Param('id') id: string): Promise<void> {
