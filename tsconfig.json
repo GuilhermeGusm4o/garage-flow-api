@@ -12,7 +12,8 @@
       "@generated/prisma/*": ["generated/prisma/*"],
       "@inventory/*": ["src/inventory/*"],
       "@client/*": ["src/client/*"],
-      "@infra/*": ["src/infra/*"]
+      "@infra/*": ["src/infra/*"],
+      "@prisma/*": ["generated/prisma/*"]
     },
     "sourceMap": true,
     "declaration": true,
