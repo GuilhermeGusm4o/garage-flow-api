@@ -81,6 +81,10 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
+      "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1"
+    },
     "collectCoverageFrom": [
       "src/**/*.ts",
       "!src/main.ts",
@@ -88,9 +92,11 @@
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node"
-  }
-  ,
+  },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
+  },
+  "overrides": {
+    "js-yaml": "4.3.1"
   }
 }
