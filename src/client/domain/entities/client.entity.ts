@@ -9,6 +9,13 @@ export interface ClientProps extends BaseEntityProps {
   email?: string | null;
 }
 
+export interface UpdateClientProps {
+  name?: string;
+  phone?: string;
+  address?: string;
+  email?: string | null;
+}
+
 export class ClientEntity extends BaseEntity {
   private _cpfCnpj: CpfCnpj;
   private _name: string;
@@ -47,5 +54,13 @@ export class ClientEntity extends BaseEntity {
 
   get email(): string | null {
     return this._email;
+  }
+
+  update(props: UpdateClientProps): void {
+    if (props.name !== undefined) this._name = props.name;
+    if (props.phone !== undefined) this._phone = props.phone;
+    if (props.address !== undefined) this._address = props.address;
+    if (props.email !== undefined) this._email = props.email;
+    this.touch();
   }
 }

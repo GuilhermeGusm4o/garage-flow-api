@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException } from '@nestjs/common';
 import { CreateClientUseCase } from '@client/application/use-cases/create-client.use-case';
 import { type ClientRepository } from '@client/domain/repositories/client.repository';
 import { type ClientEntity } from '@client/domain/entities/client.entity';
+import { makeClientRepositoryMock } from '../../client.factory';
 
 describe('CreateClientUseCase', () => {
   let repository: jest.Mocked<ClientRepository>;
@@ -16,10 +17,9 @@ describe('CreateClientUseCase', () => {
   };
 
   beforeEach(() => {
-    repository = {
-      create: jest.fn((client: ClientEntity) => Promise.resolve(client)),
-      findByCpfCnpj: jest.fn(() => Promise.resolve(null)),
-    } as unknown as jest.Mocked<ClientRepository>;
+    repository = makeClientRepositoryMock();
+    repository.create.mockImplementation((client: ClientEntity) => Promise.resolve(client));
+    repository.findByCpfCnpj.mockResolvedValue(null);
 
     useCase = new CreateClientUseCase(repository);
   });
