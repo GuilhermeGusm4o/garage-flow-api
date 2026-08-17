@@ -1,7 +1,4 @@
-import {
-  CpfCnpj,
-  InvalidCpfCnpjError,
-} from '@client/domain/value-objects/cpf-cnpj-validator.vo';
+import { CpfCnpj, InvalidCpfCnpjError } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
 
 describe('CpfCnpj', () => {
   describe('CPF', () => {
