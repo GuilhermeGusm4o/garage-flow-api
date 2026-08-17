@@ -1,47 +1,51 @@
-import { CpfCnpj } from '../value-objects/cpf-cnpj-validator.vo';
+import { type CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
+import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
 
-export interface ClientProps {
-  id: string;
-  cpf_cnpj: string;
-  name?: string;
+export interface ClientProps extends BaseEntityProps {
+  cpfCnpj: CpfCnpj;
+  name: string;
   phone: string;
-  address?: string;
-  email?: string;
+  address: string;
+  email?: string | null;
 }
 
-type ClientState = Omit<ClientProps, 'cpf_cnpj'> & { cpf_cnpj: CpfCnpj };
+export class ClientEntity extends BaseEntity {
+  private _cpfCnpj: CpfCnpj;
+  private _name: string;
+  private _phone: string;
+  private _address: string;
+  private _email: string | null;
 
-export class Client {
-  private constructor(private readonly props: ClientState) {}
-
-  static create(props: ClientProps): Client {
-    return new Client({
-      ...props,
-      cpf_cnpj: CpfCnpj.create(props.cpf_cnpj),
-    });
+  private constructor(props: ClientProps) {
+    super(props);
+    this._cpfCnpj = props.cpfCnpj;
+    this._name = props.name;
+    this._phone = props.phone;
+    this._address = props.address;
+    this._email = props.email ?? null;
   }
 
-  get id(): string {
-    return this.props.id;
+  static create(props: ClientProps): ClientEntity {
+    return new ClientEntity(props);
   }
 
-  get cpf_cnpj(): CpfCnpj {
-    return this.props.cpf_cnpj;
+  get cpfCnpj(): CpfCnpj {
+    return this._cpfCnpj;
   }
 
-  get name(): string | undefined {
-    return this.props.name;
+  get name(): string {
+    return this._name;
   }
 
   get phone(): string {
-    return this.props.phone;
+    return this._phone;
   }
 
-  get address(): string | undefined {
-    return this.props.address;
+  get address(): string {
+    return this._address;
   }
 
-  get email(): string | undefined {
-    return this.props.email;
+  get email(): string | null {
+    return this._email;
   }
 }
