@@ -5,6 +5,10 @@
     "target": "ES2023",
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@client/*": ["src/client/*"],
+      "@infra/*": ["src/infra/*"]
+    },
     "sourceMap": true,
     "declaration": true,
     "removeComments": true,
