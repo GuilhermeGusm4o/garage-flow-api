@@ -24,7 +24,7 @@ export class LoginUseCase {
   ) {}
 
   async execute(input: LoginInput): Promise<LoginOutput> {
-    const user = await this.userRepository.findByEmail(input.email);
+    const user = await this.userRepository.findActiveByEmail(input.email);
 
     if (!user) {
       throw new NotFoundException('User not found');
