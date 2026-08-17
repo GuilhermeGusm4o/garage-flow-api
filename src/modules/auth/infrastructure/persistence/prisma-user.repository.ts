@@ -12,14 +12,21 @@ export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(): Promise<User[]> {
-    const users = await this.prisma.user.findMany({});
+    const users = await this.prisma.user.findMany({
+      where: {
+        deleted_at: null,
+      },
+    });
 
     return users.map(UserMapper.toDomain);
   }
 
   async findByEmail(email: string): Promise<User | null> {
     const raw = await this.prisma.user.findFirst({
-      where: { email },
+      where: {
+        email,
+        deleted_at: null,
+      },
     });
 
     return raw ? UserMapper.toDomain(raw) : null;

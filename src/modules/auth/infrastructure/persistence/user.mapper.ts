@@ -31,6 +31,7 @@ export const UserMapper = {
       email: user.email,
       passwordHash: user.passwordHash,
       role: user.role,
+      deleted_at: user.deletedAt,
     };
   },
 };
