@@ -1,6 +1,7 @@
 import { randomUUID, type UUID } from 'crypto';
 import { VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';
 import { LicensePlate } from '@vehicle/domain/value-objects/license-plate.vo';
+import { type VehicleRepository } from '@vehicle/domain/repositories/vehicle.repository';
 
 /** Data fixa no passado para que `touch()` sempre produza um `updatedAt` maior. */
 export const FIXED_DATE = new Date('2026-01-01T00:00:00.000Z');
@@ -29,4 +30,14 @@ export function makeVehicle(overrides: MakeVehicleOverrides = {}): VehicleEntity
     updatedAt: overrides.updatedAt ?? FIXED_DATE,
     deletedAt: overrides.deletedAt ?? null,
   });
+}
+
+export function makeVehicleRepositoryMock(): jest.Mocked<VehicleRepository> {
+  return {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    findByLicensePlate: jest.fn(),
+    update: jest.fn(),
+  };
 }

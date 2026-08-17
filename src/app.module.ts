@@ -5,10 +5,11 @@ import { ServiceModule } from './modules/service/service.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ClientModule } from '@client/client.module';
+import { VehicleModule } from '@vehicle/vehicle.module';
 
 
 @Module({
-  imports: [HealthModule, PrismaModule, AuthModule, ServiceModule, InventoryModule, ClientModule],
+  imports: [HealthModule, PrismaModule, AuthModule, ServiceModule, InventoryModule, ClientModule, VehicleModule],
   controllers: [],
   providers: [],
 })
