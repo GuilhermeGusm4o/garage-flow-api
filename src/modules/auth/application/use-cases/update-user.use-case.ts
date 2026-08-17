@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { User, UserRole } from '@auth/domain/entities/user.entity';
 
@@ -33,6 +33,12 @@ export class UpdateUserUseCase {
     }
 
     if (input.email !== undefined) {
+      const existingUser = await this.userRepository.findByEmail(input.email);
+
+      if (existingUser) {
+        throw new ConflictException('User already exists');
+      }
+
       user.email = input.email;
     }
 

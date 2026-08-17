@@ -14,6 +14,7 @@ import {
 
 import {
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -28,6 +29,7 @@ import { GetUserByEmailUseCase } from '@auth/application/use-cases/get-user-by-e
 import { ListUsersUseCase } from '@auth/application/use-cases/list-users.use-case';
 import { LoginUseCase } from '@auth/application/use-cases/login-user.use-case';
 import { UpdateUserUseCase } from '@auth/application/use-cases/update-user.use-case';
+import { ParseEmailPipe } from '../../../common/pipes/parse-email.pipe';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login-user.dto';
@@ -77,7 +79,7 @@ export class AuthController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
-  async getUserByEmail(@Param('email') email: string): Promise<UserResponseDto> {
+  async getUserByEmail(@Param('email', ParseEmailPipe) email: string): Promise<UserResponseDto> {
     const user = await this.getUserByEmailUseCase.execute(email);
 
     return UserResponseDto.fromDomain(user);
@@ -92,6 +94,9 @@ export class AuthController {
   })
   @ApiCreatedResponse({
     type: UserResponseDto,
+  })
+  @ApiConflictResponse({
+    description: 'User already exists',
   })
   async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
     const user = await this.createUserUseCase.execute(dto);
