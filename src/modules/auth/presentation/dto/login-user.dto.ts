@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-valid
 
 export class LoginDto {
   @ApiProperty({
-    example: 'john.doe@email.com',
+    example: 'admin@example.com',
     maxLength: 254,
     description: 'The user email address. Must be a valid email format.',
   })
@@ -12,7 +12,7 @@ export class LoginDto {
   email!: string;
 
   @ApiProperty({
-    example: 'StrongPassword123',
+    example: 'Password123!',
     minLength: 8,
     maxLength: 128,
     description: 'Password used to authenticate. Minimum 8 characters and maximum 128.',

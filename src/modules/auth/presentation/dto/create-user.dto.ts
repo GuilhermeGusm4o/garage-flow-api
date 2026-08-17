@@ -24,7 +24,7 @@ export class CreateUserDto {
   name!: string;
 
   @ApiProperty({
-    example: 'john.doe@email.com',
+    example: 'admin@example.com',
     maxLength: 254,
     description: 'User email address. Must be a valid email format.',
   })
@@ -33,7 +33,7 @@ export class CreateUserDto {
   email!: string;
 
   @ApiProperty({
-    example: 'StrongPassword123',
+    example: 'Password123!',
     minLength: 8,
     maxLength: 128,
     description:
