@@ -10,6 +10,4 @@ export abstract class UserRepository {
   abstract create(user: User): Promise<User>;
 
   abstract update(user: User): Promise<User>;
-
-  abstract softDelete(id: string): Promise<void>;
 }

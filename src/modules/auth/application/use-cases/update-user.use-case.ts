@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { User, UserRole } from '../../domain/entities/user.entity';
+import { User, UserRole } from '@auth/domain/entities/user.entity';
 
-import { UserRepository } from '../../domain/repositories/user.repository';
+import { UserRepository } from '@auth/domain/repositories/user.repository';
 
-import { BcryptPasswordHasher } from '../../infrastructure/security/bcrypt-password-hasher';
+import { BcryptPasswordHasher } from '@auth/infrastructure/security/bcrypt-password-hasher';
 
 interface UpdateUserInput {
   id: string;
@@ -25,7 +25,7 @@ export class UpdateUserUseCase {
     const user = await this.userRepository.findById(input.id);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     if (input.name !== undefined) {

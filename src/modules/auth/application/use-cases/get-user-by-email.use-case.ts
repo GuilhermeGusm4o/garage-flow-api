@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { User } from '../../domain/entities/user.entity';
-import { UserRepository } from '../../domain/repositories/user.repository';
+import { User } from '@auth/domain/entities/user.entity';
+import { UserRepository } from '@auth/domain/repositories/user.repository';
 
 @Injectable()
 export class GetUserByEmailUseCase {

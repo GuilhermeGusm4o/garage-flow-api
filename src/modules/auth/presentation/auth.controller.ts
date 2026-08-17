@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -15,26 +16,27 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CreateUserUseCase } from '../application/use-cases/create-user.use-case';
-import { DeleteUserUseCase } from '../application/use-cases/delete-user.use-case';
-import { GetUserByEmailUseCase } from '../application/use-cases/get-user-by-email.use-case';
-import { ListUsersUseCase } from '../application/use-cases/list-users.use-case';
-import { LoginUseCase } from '../application/use-cases/login-user.use-case';
-import { UpdateUserUseCase } from '../application/use-cases/update-user.use-case';
+import { CreateUserUseCase } from '@auth/application/use-cases/create-user.use-case';
+import { DeleteUserUseCase } from '@auth/application/use-cases/delete-user.use-case';
+import { GetUserByEmailUseCase } from '@auth/application/use-cases/get-user-by-email.use-case';
+import { ListUsersUseCase } from '@auth/application/use-cases/list-users.use-case';
+import { LoginUseCase } from '@auth/application/use-cases/login-user.use-case';
+import { UpdateUserUseCase } from '@auth/application/use-cases/update-user.use-case';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login-user.dto';
 import { LoginResponseDto } from './dto/login-user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { Roles } from '../infrastructure/security/roles.decorator';
-import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
-import { RolesGuard } from '../infrastructure/security/roles.guard';
+import { Roles } from '@auth/infrastructure/security/roles.decorator';
+import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
+import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -72,6 +74,9 @@ export class AuthController {
   @ApiOkResponse({
     type: UserResponseDto,
   })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
   async getUserByEmail(@Param('email') email: string): Promise<UserResponseDto> {
     const user = await this.getUserByEmailUseCase.execute(email);
 
@@ -102,6 +107,9 @@ export class AuthController {
   @ApiOkResponse({
     type: LoginResponseDto,
   })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
   async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
     const { access_token, user } = await this.loginUseCase.execute({
       email: dto.email,
@@ -121,7 +129,13 @@ export class AuthController {
   @ApiOkResponse({
     type: UserResponseDto,
   })
-  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UserResponseDto> {
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async updateUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
     const user = await this.updateUserUseCase.execute({
       id,
       ...dto,
@@ -141,7 +155,10 @@ export class AuthController {
   @ApiNoContentResponse({
     description: 'User successfully deleted',
   })
-  async deleteUser(@Param('id') id: string): Promise<void> {
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteUserUseCase.execute(id);
   }
 }

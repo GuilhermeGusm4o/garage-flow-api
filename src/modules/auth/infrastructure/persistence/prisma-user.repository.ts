@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../../infra/database/prisma/prisma.service';
 
-import { User } from '../../domain/entities/user.entity';
-import { UserRepository } from '../../domain/repositories/user.repository';
+import { User } from '@auth/domain/entities/user.entity';
+import { UserRepository } from '@auth/domain/repositories/user.repository';
 
 import { UserMapper } from './user.mapper';
 
@@ -55,16 +55,5 @@ export class PrismaUserRepository implements UserRepository {
     });
 
     return UserMapper.toDomain(raw);
-  }
-
-  async softDelete(id: string): Promise<void> {
-    await this.prisma.user.update({
-      where: {
-        id,
-      },
-      data: {
-        deleted_at: new Date(),
-      },
-    });
   }
 }

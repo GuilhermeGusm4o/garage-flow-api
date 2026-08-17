@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import { User } from '../../domain/entities/user.entity';
-import { UserRole } from 'generated/prisma/client';
+import { User } from '@auth/domain/entities/user.entity';
+import { UserRole } from '@generated/prisma/client';
 
 export class UserResponseDto {
   @ApiProperty({

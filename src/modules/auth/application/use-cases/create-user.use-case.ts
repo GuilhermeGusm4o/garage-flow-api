@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
-import { User, UserRole } from '../../domain/entities/user.entity';
+import { User, UserRole } from '@auth/domain/entities/user.entity';
 
-import { UserRepository } from '../../domain/repositories/user.repository';
+import { UserRepository } from '@auth/domain/repositories/user.repository';
 
-import { BcryptPasswordHasher } from '../../infrastructure/security/bcrypt-password-hasher';
+import { BcryptPasswordHasher } from '@auth/infrastructure/security/bcrypt-password-hasher';
 
 interface CreateUserInput {
   name: string;

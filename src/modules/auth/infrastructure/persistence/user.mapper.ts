@@ -1,5 +1,5 @@
-import { type User as PrismaUser } from '../../../../../generated/prisma/client';
-import { User, type UserRole } from '../../domain/entities/user.entity';
+import { type User as PrismaUser } from '@generated/prisma/client';
+import { User, type UserRole } from '@auth/domain/entities/user.entity';
 
 export const UserMapper = {
   toDomain(raw: PrismaUser): User {

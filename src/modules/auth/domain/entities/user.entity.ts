@@ -16,6 +16,11 @@ export class User {
     return this.deletedAt !== null && this.deletedAt !== undefined;
   }
 
+  softDelete(): void {
+    this.deletedAt = new Date();
+    this.updatedAt = new Date();
+  }
+
   toJSON() {
     const { passwordHash: _passwordHash, ...rest } = this;
 

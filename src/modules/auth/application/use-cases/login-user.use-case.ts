@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { User } from '../../domain/entities/user.entity';
-import { UserRepository } from '../../domain/repositories/user.repository';
-import { BcryptPasswordHasher } from '../../infrastructure/security/bcrypt-password-hasher';
+import { User } from '@auth/domain/entities/user.entity';
+import { UserRepository } from '@auth/domain/repositories/user.repository';
+import { BcryptPasswordHasher } from '@auth/infrastructure/security/bcrypt-password-hasher';
 
 interface LoginInput {
   email: string;
@@ -27,7 +27,7 @@ export class LoginUseCase {
     const user = await this.userRepository.findByEmail(input.email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new NotFoundException('User not found');
     }
 
     const isPasswordValid = await this.passwordHasher.compare(input.password, user.passwordHash);
