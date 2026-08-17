@@ -1,3 +1,5 @@
+import { CpfCnpj } from '../value-objects/cpf-cnpj-validator.vo';
+
 export interface ClientProps {
     id: string,
     cpf_cnpj: string,
@@ -7,22 +9,26 @@ export interface ClientProps {
     email?: string,
 }
 
+type ClientState = Omit<ClientProps, 'cpf_cnpj'> & { cpf_cnpj: CpfCnpj };
+
 export class Client {
 
     private constructor(
-        private readonly props: ClientProps
-
+        private readonly props: ClientState
     ) {}
 
     static create(props: ClientProps): Client {
-        return new Client(props);
+        return new Client({
+            ...props,
+            cpf_cnpj: CpfCnpj.create(props.cpf_cnpj),
+        });
     }
 
     get id(): string {
         return this.props.id;
     }
     
-    get cpf_cnpj(): string {
+    get cpf_cnpj(): CpfCnpj {
         return this.props.cpf_cnpj;
     }
 

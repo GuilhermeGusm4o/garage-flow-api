@@ -11,6 +11,7 @@
       "@auth/*": ["src/modules/auth/*"],
       "@generated/prisma/*": ["generated/prisma/*"],
       "@inventory/*": ["src/inventory/*"],
+      "@client/*": ["src/client/*"],
       "@infra/*": ["src/infra/*"]
     },
     "sourceMap": true,
