@@ -12,6 +12,7 @@
       "@generated/prisma/*": ["generated/prisma/*"],
       "@inventory/*": ["src/inventory/*"],
       "@client/*": ["src/client/*"],
+      "@vehicle/*": ["src/vehicle/*"],
       "@infra/*": ["src/infra/*"],
       "@prisma/*": ["generated/prisma/*"]
     },
