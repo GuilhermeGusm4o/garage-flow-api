@@ -1,4 +1,4 @@
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { type JwtService } from '@nestjs/jwt';
 
 import { User } from '@auth/domain/entities/user.entity';
@@ -66,14 +66,15 @@ describe('Auth Use Cases', () => {
 
       const useCase = new CreateUserUseCase(repository, passwordHasher);
 
-      await expect(
-        useCase.execute({
-          name: 'John Doe',
-          email: 'john@example.com',
-          password: 'password',
-          role: 'MECHANIC',
-        }),
-      ).rejects.toThrow('User already exists');
+      const promise = useCase.execute({
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password',
+        role: 'MECHANIC',
+      });
+
+      await expect(promise).rejects.toThrow(ConflictException);
+      await expect(promise).rejects.toThrow('User already exists');
 
       expect(repository.create).not.toHaveBeenCalled();
     });

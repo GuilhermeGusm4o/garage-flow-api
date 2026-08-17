@@ -45,13 +45,24 @@ describe('UserMapper', () => {
   });
 
   it('should map domain user to update persistence', () => {
-    const user = new User('user-id', 'John Doe', 'john@example.com', 'hashed-password', 'MECHANIC');
+    const deletedAt = new Date('2026-01-03T10:00:00.000Z');
+    const user = new User(
+      'user-id',
+      'John Doe',
+      'john@example.com',
+      'hashed-password',
+      'MECHANIC',
+      undefined,
+      undefined,
+      deletedAt,
+    );
 
     expect(UserMapper.toUpdatePersistence(user)).toEqual({
       name: user.name,
       email: user.email,
       passwordHash: user.passwordHash,
       role: user.role,
+      deleted_at: deletedAt,
     });
   });
 });
