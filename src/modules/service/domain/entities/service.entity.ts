@@ -1,4 +1,4 @@
-import { type ServicePrice } from '@service/domain/value-objects/service-price.value-object';
+import { type ServicePrice } from 'src/modules/service/domain/value-objects/service-price.value-object';
 import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
 
 export interface ServiceProps extends BaseEntityProps {

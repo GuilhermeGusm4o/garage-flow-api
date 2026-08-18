@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ServiceRepository } from '@service/domain/repositories/service.repository';
-import { ServiceEntity } from '@service/domain/entities/service.entity';
+import { ServiceRepository } from 'src/modules/service/domain/repositories/service.repository';
+import { ServiceEntity } from 'src/modules/service/domain/entities/service.entity';
 
 @Injectable()
 export class FindServiceByIdUseCase {

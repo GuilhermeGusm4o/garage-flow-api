@@ -83,10 +83,7 @@
     },
     "moduleNameMapper": {
       "^@common/(.*)$": "<rootDir>/src/common/$1",
-      "^@service/application/(.*)$": "<rootDir>/src/service/application/$1",
-      "^@service/domain/(.*)$": "<rootDir>/src/service/domain/$1",
-      "^@service/presentation/(.*)$": "<rootDir>/src/service/presentation/$1",
-      "^@service/infrastructure/(.*)$": "<rootDir>/src/service/infrastructure/$1"
+      "^@service/(.*)$": "<rootDir>/src/modules/service/$1"
     },
     "collectCoverageFrom": [
       "src/**/*.ts",

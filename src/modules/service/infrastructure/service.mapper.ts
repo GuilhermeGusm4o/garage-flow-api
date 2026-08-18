@@ -1,7 +1,7 @@
 import { type Service as PrismaService } from '@prisma/client';
 import { type UUID } from 'crypto';
-import { ServiceEntity } from '@service/domain/entities/service.entity';
-import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
+import { ServiceEntity } from 'src/modules/service/domain/entities/service.entity';
+import { ServicePrice } from 'src/modules/service/domain/value-objects/service-price.value-object';
 
 export class ServiceMapper {
   static toDomain(raw: PrismaService): ServiceEntity {

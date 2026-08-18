@@ -7,10 +7,7 @@
     "baseUrl": "./",
     "paths": {
       "@common/*": ["src/common/*"],
-      "@service/application/*": ["src/service/application/*"],
-      "@service/domain/*": ["src/service/domain/*"],
-      "@service/presentation/*": ["src/service/presentation/*"],
-      "@service/infrastructure/*": ["src/service/infrastructure/*"],
+      "@service/*": ["src/modules/service/*"],
       "@prisma/*": ["generated/prisma/*"]
     },
     "sourceMap": true,
