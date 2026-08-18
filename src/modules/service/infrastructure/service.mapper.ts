@@ -1,4 +1,4 @@
-import { type Service as PrismaService } from '@prisma/client';
+import { type Service as PrismaService } from '@generated/prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
 import { type UUID } from 'crypto';
 import { ServiceEntity } from '@service/domain/entities/service.entity';

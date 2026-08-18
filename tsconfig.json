@@ -8,7 +8,8 @@
     "paths": {
       "@common/*": ["src/common/*"],
       "@service/*": ["src/modules/service/*"],
-      "@prisma/*": ["generated/prisma/*"]
+      "@auth/*": ["src/modules/auth/*"],
+      "@generated/prisma/*": ["generated/prisma/*"]
     },
     "sourceMap": true,
     "declaration": true,

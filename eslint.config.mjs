@@ -64,5 +64,13 @@ export default tseslint.config(
     },
   },
 
+  // Regras específicas para testes
+  {
+    files: ['test/**/*.ts', 'src/**/*.spec.ts', 'src/**/*.test.ts'],
+    rules: {
+      'max-lines-per-function': 'off',
+    },
+  },
+
   prettier,
 );

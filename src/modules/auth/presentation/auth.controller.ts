@@ -1,0 +1,169 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+import {
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import { CreateUserUseCase } from '@auth/application/use-cases/create-user.use-case';
+import { DeleteUserUseCase } from '@auth/application/use-cases/delete-user.use-case';
+import { GetUserByEmailUseCase } from '@auth/application/use-cases/get-user-by-email.use-case';
+import { ListUsersUseCase } from '@auth/application/use-cases/list-users.use-case';
+import { LoginUseCase } from '@auth/application/use-cases/login-user.use-case';
+import { UpdateUserUseCase } from '@auth/application/use-cases/update-user.use-case';
+import { ParseEmailPipe } from '../../../common/pipes/parse-email.pipe';
+
+import { CreateUserDto } from './dto/create-user.dto';
+import { LoginDto } from './dto/login-user.dto';
+import { LoginResponseDto } from './dto/login-user-response.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { Roles } from '@auth/infrastructure/security/roles.decorator';
+import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
+import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+
+@ApiTags('Auth')
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private readonly createUserUseCase: CreateUserUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly deleteUserUseCase: DeleteUserUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly listUsersUseCase: ListUsersUseCase,
+    private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
+  ) {}
+
+  @Get('users')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List all users',
+  })
+  @ApiOkResponse({
+    type: [UserResponseDto],
+  })
+  async listUsers(): Promise<UserResponseDto[]> {
+    const users = await this.listUsersUseCase.execute();
+
+    return users.map(UserResponseDto.fromDomain);
+  }
+
+  @Get('users/:email')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get a user by email',
+  })
+  @ApiOkResponse({
+    type: UserResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async getUserByEmail(@Param('email', ParseEmailPipe) email: string): Promise<UserResponseDto> {
+    const user = await this.getUserByEmailUseCase.execute(email);
+
+    return UserResponseDto.fromDomain(user);
+  }
+
+  @Post('users')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Create a user',
+  })
+  @ApiCreatedResponse({
+    type: UserResponseDto,
+  })
+  @ApiConflictResponse({
+    description: 'User already exists',
+  })
+  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+    const user = await this.createUserUseCase.execute(dto);
+
+    return UserResponseDto.fromDomain(user);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login user and generate JWT token',
+  })
+  @ApiOkResponse({
+    type: LoginResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
+    const { access_token, user } = await this.loginUseCase.execute({
+      email: dto.email,
+      password: dto.password,
+    });
+
+    return LoginResponseDto.create(access_token, user);
+  }
+
+  @Patch('users/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Update a user',
+  })
+  @ApiOkResponse({
+    type: UserResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async updateUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    const user = await this.updateUserUseCase.execute({
+      id,
+      ...dto,
+    });
+
+    return UserResponseDto.fromDomain(user);
+  }
+
+  @Delete('users/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Soft delete a user',
+  })
+  @ApiNoContentResponse({
+    description: 'User successfully deleted',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.deleteUserUseCase.execute(id);
+  }
+}
