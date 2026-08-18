@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { type ServiceEntity } from 'src/modules/service/domain/entities/service.entity';
+import { type ServiceEntity } from '@service/domain/entities/service.entity';
 
 export class ServiceResponse {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })

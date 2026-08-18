@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ServiceRepository } from 'src/modules/service/domain/repositories/service.repository';
+import { ServiceRepository } from '@service/domain/repositories/service.repository';
 
 @Injectable()
 export class DeleteServiceUseCase {

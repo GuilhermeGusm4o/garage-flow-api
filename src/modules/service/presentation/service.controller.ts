@@ -17,14 +17,14 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateServiceUseCase } from 'src/modules/service/application/use-cases/create-service.use-case';
-import { FindAllServicesUseCase } from 'src/modules/service/application/use-cases/find-all-services.use-case';
-import { FindServiceByIdUseCase } from 'src/modules/service/application/use-cases/find-service-by-id.use-case';
-import { UpdateServiceUseCase } from 'src/modules/service/application/use-cases/update-service.use-case';
-import { DeleteServiceUseCase } from 'src/modules/service/application/use-cases/delete-service.use-case';
-import { CreateServiceRequest } from 'src/modules/service/presentation/dtos/create-service.request';
-import { UpdateServiceRequest } from 'src/modules/service/presentation/dtos/update-service.request';
-import { ServiceResponse } from 'src/modules/service/presentation/dtos/service.response';
+import { CreateServiceUseCase } from '@service/application/use-cases/create-service.use-case';
+import { FindAllServicesUseCase } from '@service/application/use-cases/find-all-services.use-case';
+import { FindServiceByIdUseCase } from '@service/application/use-cases/find-service-by-id.use-case';
+import { UpdateServiceUseCase } from '@service/application/use-cases/update-service.use-case';
+import { DeleteServiceUseCase } from '@service/application/use-cases/delete-service.use-case';
+import { CreateServiceRequest } from '@service/presentation/dtos/create-service.request';
+import { UpdateServiceRequest } from '@service/presentation/dtos/update-service.request';
+import { ServiceResponse } from '@service/presentation/dtos/service.response';
 
 @ApiTags('Services')
 @Controller('services')

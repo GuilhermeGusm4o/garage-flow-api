@@ -19,7 +19,7 @@ describe('ServiceEntity', () => {
     const service = makeService();
     expect(service.id).toBe('123e4567-e89b-12d3-a456-426614174000');
     expect(service.name).toBe('Troca de óleo');
-    expect(service.price.getValue().toNumber()).toBe(150);
+    expect(service.price.getValue()).toBe(150);
     expect(service.isDeleted).toBe(false);
     expect(service.deletedAt).toBeNull();
   });
@@ -28,14 +28,14 @@ describe('ServiceEntity', () => {
     const service = makeService();
     service.update('Alinhamento', ServicePrice.create(200));
     expect(service.name).toBe('Alinhamento');
-    expect(service.price.getValue().toNumber()).toBe(200);
+    expect(service.price.getValue()).toBe(200);
   });
 
   it('should update only name', () => {
     const service = makeService();
     service.update('Balanceamento');
     expect(service.name).toBe('Balanceamento');
-    expect(service.price.getValue().toNumber()).toBe(150);
+    expect(service.price.getValue()).toBe(150);
   });
 
   it('should update updatedAt when updated', () => {

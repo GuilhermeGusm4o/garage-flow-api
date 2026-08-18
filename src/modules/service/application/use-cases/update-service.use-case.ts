@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ServiceRepository } from 'src/modules/service/domain/repositories/service.repository';
-import { ServiceEntity } from 'src/modules/service/domain/entities/service.entity';
-import { ServicePrice } from 'src/modules/service/domain/value-objects/service-price.value-object';
+import { ServiceRepository } from '@service/domain/repositories/service.repository';
+import { ServiceEntity } from '@service/domain/entities/service.entity';
+import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
 
 @Injectable()
 export class UpdateServiceUseCase {

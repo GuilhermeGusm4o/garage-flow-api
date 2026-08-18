@@ -1,21 +1,22 @@
-import { Decimal } from '@prisma/client/runtime/client';
-
 export class ServicePrice {
-  private readonly value: Decimal;
+  private readonly value: number;
 
-  private constructor(value: Decimal) {
+  private constructor(value: number) {
     this.value = value;
   }
 
-  static create(value: Decimal | number | string): ServicePrice {
-    const decimal = new Decimal(value);
-    if (decimal.lessThan(0)) {
+  static create(value: number | string): ServicePrice {
+    const numericValue = typeof value === 'string' ? Number(value) : value;
+    if (Number.isNaN(numericValue)) {
+      throw new Error('Service price must be a valid number');
+    }
+    if (numericValue < 0) {
       throw new Error('Service price must be non-negative');
     }
-    return new ServicePrice(decimal);
+    return new ServicePrice(numericValue);
   }
 
-  getValue(): Decimal {
+  getValue(): number {
     return this.value;
   }
 }

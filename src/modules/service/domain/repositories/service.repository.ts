@@ -1,4 +1,4 @@
-import { type ServiceEntity } from 'src/modules/service/domain/entities/service.entity';
+import { type ServiceEntity } from '@service/domain/entities/service.entity';
 
 export abstract class ServiceRepository {
   abstract create(service: ServiceEntity): Promise<ServiceEntity>;
