@@ -1,4 +1,3 @@
-import { describe, expect, it } from '@jest/globals';
 import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
 
 describe('ServicePrice', () => {

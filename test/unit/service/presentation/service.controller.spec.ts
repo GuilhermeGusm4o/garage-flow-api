@@ -1,5 +1,4 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NotFoundException } from '@nestjs/common';
 import { ServiceController } from '@service/presentation/service.controller';
 import { CreateServiceUseCase } from '@service/application/use-cases/create-service.use-case';

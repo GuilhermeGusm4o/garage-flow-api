@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NotFoundException } from '@nestjs/common';
 import { CreateServiceUseCase } from '@service/application/use-cases/create-service.use-case';
 import { FindAllServicesUseCase } from '@service/application/use-cases/find-all-services.use-case';

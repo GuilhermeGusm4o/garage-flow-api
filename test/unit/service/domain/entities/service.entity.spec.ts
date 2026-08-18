@@ -1,4 +1,3 @@
-import { describe, expect, it } from '@jest/globals';
 import { ServiceEntity } from '@service/domain/entities/service.entity';
 import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
 import { type UUID } from 'crypto';
