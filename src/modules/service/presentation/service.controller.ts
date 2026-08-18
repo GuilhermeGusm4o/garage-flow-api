@@ -8,8 +8,10 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -25,6 +27,9 @@ import { DeleteServiceUseCase } from '@service/application/use-cases/delete-serv
 import { CreateServiceRequest } from '@service/presentation/dtos/create-service.request';
 import { UpdateServiceRequest } from '@service/presentation/dtos/update-service.request';
 import { ServiceResponse } from '@service/presentation/dtos/service.response';
+import { Roles } from '@auth/infrastructure/security/roles.decorator';
+import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
+import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 
 @ApiTags('Services')
 @Controller('services')
@@ -38,19 +43,24 @@ export class ServiceController {
   ) {}
 
   @Post()
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Creates a new service',
   })
   @ApiCreatedResponse({ type: ServiceResponse })
+  @ApiBearerAuth('access-token')
   async create(@Body() body: CreateServiceRequest): Promise<ServiceResponse> {
     const service = await this.createServiceUseCase.execute(body.name, body.price);
     return ServiceResponse.fromEntity(service);
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'List all services',
   })
+  @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: [ServiceResponse] })
   async findAll(): Promise<ServiceResponse[]> {
     const services = await this.findAllServicesUseCase.execute();
@@ -58,9 +68,11 @@ export class ServiceController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Fetch a service by ID',
   })
+  @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async findOne(@Param('id') id: string): Promise<ServiceResponse> {
@@ -69,9 +81,12 @@ export class ServiceController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Updates a service by ID',
   })
+  @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async update(
@@ -83,7 +98,10 @@ export class ServiceController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Deletes a service by ID',
   })
