@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 import { User } from '@auth/domain/entities/user.entity';
 import { UserRole } from '@generated/prisma/client';
@@ -31,11 +31,6 @@ export class UserResponseDto {
   @ApiProperty()
   updatedAt?: Date;
 
-  @ApiPropertyOptional({
-    nullable: true,
-  })
-  deletedAt?: Date | null;
-
   static fromDomain(user: User): UserResponseDto {
     const dto = new UserResponseDto();
 
@@ -45,7 +40,6 @@ export class UserResponseDto {
     dto.role = user.role;
     dto.createdAt = user.createdAt;
     dto.updatedAt = user.updatedAt;
-    dto.deletedAt = user.deletedAt;
 
     return dto;
   }
