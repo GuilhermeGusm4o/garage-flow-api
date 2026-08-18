@@ -20,22 +20,30 @@ async function main() {
 
   for (const r of roles) {
     console.log(`Seeding user ${r.email} (${r.role})`);
-    await prisma.user.upsert({
-      where: { email: r.email },
-      update: {
-        name: r.name,
-        passwordHash,
-        role: r.role as any,
-        deleted_at: null,
-      },
-      create: {
-        id: randomUUID(),
-        name: r.name,
-        email: r.email,
-        passwordHash,
-        role: r.role as any,
-      },
+    const existingUser = await prisma.user.findFirst({
+      where: { email: r.email, deleted_at: null },
     });
+
+    if (existingUser) {
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          name: r.name,
+          passwordHash,
+          role: r.role as any,
+        },
+      });
+    } else {
+      await prisma.user.create({
+        data: {
+          id: randomUUID(),
+          name: r.name,
+          email: r.email,
+          passwordHash,
+          role: r.role as any,
+        },
+      });
+    }
   }
 
   await prisma.$disconnect();
