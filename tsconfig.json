@@ -8,7 +8,9 @@
     "paths": {
       "@inventory/*": ["inventory/*"],
       "@common/*": ["common/*"],
-      "@infra/*": ["infra/*"]
+      "@infra/*": ["infra/*"],
+      "@auth/*": ["modules/auth/*"],
+      "@generated/prisma/*": ["../generated/prisma/*"]
     },
     "sourceMap": true,
     "declaration": true,
