@@ -86,6 +86,11 @@
       "!src/**/*.module.ts"
     ],
     "coverageDirectory": "./coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@inventory/(.*)$": "<rootDir>/src/inventory/$1",
+      "^@common/(.*)$": "<rootDir>/src/common/$1",
+      "^@infra/(.*)$": "<rootDir>/src/infra/$1"
+    }
   }
 }
