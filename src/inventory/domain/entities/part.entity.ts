@@ -1,5 +1,5 @@
-import { UnitOfMeasure } from '../value-objects/unit-of-measure.vo';
-import { Quantity } from '../value-objects/quantity.vo';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 
 export class Part {
   private static readonly MINIMUM_QUANTITY = 5;
@@ -18,6 +18,11 @@ export class Part {
 
   consume(amountUsed: number): void {
     this.quantity = this.quantity.subtract(amountUsed);
+  }
+
+  updateDetails(name: string, unitPrice: number): void {
+    this.name = name;
+    this.unitPrice = unitPrice;
   }
 
   isBelowMinimum(): boolean {

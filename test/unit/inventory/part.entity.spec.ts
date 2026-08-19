@@ -1,6 +1,6 @@
-import { Part } from '../../../src/inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '../../../src/inventory/domain/value-objects/unit-of-measure.vo';
-import { Quantity } from '../../../src/inventory/domain/value-objects/quantity.vo';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 
 describe('Part', () => {
   const buildPart = (quantity = 10) =>
@@ -21,6 +21,13 @@ describe('Part', () => {
   it('deve lançar um erro ao consumir mais do que o disponível', () => {
     const part = buildPart(3);
     expect(() => part.consume(5)).toThrow('Estoque insuficiente');
+  });
+
+  it('deve atualizar nome e preço', () => {
+    const part = buildPart(10);
+    part.updateDetails('Óleo sintético 5W40', 59.9);
+    expect(part.name).toBe('Óleo sintético 5W40');
+    expect(part.unitPrice).toBe(59.9);
   });
 
   it('deve reportar abaixo do mínimo quando a quantidade estiver abaixo do limite fixo', () => {
