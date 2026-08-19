@@ -12,6 +12,7 @@ describe('CreatePartUseCase', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       findBelowMinimum: jest.fn(),
+      softDelete: jest.fn(),
     };
     useCase = new CreatePartUseCase(repository);
   });
