@@ -17,9 +17,9 @@
     "start:prod": "node dist/src/main",
     "lint:check": "eslint \"{src,test}/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test": "jest --setupFiles dotenv/config",
+    "test:watch": "jest --watch --setupFiles dotenv/config",
+    "test:cov": "jest --coverage --setupFiles dotenv/config",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky"
@@ -38,7 +38,7 @@
     "class-validator": "^0.15.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "pg": "^8.22.0",
+    "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -54,6 +54,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pg": "^8.21.0",
     "@types/supertest": "^7.0.0",
     "dotenv": "^17.4.2",
     "eslint": "^9.18.0",
@@ -85,13 +86,14 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "moduleNameMapper": {
-      "^@common/(.*)$": "<rootDir>/src/common/$1",
-      "^@client/(.*)$": "<rootDir>/src/client/$1",
-      "^@vehicle/(.*)$": "<rootDir>/src/vehicle/$1",
-      "^@infra/(.*)$": "<rootDir>/src/infra/$1"
       "^@service/(.*)$": "<rootDir>/src/modules/service/$1",
       "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
-      "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1"
+      "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1",
+      "^@inventory/(.*)$": "<rootDir>/src/inventory/$1",
+      "^@common/(.*)$": "<rootDir>/src/common/$1",
+      "^@infra/(.*)$": "<rootDir>/src/infra/$1",
+      "^@client/(.*)$": "<rootDir>/src/client/$1",
+      "^@vehicle/(.*)$": "<rootDir>/src/vehicle/$1"
     },
     "collectCoverageFrom": [
       "src/**/*.ts",

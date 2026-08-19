@@ -10,9 +10,10 @@
       "@client/*": ["src/client/*"],
       "@vehicle/*": ["src/vehicle/*"],
       "@infra/*": ["src/infra/*"],
-      "@prisma/*": ["generated/prisma/*"]
+      "@prisma/*": ["generated/prisma/*"],
       "@service/*": ["src/modules/service/*"],
       "@auth/*": ["src/modules/auth/*"],
+      "@inventory/*": ["src/inventory/*"],
       "@generated/prisma/*": ["generated/prisma/*"]
     },
     "sourceMap": true,
