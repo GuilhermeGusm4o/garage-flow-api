@@ -28,6 +28,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/garage-flow?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
     volumes:
       - .:/app
       - /app/node_modules
@@ -36,6 +38,7 @@ services:
         condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy &&
+      npx prisma db seed || true &&
       if [ \"$NODE_ENV\" = \"production\" ];
       then npm run start:prod;
       else npm run start:debug;

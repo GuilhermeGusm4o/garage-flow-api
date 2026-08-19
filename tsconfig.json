@@ -5,6 +5,10 @@
     "target": "ES2023",
     "outDir": "./dist",
     "baseUrl": "./",
+   "paths": {
+      "@auth/*": ["src/modules/auth/*"],
+      "@generated/prisma/*": ["generated/prisma/*"]
+    },
     "sourceMap": true,
     "declaration": true,
     "removeComments": true,
