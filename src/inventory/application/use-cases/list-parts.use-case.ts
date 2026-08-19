@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Part } from '../../domain/entities/part.entity';
-import { PartRepository } from '../../domain/repositories/part.repository';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { PartRepository } from '@inventory/domain/repositories/part.repository';
 
 @Injectable()
 export class ListPartsUseCase {

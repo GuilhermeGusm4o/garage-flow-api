@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { Part } from '../../domain/entities/part.entity';
-import { UnitOfMeasure } from '../../domain/value-objects/unit-of-measure.vo';
-import { Quantity } from '../../domain/value-objects/quantity.vo';
-import { PartRepository } from '../../domain/repositories/part.repository';
-import { CreatePartDto } from '../../presentation/dtos/create-part.dto';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { PartRepository } from '@inventory/domain/repositories/part.repository';
+import { CreatePartDto } from '@inventory/presentation/dtos/create-part.dto';
 
 @Injectable()
 export class CreatePartUseCase {
