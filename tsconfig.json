@@ -5,7 +5,9 @@
     "target": "ES2023",
     "outDir": "./dist",
     "baseUrl": "./",
-   "paths": {
+    "paths": {
+      "@common/*": ["src/common/*"],
+      "@service/*": ["src/modules/service/*"],
       "@auth/*": ["src/modules/auth/*"],
       "@generated/prisma/*": ["generated/prisma/*"]
     },
@@ -15,6 +17,7 @@
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
+    "types": ["node", "jest"],
     "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
