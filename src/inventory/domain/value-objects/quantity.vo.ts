@@ -15,4 +15,8 @@ export class Quantity {
     }
     return new Quantity(this.value - amount);
   }
+
+  toJSON() {
+    return this.value;
+  }
 }

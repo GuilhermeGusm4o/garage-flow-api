@@ -6,4 +6,8 @@ export class UnitOfMeasure {
       throw new Error(`Unidade de medida inválida: ${value}`);
     }
   }
+
+  toJSON() {
+    return this.value;
+  }
 }

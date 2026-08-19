@@ -25,7 +25,9 @@ export class PrismaPartRepository extends PartRepository {
   }
 
   async findAll(): Promise<Part[]> {
-    const rows = await this.prisma.inventory.findMany();
+    const rows = await this.prisma.inventory.findMany({
+      where: { deleted_at: null },
+    });
     return rows.map(PartMapper.toDomain);
   }
 

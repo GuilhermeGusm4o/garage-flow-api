@@ -1,4 +1,4 @@
-import { UnitOfMeasure } from '../../../src/inventory/domain/value-objects/unit-of-measure.vo';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 
 describe('UnitOfMeasure', () => {
   it.each(['ML', 'G', 'KG', 'UNIT'])('deve aceitar o valor válido %s', (value) => {

@@ -1,6 +1,6 @@
-import { CreatePartUseCase } from '../../../src/inventory/application/use-cases/create-part.use-case';
-import { PartRepository } from '../../../src/inventory/domain/repositories/part.repository';
-import { CreatePartDto } from '../../../src/inventory/presentation/dtos/create-part.dto';
+import { CreatePartUseCase } from '@inventory/application/use-cases/create-part.use-case';
+import { PartRepository } from '@inventory/domain/repositories/part.repository';
+import { CreatePartDto } from '@inventory/presentation/dtos/create-part.dto';
 
 describe('CreatePartUseCase', () => {
   let repository: jest.Mocked<PartRepository>;

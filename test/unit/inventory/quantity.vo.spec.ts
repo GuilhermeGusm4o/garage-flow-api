@@ -1,4 +1,4 @@
-import { Quantity } from '../../../src/inventory/domain/value-objects/quantity.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 
 describe('Quantity', () => {
   it('não deve permitir valores negativos na criação', () => {
