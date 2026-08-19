@@ -29,6 +29,7 @@ services:
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/garage-flow?schema=public
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
     volumes:
       - .:/app
       - /app/node_modules

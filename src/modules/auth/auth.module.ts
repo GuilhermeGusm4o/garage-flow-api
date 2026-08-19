@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { type StringValue } from 'ms';
 
 import { PrismaModule } from '../../infra/database/prisma/prisma.module';
 
@@ -20,13 +21,15 @@ import { JwtStrategy } from './infrastructure/security/jwt.strategy';
 import { JwtAuthGuard } from './infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from './infrastructure/security/roles.guard';
 
+const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '1h') as StringValue;
+
 @Module({
   imports: [
     PrismaModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: '1h',
+        expiresIn: jwtExpiresIn,
       },
     }),
   ],
