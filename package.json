@@ -89,7 +89,9 @@
       "^@common/(.*)$": "<rootDir>/src/common/$1",
       "^@service/(.*)$": "<rootDir>/src/modules/service/$1",
       "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
-      "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1"
+      "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1",
+      "^@inventory/(.*)$": "<rootDir>/src/inventory/$1",
+      "^@infra/(.*)$": "<rootDir>/src/infra/$1"
     },
     "collectCoverageFrom": [
       "src/**/*.ts",

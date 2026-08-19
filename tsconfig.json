@@ -9,7 +9,9 @@
       "@common/*": ["src/common/*"],
       "@service/*": ["src/modules/service/*"],
       "@auth/*": ["src/modules/auth/*"],
-      "@generated/prisma/*": ["generated/prisma/*"]
+      "@generated/prisma/*": ["generated/prisma/*"],
+      "@inventory/*": ["src/inventory/*"],
+      "@infra/*": ["src/infra/*"]
     },
     "sourceMap": true,
     "declaration": true,
