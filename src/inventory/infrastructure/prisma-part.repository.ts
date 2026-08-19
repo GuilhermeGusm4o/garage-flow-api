@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../infra/database/prisma/prisma.service';
-import { Part } from '../domain/entities/part.entity';
-import { PartRepository } from '../domain/repositories/part.repository';
-import { PartMapper } from './part.mapper';
+import { PrismaService } from '@infra/database/prisma/prisma.service';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { PartRepository } from '@inventory/domain/repositories/part.repository';
+import { PartMapper } from '@inventory/infrastructure/part.mapper';
 
 @Injectable()
 export class PrismaPartRepository extends PartRepository {
   constructor(private readonly prisma: PrismaService) {
     super();
- }
+  }
 
   async save(part: Part): Promise<void> {
     const data = PartMapper.toPersistence(part);
@@ -32,5 +32,12 @@ export class PrismaPartRepository extends PartRepository {
   async findBelowMinimum(): Promise<Part[]> {
     const rows = await this.prisma.inventory.findMany();
     return rows.map(PartMapper.toDomain).filter((p) => p.isBelowMinimum());
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.prisma.inventory.update({
+      where: { id },
+      data: { deleted_at: new Date() },
+    });
   }
 }
