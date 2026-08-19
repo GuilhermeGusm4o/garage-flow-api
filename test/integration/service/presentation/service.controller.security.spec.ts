@@ -128,57 +128,54 @@ describe('ServiceController (security)', () => {
     delete process.env.JWT_SECRET;
   });
 
-  describe.each(endpoints)(
-    '$description',
-    ({ method, path, body, adminOnly, successStatus }) => {
-      it('should return 401 when no Authorization header is sent', async () => {
+  describe.each(endpoints)('$description', ({ method, path, body, adminOnly, successStatus }) => {
+    it('should return 401 when no Authorization header is sent', async () => {
+      await request(app.getHttpServer())
+        [method](path)
+        .send(body ?? {})
+        .expect(401);
+    });
+
+    it('should return 401 when the Authorization header is "Bearer " (empty token)', async () => {
+      await request(app.getHttpServer())
+        [method](path)
+        .set('Authorization', 'Bearer ')
+        .send(body ?? {})
+        .expect(401);
+    });
+
+    if (adminOnly) {
+      it('should return 403 when authenticated as a non-ADMIN role', async () => {
         await request(app.getHttpServer())
           [method](path)
+          .set('Authorization', `Bearer ${nonAdminToken()}`)
           .send(body ?? {})
-          .expect(401);
+          .expect(403);
       });
 
-      it('should return 401 when the Authorization header is "Bearer " (empty token)', async () => {
+      it('should allow access when authenticated as ADMIN', async () => {
         await request(app.getHttpServer())
           [method](path)
-          .set('Authorization', 'Bearer ')
+          .set('Authorization', `Bearer ${adminToken()}`)
           .send(body ?? {})
-          .expect(401);
+          .expect(successStatus);
+      });
+    } else {
+      it('should allow access when authenticated as ADMIN', async () => {
+        await request(app.getHttpServer())
+          [method](path)
+          .set('Authorization', `Bearer ${adminToken()}`)
+          .send(body ?? {})
+          .expect(successStatus);
       });
 
-      if (adminOnly) {
-        it('should return 403 when authenticated as a non-ADMIN role', async () => {
-          await request(app.getHttpServer())
-            [method](path)
-            .set('Authorization', `Bearer ${nonAdminToken()}`)
-            .send(body ?? {})
-            .expect(403);
-        });
-
-        it('should allow access when authenticated as ADMIN', async () => {
-          await request(app.getHttpServer())
-            [method](path)
-            .set('Authorization', `Bearer ${adminToken()}`)
-            .send(body ?? {})
-            .expect(successStatus);
-        });
-      } else {
-        it('should allow access when authenticated as ADMIN', async () => {
-          await request(app.getHttpServer())
-            [method](path)
-            .set('Authorization', `Bearer ${adminToken()}`)
-            .send(body ?? {})
-            .expect(successStatus);
-        });
-
-        it('should allow access when authenticated as a non-ADMIN role', async () => {
-          await request(app.getHttpServer())
-            [method](path)
-            .set('Authorization', `Bearer ${nonAdminToken()}`)
-            .send(body ?? {})
-            .expect(successStatus);
-        });
-      }
-    },
-  );
+      it('should allow access when authenticated as a non-ADMIN role', async () => {
+        await request(app.getHttpServer())
+          [method](path)
+          .set('Authorization', `Bearer ${nonAdminToken()}`)
+          .send(body ?? {})
+          .expect(successStatus);
+      });
+    }
+  });
 });
