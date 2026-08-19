@@ -86,6 +86,9 @@
     },
     "moduleNameMapper": {
       "^@common/(.*)$": "<rootDir>/src/common/$1",
+      "^@client/(.*)$": "<rootDir>/src/client/$1",
+      "^@vehicle/(.*)$": "<rootDir>/src/vehicle/$1",
+      "^@infra/(.*)$": "<rootDir>/src/infra/$1"
       "^@service/(.*)$": "<rootDir>/src/modules/service/$1",
       "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
       "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1"
