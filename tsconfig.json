@@ -14,7 +14,6 @@
       "@client/*": ["src/client/*"],
       "@vehicle/*": ["src/vehicle/*"],
       "@infra/*": ["src/infra/*"],
-      "@prisma/*": ["generated/prisma/*"]
     },
     "sourceMap": true,
     "declaration": true,
