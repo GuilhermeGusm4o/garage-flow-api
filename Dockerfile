@@ -40,7 +40,7 @@ FROM base AS production
 
 ENV NODE_ENV=production
 
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/generated ./generated
