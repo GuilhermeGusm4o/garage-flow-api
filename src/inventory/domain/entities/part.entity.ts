@@ -10,7 +10,7 @@ export class Part {
     public unitOfMeasure: UnitOfMeasure,
     public unitPrice: number,
     public quantity: Quantity,
-  ) { }
+  ) {}
 
   restock(amountReceived: number): void {
     this.quantity = this.quantity.add(amountReceived);
