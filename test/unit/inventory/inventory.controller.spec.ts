@@ -22,6 +22,9 @@ describe('InventoryController (integration)', () => {
   });
 
   afterAll(async () => {
+    await prisma.serviceOrderInventory.deleteMany();
+    await prisma.serviceOrderService.deleteMany();
+    await prisma.serviceOrder.deleteMany();
     await prisma.inventory.deleteMany();
     await app.close();
   });

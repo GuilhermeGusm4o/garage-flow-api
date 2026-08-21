@@ -27,6 +27,6 @@ import { FindVehicleByLicensePlateUseCase } from '@vehicle/application/use-cases
     DeleteVehicleUseCase,
     FindVehicleByLicensePlateUseCase,
   ],
-  exports: [VehicleRepository, FindVehicleByIdUseCase],
+  exports: [VehicleRepository, FindVehicleByIdUseCase, FindVehicleByLicensePlateUseCase],
 })
 export class VehicleModule {}
