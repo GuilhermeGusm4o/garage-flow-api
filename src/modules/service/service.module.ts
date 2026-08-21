@@ -23,5 +23,6 @@ import { PrismaService } from '../../infra/database/prisma/prisma.service';
     UpdateServiceUseCase,
     DeleteServiceUseCase,
   ],
+  exports: [ServiceRepository, FindServiceByIdUseCase],
 })
 export class ServiceModule {}

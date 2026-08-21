@@ -14,6 +14,7 @@
       "@service/*": ["src/modules/service/*"],
       "@auth/*": ["src/modules/auth/*"],
       "@inventory/*": ["src/inventory/*"],
+      "@service-orders/*": ["src/modules/service-orders/*"],
       "@generated/prisma/*": ["generated/prisma/*"]
     },
     "sourceMap": true,
