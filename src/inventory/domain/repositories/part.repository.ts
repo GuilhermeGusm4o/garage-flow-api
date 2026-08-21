@@ -1,4 +1,4 @@
-import { Part } from '@inventory/domain/entities/part.entity';
+import { type Part } from '@inventory/domain/entities/part.entity';
 
 export abstract class PartRepository {
   abstract save(part: Part): Promise<void>;

@@ -1,4 +1,4 @@
-import { type Vehicle as VehicleModel } from '@prisma/client';
+import { type Vehicle as VehicleModel } from '@generated/prisma/client';
 import { type UUID } from 'crypto';
 import { VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';
 import { LicensePlate } from '@vehicle/domain/value-objects/license-plate.vo';

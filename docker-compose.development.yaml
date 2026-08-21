@@ -1,3 +1,5 @@
+name: garage-flow-development
+
 services:
   postgres:
     image: postgres:16
@@ -20,8 +22,7 @@ services:
   api:
     build:
       context: .
-      args:
-        NODE_ENV: ${NODE_ENV}
+      target: development
     ports:
       - '3000:3000'
       - '9229:9229'
@@ -39,10 +40,7 @@ services:
     command: >
       sh -c "npm run db:migrate:deploy &&
       npx prisma db seed || true &&
-      if [ \"$NODE_ENV\" = \"production\" ];
-      then npm run start:prod;
-      else npm run start:debug;
-      fi"
+      npm run start:debug"
 
 volumes:
   postgres_data:

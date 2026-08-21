@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { PartRepository } from '@inventory/domain/repositories/part.repository';
+import { type PartRepository } from '@inventory/domain/repositories/part.repository';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
