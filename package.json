@@ -93,7 +93,8 @@
       "^@common/(.*)$": "<rootDir>/src/common/$1",
       "^@infra/(.*)$": "<rootDir>/src/infra/$1",
       "^@client/(.*)$": "<rootDir>/src/client/$1",
-      "^@vehicle/(.*)$": "<rootDir>/src/vehicle/$1"
+      "^@vehicle/(.*)$": "<rootDir>/src/vehicle/$1",
+      "^@service-orders/(.*)$": "<rootDir>/src/modules/service-orders/$1"
     },
     "collectCoverageFrom": [
       "src/**/*.ts",

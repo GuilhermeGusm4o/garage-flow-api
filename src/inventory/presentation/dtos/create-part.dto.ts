@@ -5,7 +5,7 @@ export class CreatePartDto {
   @IsNotEmpty()
   name!: string;
 
-  @IsIn(['ml', 'g', 'kg', 'unit'])
+  @IsIn(['ML', 'G', 'KG', 'UNIT'])
   unitOfMeasure!: string;
 
   @IsNumber()
@@ -16,5 +16,4 @@ export class CreatePartDto {
   @Min(0)
   @IsOptional()
   quantity?: number;
-
 }
