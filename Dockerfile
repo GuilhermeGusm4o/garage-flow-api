@@ -1,6 +1,6 @@
 FROM node:24.19.0-alpine AS base
 
-RUN apk update && apk upgrade --no-cache && npm install -g npm@latest
+RUN apk update && apk upgrade --no-cache && npm install -g npm@11.6.2
 
 WORKDIR /app
 
