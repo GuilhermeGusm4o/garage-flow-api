@@ -6,14 +6,42 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@common/*": ["src/common/*"],
-      "@service/*": ["src/modules/service/*"],
-      "@auth/*": ["src/modules/auth/*"],
-      "@generated/prisma/*": ["generated/prisma/*"],
-      "@inventory/*": ["src/inventory/*"],
-      "@client/*": ["src/client/*"],
-      "@vehicle/*": ["src/vehicle/*"],
-      "@infra/*": ["src/infra/*"],
+      "@common/*": [
+        "src/common/*"
+      ],
+      "@client/*": [
+        "src/client/*"
+      ],
+      "@vehicle/*": [
+        "src/vehicle/*"
+      ],
+      "@infra/*": [
+        "src/infra/*"
+      ],
+      "@prisma/*": [
+        "generated/prisma/*"
+      ],
+      "@service/*": [
+        "src/modules/service/*"
+      ],
+      "@auth/*": [
+        "src/modules/auth/*"
+      ],
+      "@generated/prisma/*": [
+        "generated/prisma/*"
+      ],
+      "@inventory/*": [
+        "src/inventory/*"
+      ],
+      "@client/*": [
+        "src/client/*"
+      ],
+      "@vehicle/*": [
+        "src/vehicle/*"
+      ],
+      "@infra/*": [
+        "src/infra/*"
+      ],
     },
     "sourceMap": true,
     "declaration": true,
@@ -21,7 +49,10 @@
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
-    "types": ["node", "jest"],
+    "types": [
+      "node",
+      "jest"
+    ],
     "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
