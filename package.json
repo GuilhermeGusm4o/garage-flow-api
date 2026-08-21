@@ -17,9 +17,9 @@
     "start:prod": "node dist/src/main",
     "lint:check": "eslint \"{src,test}/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "test": "jest --setupFiles dotenv/config",
-    "test:watch": "jest --watch --setupFiles dotenv/config",
-    "test:cov": "jest --coverage --setupFiles dotenv/config",
+    "test": "jest --setupFiles dotenv/config --runInBand",
+    "test:watch": "jest --watch --setupFiles dotenv/config --runInBand",
+    "test:cov": "jest --coverage --setupFiles dotenv/config --runInBand",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky"
