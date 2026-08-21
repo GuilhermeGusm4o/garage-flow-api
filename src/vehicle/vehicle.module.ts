@@ -25,5 +25,6 @@ import { PrismaService } from '../infra/database/prisma/prisma.service';
     UpdateVehicleUseCase,
     DeleteVehicleUseCase,
   ],
+  exports: [VehicleRepository, FindVehicleByIdUseCase],
 })
 export class VehicleModule {}
