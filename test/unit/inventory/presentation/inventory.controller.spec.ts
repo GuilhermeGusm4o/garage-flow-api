@@ -11,7 +11,13 @@ import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 
 const makePart = (overrides: Partial<Part> = {}): Part =>
   Object.assign(
-    new Part('123e4567-e89b-12d3-a456-426614174000', 'Óleo de motor 5W30', new UnitOfMeasure('ML'), 45.9, new Quantity(20)),
+    new Part(
+      '123e4567-e89b-12d3-a456-426614174000',
+      'Óleo de motor 5W30',
+      new UnitOfMeasure('ML'),
+      45.9,
+      new Quantity(20),
+    ),
     overrides,
   );
 
@@ -47,7 +53,12 @@ describe('InventoryController', () => {
     createPart.execute.mockResolvedValue(part);
 
     await expect(
-      controller.create({ name: 'Óleo de motor 5W30', unitOfMeasure: 'ML', unitPrice: 45.9, quantity: 20 }),
+      controller.create({
+        name: 'Óleo de motor 5W30',
+        unitOfMeasure: 'ML',
+        unitPrice: 45.9,
+        quantity: 20,
+      }),
     ).resolves.toBe(part);
     expect(createPart.execute).toHaveBeenCalledWith({
       name: 'Óleo de motor 5W30',
@@ -68,8 +79,13 @@ describe('InventoryController', () => {
     const part = makePart({ name: 'Filtro de óleo premium', unitPrice: 25 });
     updatePart.execute.mockResolvedValue(part);
 
-    await expect(controller.update('part-id', { name: 'Filtro de óleo premium', unitPrice: 25 })).resolves.toBe(part);
-    expect(updatePart.execute).toHaveBeenCalledWith('part-id', { name: 'Filtro de óleo premium', unitPrice: 25 });
+    await expect(
+      controller.update('part-id', { name: 'Filtro de óleo premium', unitPrice: 25 }),
+    ).resolves.toBe(part);
+    expect(updatePart.execute).toHaveBeenCalledWith('part-id', {
+      name: 'Filtro de óleo premium',
+      unitPrice: 25,
+    });
   });
 
   it('dá baixa no estoque', async () => {
