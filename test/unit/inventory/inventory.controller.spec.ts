@@ -9,6 +9,7 @@ import { DomainExceptionFilter } from '@common/filters/domain-exception.filter';
 describe('InventoryController (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  const createdPartIds: string[] = [];
 
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -22,10 +23,10 @@ describe('InventoryController (integration)', () => {
   });
 
   afterAll(async () => {
-    await prisma.serviceOrderInventory.deleteMany();
-    await prisma.serviceOrderService.deleteMany();
-    await prisma.serviceOrder.deleteMany();
-    await prisma.inventory.deleteMany();
+    await prisma.serviceOrderInventory.deleteMany({
+      where: { inventoryId: { in: createdPartIds } },
+    });
+    await prisma.inventory.deleteMany({ where: { id: { in: createdPartIds } } });
     await app.close();
   });
 
@@ -36,6 +37,7 @@ describe('InventoryController (integration)', () => {
 
     expect(response.status).toBe(201);
     expect(response.body.name).toBe('Óleo de motor 5W30');
+    createdPartIds.push(response.body.id);
   });
 
   it('POST /inventory deve rejeitar uma unidade de medida inválida', async () => {
@@ -56,6 +58,7 @@ describe('InventoryController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/inventory')
       .send({ name: 'Filtro de óleo', unitOfMeasure: 'UNIT', unitPrice: 20, quantity: 10 });
+    createdPartIds.push(created.body.id);
 
     const response = await request(app.getHttpServer())
       .patch(`/inventory/${created.body.id}`)
@@ -69,6 +72,7 @@ describe('InventoryController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/inventory')
       .send({ name: 'Pastilha de freio', unitOfMeasure: 'UNIT', unitPrice: 80, quantity: 10 });
+    createdPartIds.push(created.body.id);
 
     const response = await request(app.getHttpServer())
       .patch(`/inventory/${created.body.id}/consume`)
@@ -82,6 +86,7 @@ describe('InventoryController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/inventory')
       .send({ name: 'Vela de ignição', unitOfMeasure: 'UNIT', unitPrice: 15, quantity: 8 });
+    createdPartIds.push(created.body.id);
 
     const response = await request(app.getHttpServer()).delete(`/inventory/${created.body.id}`);
     expect(response.status).toBe(204);

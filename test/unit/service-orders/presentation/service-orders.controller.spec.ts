@@ -9,10 +9,13 @@ import { DomainExceptionFilter } from '@common/filters/domain-exception.filter';
 describe('ServiceOrdersController (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let clientId: string;
   let clientCpfCnpj: string;
+  let vehicleId: string;
   let licensePlate: string;
   let serviceId: string;
   let partId: string;
+  const createdServiceOrderIds: string[] = [];
 
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -32,6 +35,7 @@ describe('ServiceOrdersController (integration)', () => {
         phone: '11999990000',
       },
     });
+    clientId = client.id;
     clientCpfCnpj = client.cpfCnpj;
 
     const vehicle = await prisma.vehicle.create({
@@ -43,6 +47,7 @@ describe('ServiceOrdersController (integration)', () => {
         clientId: client.id,
       },
     });
+    vehicleId = vehicle.id;
     licensePlate = vehicle.licensePlate;
 
     const service = await prisma.service.create({ data: { name: 'Troca de óleo', price: 100 } });
@@ -55,13 +60,17 @@ describe('ServiceOrdersController (integration)', () => {
   });
 
   afterAll(async () => {
-    await prisma.serviceOrderInventory.deleteMany();
-    await prisma.serviceOrderService.deleteMany();
-    await prisma.serviceOrder.deleteMany();
-    await prisma.inventory.deleteMany();
-    await prisma.service.deleteMany();
-    await prisma.vehicle.deleteMany();
-    await prisma.client.deleteMany();
+    await prisma.serviceOrderInventory.deleteMany({
+      where: { serviceOrderId: { in: createdServiceOrderIds } },
+    });
+    await prisma.serviceOrderService.deleteMany({
+      where: { serviceOrderId: { in: createdServiceOrderIds } },
+    });
+    await prisma.serviceOrder.deleteMany({ where: { id: { in: createdServiceOrderIds } } });
+    await prisma.inventory.deleteMany({ where: { id: partId } });
+    await prisma.service.deleteMany({ where: { id: serviceId } });
+    await prisma.vehicle.deleteMany({ where: { id: vehicleId } });
+    await prisma.client.deleteMany({ where: { id: clientId } });
     await app.close();
   });
 
@@ -78,6 +87,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(201);
     expect(response.body.status).toBe('RECEIVED');
     expect(response.body.totalAmount).toBe(160);
+    createdServiceOrderIds.push(response.body.id);
   });
 
   it('POST /service-orders deve rejeitar cliente inexistente', async () => {
@@ -98,6 +108,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .send({ clientCpfCnpj, licensePlate, services: [{ serviceId }], parts: [] });
+    createdServiceOrderIds.push(created.body.id);
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}`)
@@ -111,6 +122,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .send({ clientCpfCnpj, licensePlate, services: [], parts: [] });
+    createdServiceOrderIds.push(created.body.id);
 
     const response = await request(app.getHttpServer()).delete(
       `/service-orders/${created.body.id}`,
