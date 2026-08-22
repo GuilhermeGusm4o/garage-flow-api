@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { ServiceOrdersModule } from '@service-orders/service-orders.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';

@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { InventoryModule } from '@inventory/inventory.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';
@@ -92,7 +92,7 @@ describe('InventoryController (integration)', () => {
     expect(response.status).toBe(204);
 
     const listResponse = await request(app.getHttpServer()).get('/inventory');
-    const stillListed = listResponse.body.some((p: any) => p.id === created.body.id);
+    const stillListed = listResponse.body.some((p: { id: string }) => p.id === created.body.id);
     expect(stillListed).toBe(false);
   });
 });

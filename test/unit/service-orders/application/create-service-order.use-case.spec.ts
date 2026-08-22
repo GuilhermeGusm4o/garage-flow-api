@@ -1,8 +1,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases/create-service-order.use-case';
-import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
-import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
+import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
+import { type CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { type FindClientByCpfCnpjUseCase } from '@client/application/use-cases/find-client-by-cpf-cnpj.use-case';
+import { type FindVehicleByLicensePlateUseCase } from '@vehicle/application/use-cases/find-vehicle-by-license-plate.use-case';
+import { type FindServiceByIdUseCase } from '@service/application/use-cases/find-service-by-id.use-case';
+import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
+import { type CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
 
 describe('CreateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
@@ -33,11 +38,11 @@ describe('CreateServiceOrderUseCase', () => {
 
     useCase = new CreateServiceOrderUseCase(
       repository,
-      findClientByCpfCnpj as any,
-      findVehicleByLicensePlate as any,
-      findServiceById as any,
-      findPartById as any,
-      calculateAvailability as any,
+      findClientByCpfCnpj as unknown as FindClientByCpfCnpjUseCase,
+      findVehicleByLicensePlate as unknown as FindVehicleByLicensePlateUseCase,
+      findServiceById as unknown as FindServiceByIdUseCase,
+      findPartById as unknown as FindPartByIdUseCase,
+      calculateAvailability as unknown as CalculateAvailabilityUseCase,
     );
   });
 

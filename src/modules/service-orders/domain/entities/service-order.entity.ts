@@ -1,6 +1,6 @@
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
-import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
-import { PartItem } from '@service-orders/domain/entities/part-item.entity';
+import { type ServiceItem } from '@service-orders/domain/entities/service-item.entity';
+import { type PartItem } from '@service-orders/domain/entities/part-item.entity';
 
 export class ServiceOrder {
   constructor(
