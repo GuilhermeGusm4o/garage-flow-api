@@ -1,10 +1,10 @@
 import { InventoryController } from '@inventory/presentation/inventory.controller';
-import { CreatePartUseCase } from '@inventory/application/use-cases/create-part.use-case';
-import { RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
-import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
-import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
-import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { type CreatePartUseCase } from '@inventory/application/use-cases/create-part.use-case';
+import { type RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
+import { type ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
+import { type ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
+import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
+import { type SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
