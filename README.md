@@ -181,32 +181,38 @@ Além dos contextos de negócio, `common` contém elementos compartilhados pela 
 Crie o arquivo `.env` a partir do `.env.example`:
 
 ```env
-NODE_ENV=producttion
+NODE_ENV=development
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/garage-flow?schema=public
 ```
 
-O `NODE_ENV` determina o modo de execução da aplicação:
+O projeto tem dois arquivos de Docker Compose, um por ambiente:
 
-* `development`: executa com `start:debug` e hot reload.
-* `production`: executa com `start:prod` utilizando o build da aplicação.
+* `docker-compose.development.yaml`: builda o estágio `development` do `Dockerfile` (com devDependencies), monta o código como volume e roda com **hot reload** (`start:debug`).
+* `docker-compose.production.yaml`: builda o estágio `production` (imagem enxuta, sem devDependencies) e roda a aplicação já compilada (`node dist/src/main`).
 
 ### 2. Subir a aplicação
 
 Na raiz do projeto:
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.development.yaml up --build
 ```
 
 O Docker Compose inicia:
 
 * PostgreSQL;
 * API NestJS;
-* aplicação das migrations do Prisma.
+* aplicação das migrations e do seed do Prisma.
 
-A aplicação aguarda o PostgreSQL estar saudável antes de iniciar.
+A aplicação aguarda o PostgreSQL estar saudável antes de iniciar. O código é montado como volume, permitindo **hot reload** durante o desenvolvimento.
 
-No modo `development`, o código da aplicação é montado como volume, permitindo **hot reload** durante o desenvolvimento.
+### Ambiente de produção
+
+```bash
+docker compose -f docker-compose.production.yaml up --build
+```
+
+Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy` a partir do estágio `build`, que ainda tem a CLI do Prisma, e encerra) e só então a API, que só inicia depois que o `migrate` terminar com sucesso. O seed **não** roda em produção, pois cria usuários com senha padrão conhecida — é destinado apenas a desenvolvimento. O container `migrate` fica parado (`Exited (0)`) após concluir; pode ser removido com `docker compose -f docker-compose.production.yaml rm -f migrate`.
 
 ### 3. Acessos
 

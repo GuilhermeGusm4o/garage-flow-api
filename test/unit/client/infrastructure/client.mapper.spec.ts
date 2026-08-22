@@ -1,4 +1,4 @@
-import { type Client as ClientModel } from '@prisma/client';
+import { type Client as ClientModel } from '@generated/prisma/client';
 import { ClientMapper } from '@client/infrastructure/client.mapper';
 import { FIXED_DATE, makeClient } from '../client.factory';
 
