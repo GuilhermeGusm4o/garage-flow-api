@@ -8,9 +8,11 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -27,6 +29,9 @@ import { DeleteVehicleUseCase } from '@vehicle/application/use-cases/delete-vehi
 import { CreateVehicleRequest } from '@vehicle/presentation/dtos/create-vehicle.request';
 import { UpdateVehicleRequest } from '@vehicle/presentation/dtos/update-vehicle.request';
 import { VehicleResponse } from '@vehicle/presentation/dtos/vehicle.response';
+import { Roles } from '@auth/infrastructure/security/roles.decorator';
+import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
+import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
@@ -40,6 +45,9 @@ export class VehicleController {
   ) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Creates a new vehicle',
   })
@@ -59,6 +67,8 @@ export class VehicleController {
   }
 
   @Get()
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'List all vehicles',
   })
@@ -69,6 +79,8 @@ export class VehicleController {
   }
 
   @Get(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Fetch a vehicle by ID',
   })
@@ -80,6 +92,9 @@ export class VehicleController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Updates a vehicle by ID',
   })
@@ -98,6 +113,9 @@ export class VehicleController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Deletes a vehicle by ID',
