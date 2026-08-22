@@ -33,7 +33,7 @@ export class PrismaPartRepository extends PartRepository {
 
   async findBelowMinimum(): Promise<Part[]> {
     const rows = await this.prisma.inventory.findMany();
-    return rows.map(PartMapper.toDomain).filter((p) => p.isBelowMinimum());
+    return rows.map(PartMapper.toDomain).filter((part: Part) => part.isBelowMinimum());
   }
 
   async softDelete(id: string): Promise<void> {
