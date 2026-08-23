@@ -14,6 +14,7 @@ import { ServiceOrdersModule } from './modules/service-orders/service-orders.mod
     PrismaModule,
     AuthModule,
     ServiceModule,
+    InventoryModule,
     ClientModule,
     VehicleModule,
     InventoryModule,

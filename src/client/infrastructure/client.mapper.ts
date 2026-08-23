@@ -1,4 +1,4 @@
-import { type Client as ClientModel } from '@prisma/client';
+import { type Client as ClientModel } from '@generated/prisma/client';
 import { type UUID } from 'crypto';
 import { ClientEntity } from '@client/domain/entities/client.entity';
 import { CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';

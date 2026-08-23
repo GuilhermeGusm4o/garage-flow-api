@@ -1,4 +1,4 @@
-import { type Vehicle as VehicleModel } from '@prisma/client';
+import { type Vehicle as VehicleModel } from '@generated/prisma/client';
 import { VehicleMapper } from '@vehicle/infrastructure/vehicle.mapper';
 import { FIXED_DATE, makeVehicle } from '../vehicle.factory';
 

@@ -1,5 +1,5 @@
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
-import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { type UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { type Quantity } from '@inventory/domain/value-objects/quantity.vo';
 
 export class Part {
   private static readonly MINIMUM_QUANTITY = 5;
