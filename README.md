@@ -212,12 +212,12 @@ A aplicação aguarda o PostgreSQL estar saudável antes de iniciar. O código �
 docker compose -f docker-compose.production.yaml up --build
 ```
 
-Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy` a partir do estágio `build`, que ainda tem a CLI do Prisma, e encerra) e só então a API, que só inicia depois que o `migrate` terminar com sucesso. O seed **não** roda em produção, pois cria usuários com senha padrão conhecida — é destinado apenas a desenvolvimento. O container `migrate` fica parado (`Exited (0)`) após concluir; pode ser removido com `docker compose -f docker-compose.production.yaml rm -f migrate`.
+Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy`), um container `seed` (que cria os usuários e dados de demonstração) e só então a API. Os containers `migrate` e `seed` usam o estágio `build`, que ainda possui a CLI do Prisma, e encerram após concluir. A API só inicia quando ambos terminam com sucesso. Os usuários do seed usam a senha padrão `Password123!`, adequada para o ambiente de avaliação local.
 
 ### 3. Acessos
 
 * **API:** `http://localhost:3000`
-* **Swagger:** `http://localhost:3000/api`
+* **Swagger:** `http://localhost:3000/docs`
 
 ### Prisma Studio
 
