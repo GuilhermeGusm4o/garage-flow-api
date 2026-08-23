@@ -63,8 +63,7 @@ export class ServiceOrdersController {
 
   @Get()
   @ApiBearerAuth('access-token')
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Retrieves all service orders',
   })
@@ -76,8 +75,7 @@ export class ServiceOrdersController {
 
   @Get(':id')
   @ApiBearerAuth('access-token')
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Retrieves a service order by ID',
   })
