@@ -10,7 +10,15 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -25,6 +33,7 @@ import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
+import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -46,8 +55,10 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Creates a new service order',
   })
-  create(@Body() dto: CreateServiceOrderDto) {
-    return this.createServiceOrder.execute(dto);
+  @ApiCreatedResponse({ type: ServiceOrderResponseDto })
+  async create(@Body() dto: CreateServiceOrderDto): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.createServiceOrder.execute(dto);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
   @Get()
@@ -57,8 +68,10 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Retrieves all service orders',
   })
-  findAll() {
-    return this.findAllServiceOrders.execute();
+  @ApiOkResponse({ type: [ServiceOrderResponseDto] })
+  async findAll(): Promise<ServiceOrderResponseDto[]> {
+    const serviceOrders = await this.findAllServiceOrders.execute();
+    return serviceOrders.map(ServiceOrderResponseDto.fromEntity);
   }
 
   @Get(':id')
@@ -68,8 +81,11 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Retrieves a service order by ID',
   })
-  findOne(@Param('id') id: string) {
-    return this.findServiceOrderById.execute(id);
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.findServiceOrderById.execute(id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
   @Patch(':id')
@@ -79,8 +95,14 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Updates a service order by ID',
   })
-  update(@Param('id') id: string, @Body() dto: UpdateServiceOrderDto) {
-    return this.updateServiceOrder.execute(id, dto);
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateServiceOrderDto,
+  ): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.updateServiceOrder.execute(id, dto);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
   @Patch(':id/status')
@@ -90,8 +112,14 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Updates the status of a service order by ID',
   })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateServiceOrderStatusDto) {
-    return this.updateServiceOrderStatus.execute(id, dto);
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateServiceOrderStatusDto,
+  ): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.updateServiceOrderStatus.execute(id, dto);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
   @Patch(':id/services-and-parts')
@@ -101,8 +129,14 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Adds services and parts to a service order',
   })
-  addServicesAndPartsToServiceOrder(@Param('id') id: string, @Body() dto: AddServicesAndPartsDto) {
-    return this.addServicesAndParts.execute(id, dto);
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async addServicesAndPartsToServiceOrder(
+    @Param('id') id: string,
+    @Body() dto: AddServicesAndPartsDto,
+  ): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.addServicesAndParts.execute(id, dto);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
   @Delete(':id')
@@ -113,7 +147,9 @@ export class ServiceOrdersController {
     summary: 'Soft deletes a service order by ID',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return this.softDeleteServiceOrder.execute(id);
+  @ApiNoContentResponse({ description: 'Service order deleted successfully' })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async remove(@Param('id') id: string): Promise<void> {
+    await this.softDeleteServiceOrder.execute(id);
   }
 }
