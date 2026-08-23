@@ -41,7 +41,7 @@ services:
         condition: service_healthy
     command: >
       sh -c "npm run db:migrate:deploy &&
-      npx prisma db seed || true &&
+      npx prisma db seed &&
       npm run start:debug"
 
 volumes:
