@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Logger,
-  NotFoundException,
-  type ArgumentsHost,
-} from '@nestjs/common';
+import { BadRequestException, Logger, NotFoundException, type ArgumentsHost } from '@nestjs/common';
 import { type Request, type Response } from 'express';
 import { DomainError } from '@common/errors/domain.error';
 import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
