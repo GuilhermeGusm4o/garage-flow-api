@@ -9,6 +9,7 @@ export class SoftDeletePartUseCase {
     const part = await this.partRepository.findById(id);
     if (!part) throw new NotFoundException('Peça não encontrada');
 
-    await this.partRepository.softDelete(id);
+    part.softDelete();
+    await this.partRepository.save(part);
   }
 }

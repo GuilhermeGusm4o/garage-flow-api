@@ -30,7 +30,17 @@ export class CreateUserUseCase {
 
     const passwordHash = await this.passwordHasher.hash(input.password);
 
-    const user = new User(randomUUID(), input.name, input.email, passwordHash, input.role);
+    const now = new Date();
+
+    const user = User.create({
+      id: randomUUID(),
+      name: input.name,
+      email: input.email,
+      passwordHash,
+      role: input.role,
+      createdAt: now,
+      updatedAt: now,
+    });
 
     return this.userRepository.create(user);
   }

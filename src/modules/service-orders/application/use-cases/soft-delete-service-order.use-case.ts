@@ -10,6 +10,6 @@ export class SoftDeleteServiceOrderUseCase {
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
     serviceOrder.softDelete();
-    await this.serviceOrderRepository.softDelete(id);
+    await this.serviceOrderRepository.save(serviceOrder);
   }
 }

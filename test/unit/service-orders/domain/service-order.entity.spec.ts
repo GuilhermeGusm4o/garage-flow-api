@@ -6,8 +6,8 @@ import { DomainError } from '@common/errors/domain.error';
 
 describe('ServiceOrder', () => {
   it('deve criar uma OS com status RECEIVED e a descrição informada', () => {
-    const serviceItems = [new ServiceItem(null, 'service-1', 100)];
-    const partItems = [new PartItem(null, 'part-1', 2, 50)];
+    const serviceItems = [ServiceItem.create('service-1', 100)];
+    const partItems = [PartItem.create('part-1', 2, 50)];
 
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', serviceItems, partItems, 200);
 
@@ -19,10 +19,10 @@ describe('ServiceOrder', () => {
 
   it('deve armazenar o valor total recebido', () => {
     const serviceItems = [
-      new ServiceItem(null, 'service-1', 100),
-      new ServiceItem(null, 'service-2', 50),
+      ServiceItem.create('service-1', 100),
+      ServiceItem.create('service-2', 50),
     ];
-    const partItems = [new PartItem(null, 'part-1', 2, 30)];
+    const partItems = [PartItem.create('part-1', 2, 30)];
 
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', serviceItems, partItems, 410);
 
@@ -206,16 +206,16 @@ describe('ServiceOrder', () => {
     const os = ServiceOrder.create(
       'vehicle-1',
       'Ruído no motor',
-      [new ServiceItem(null, 'service-1', 100)],
-      [new PartItem(null, 'part-1', 1, 30)],
+      [ServiceItem.create('service-1', 100)],
+      [PartItem.create('part-1', 1, 30)],
       130,
     );
     os.update({ mechanicId: 'mechanic-1' });
     os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
 
     os.addServicesAndParts(
-      [new ServiceItem(null, 'service-2', 50)],
-      [new PartItem(null, 'part-2', 2, 20)],
+      [ServiceItem.create('service-2', 50)],
+      [PartItem.create('part-2', 2, 20)],
       220,
     );
 
@@ -227,5 +227,31 @@ describe('ServiceOrder', () => {
     os.finishDiagnosis('mechanic-1');
 
     expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
+  });
+
+  it('deve definir createdAt e updatedAt na criação', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    expect(os.createdAt).toBeInstanceOf(Date);
+    expect(os.updatedAt).toBeInstanceOf(Date);
+  });
+
+  it('deve bumpar updatedAt ao atualizar o status', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    const before = os.updatedAt;
+
+    os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
+
+    expect(os.updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+  });
+
+  it('deve marcar como excluído ao chamar softDelete', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    expect(os.isDeleted).toBe(false);
+
+    os.softDelete();
+
+    expect(os.isDeleted).toBe(true);
+    expect(os.deletedAt).toBeInstanceOf(Date);
   });
 });

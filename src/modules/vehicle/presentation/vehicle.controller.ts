@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -86,7 +87,7 @@ export class VehicleController {
   })
   @ApiOkResponse({ type: VehicleResponse })
   @ApiNotFoundResponse({ description: 'Vehicle not found' })
-  async findOne(@Param('id') id: string): Promise<VehicleResponse> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<VehicleResponse> {
     const vehicle = await this.findVehicleByIdUseCase.execute(id);
     return VehicleResponse.fromEntity(vehicle);
   }
@@ -101,7 +102,7 @@ export class VehicleController {
   @ApiOkResponse({ type: VehicleResponse })
   @ApiNotFoundResponse({ description: 'Vehicle not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateVehicleRequest,
   ): Promise<VehicleResponse> {
     const vehicle = await this.updateVehicleUseCase.execute(id, {
@@ -122,7 +123,7 @@ export class VehicleController {
   })
   @ApiNoContentResponse({ description: 'Vehicle deleted successfully' })
   @ApiNotFoundResponse({ description: 'Vehicle not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteVehicleUseCase.execute(id);
   }
 }

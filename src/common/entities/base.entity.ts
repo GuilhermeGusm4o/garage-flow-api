@@ -1,35 +1,18 @@
-import { type UUID } from 'crypto';
+import {
+  TimestampedEntity,
+  type TimestampedEntityProps,
+} from '@common/entities/timestamped.entity';
 
-export interface BaseEntityProps {
-  id: UUID;
-  createdAt: Date;
-  updatedAt: Date;
+export interface BaseEntityProps extends TimestampedEntityProps {
   deletedAt?: Date | null;
 }
 
-export abstract class BaseEntity {
-  protected readonly _id: UUID;
-  protected _createdAt: Date;
-  protected _updatedAt: Date;
+export abstract class BaseEntity extends TimestampedEntity {
   protected _deletedAt: Date | null;
 
   protected constructor(props: BaseEntityProps) {
-    this._id = props.id;
-    this._createdAt = props.createdAt;
-    this._updatedAt = props.updatedAt;
+    super(props);
     this._deletedAt = props.deletedAt ?? null;
-  }
-
-  get id(): UUID {
-    return this._id;
-  }
-
-  get createdAt(): Date {
-    return this._createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this._updatedAt;
   }
 
   get deletedAt(): Date | null {
@@ -38,10 +21,6 @@ export abstract class BaseEntity {
 
   get isDeleted(): boolean {
     return this._deletedAt !== null;
-  }
-
-  protected touch(): void {
-    this._updatedAt = new Date();
   }
 
   softDelete(): void {

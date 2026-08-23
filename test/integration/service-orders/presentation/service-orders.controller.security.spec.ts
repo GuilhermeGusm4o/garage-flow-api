@@ -38,7 +38,7 @@ const makeServiceOrder = (): ServiceOrder =>
   ServiceOrder.create(
     'vehicle-id',
     'Ruído no motor',
-    [new ServiceItem(null, 'service-id', 100)],
+    [ServiceItem.create('service-id', 100)],
     [],
     100,
   );

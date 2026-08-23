@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseEnumPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
@@ -159,7 +160,7 @@ export class ServiceOrdersController {
   })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.findServiceOrderById.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
@@ -214,7 +215,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateServiceOrderDto,
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.updateServiceOrder.execute(id, dto);
@@ -233,7 +234,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async startServiceDiagnosis(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.startDiagnosis.execute(id, request.user.id);
@@ -252,7 +253,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: AddServicesAndPartsResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async addServicesAndPartsToServiceOrder(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddServicesAndPartsDto,
     @Req() request: { user: { id: string } },
   ): Promise<AddServicesAndPartsResponseDto> {
@@ -350,7 +351,7 @@ export class ServiceOrdersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiNoContentResponse({ description: 'Service order deleted successfully' })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.softDeleteServiceOrder.execute(id);
   }
 
