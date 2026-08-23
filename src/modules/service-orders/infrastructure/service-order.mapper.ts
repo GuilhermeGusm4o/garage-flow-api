@@ -2,25 +2,38 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { type ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
-import { type Prisma } from '@generated/prisma/client';
+import {
+  type ServiceOrder as PrismaServiceOrder,
+  type ServiceOrderService as PrismaServiceOrderService,
+  type ServiceOrderInventory as PrismaServiceOrderInventory,
+  type Inventory as PrismaInventory,
+} from '@generated/prisma/client';
 
-type ServiceOrderWithItems = Prisma.ServiceOrderGetPayload<{
-  include: { services: true; inventory: true };
-}>;
+type PrismaServiceOrderWithRelations = PrismaServiceOrder & {
+  services: PrismaServiceOrderService[];
+  inventory: (PrismaServiceOrderInventory & { inventory: PrismaInventory })[];
+};
 
 export class ServiceOrderMapper {
-  static toDomain(raw: ServiceOrderWithItems): ServiceOrder {
+  static toDomain(raw: PrismaServiceOrderWithRelations): ServiceOrder {
     const serviceItems = raw.services.map(
-      (service) => new ServiceItem(service.id, service.serviceId, Number(service.price)),
+      (s) => new ServiceItem(s.id, s.serviceId, Number(s.price)),
     );
     const partItems = raw.inventory.map(
-      (part) =>
-        new PartItem(part.id, part.inventoryId, Number(part.quantity), Number(part.unitPrice)),
+      (p) =>
+        new PartItem(
+          p.id,
+          p.inventoryId,
+          Number(p.quantity),
+          Number(p.unitPrice),
+          p.inventory.unitOfMeasure,
+        ),
     );
 
     return new ServiceOrder(
       raw.id,
       raw.vehicleId,
+      raw.description,
       raw.mechanicId,
       raw.status as ServiceOrderStatus,
       raw.approvedAt,
@@ -34,6 +47,7 @@ export class ServiceOrderMapper {
     return {
       id: serviceOrder.id,
       vehicleId: serviceOrder.vehicleId,
+      description: serviceOrder.description,
       mechanicId: serviceOrder.mechanicId,
       status: serviceOrder.status,
       approvedAt: serviceOrder.approvedAt,

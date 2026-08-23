@@ -37,4 +37,11 @@ export class PrismaServiceRepository implements ServiceRepository {
     });
     return ServiceMapper.toDomain(raw);
   }
+
+  async findByIdList(idList: string[]): Promise<ServiceEntity[]> {
+    const raws = await this.prisma.service.findMany({
+      where: { id: { in: idList }, deleted_at: null },
+    });
+    return raws.map(ServiceMapper.toDomain);
+  }
 }

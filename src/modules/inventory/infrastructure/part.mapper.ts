@@ -3,11 +3,11 @@ import { UnitOfMeasure as UnitOfMeasureVO } from '@inventory/domain/value-object
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import {
   type UnitOfMeasure as PrismaUnitOfMeasure,
-  type Inventory,
+  type Inventory as PrismaInventory,
 } from '@generated/prisma/client';
 
 export class PartMapper {
-  static toDomain(row: Inventory): Part {
+  static toDomain(row: PrismaInventory): Part {
     return new Part(
       row.id,
       row.name,

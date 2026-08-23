@@ -5,4 +5,5 @@ export abstract class ServiceRepository {
   abstract findAll(): Promise<ServiceEntity[]>;
   abstract findById(id: string): Promise<ServiceEntity | null>;
   abstract update(service: ServiceEntity): Promise<ServiceEntity>;
+  abstract findByIdList(idList: string[]): Promise<ServiceEntity[]>;
 }

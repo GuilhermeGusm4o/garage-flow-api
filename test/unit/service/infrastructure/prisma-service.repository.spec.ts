@@ -130,4 +130,20 @@ describe('PrismaServiceRepository', () => {
       expect(result.price.getValue()).toBe(200);
     });
   });
+
+  describe('findByIdList', () => {
+    it('should return mapped entities for the given list of ids', async () => {
+      const service1 = makePrismaRow({ id: 'id-1' });
+      const service2 = makePrismaRow({ id: 'id-2' });
+      prisma.service.findMany.mockResolvedValue([service1, service2]);
+
+      const result = await repository.findByIdList(['id-1', 'id-2']);
+      expect(prisma.service.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ['id-1', 'id-2'] }, deleted_at: null },
+      });
+      expect(result).toHaveLength(2);
+      expect(result[0]).toBeInstanceOf(ServiceEntity);
+      expect(result[1]).toBeInstanceOf(ServiceEntity);
+    });
+  });
 });

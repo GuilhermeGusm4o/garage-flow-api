@@ -12,4 +12,8 @@ export class UnitOfMeasure {
   toJSON() {
     return this.value;
   }
+
+  static getValidValues(): string[] {
+    return UnitOfMeasure.VALID_VALUES;
+  }
 }
