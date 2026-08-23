@@ -14,7 +14,8 @@ export class ServiceOrderMapper {
       (service) => new ServiceItem(service.id, service.serviceId, Number(service.price)),
     );
     const partItems = raw.inventory.map(
-      (part) => new PartItem(part.id, part.inventoryId, Number(part.quantity), Number(part.unitPrice)),
+      (part) =>
+        new PartItem(part.id, part.inventoryId, Number(part.quantity), Number(part.unitPrice)),
     );
 
     return new ServiceOrder(

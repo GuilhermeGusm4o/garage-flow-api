@@ -1,3 +1,5 @@
+import { DomainError } from '@common/errors/domain.error';
+
 export class ServicePrice {
   private readonly value: number;
 
@@ -8,10 +10,10 @@ export class ServicePrice {
   static create(value: number | string): ServicePrice {
     const numericValue = typeof value === 'string' ? Number(value) : value;
     if (Number.isNaN(numericValue)) {
-      throw new Error('Service price must be a valid number');
+      throw new DomainError('Service price must be a valid number');
     }
     if (numericValue < 0) {
-      throw new Error('Service price must be non-negative');
+      throw new DomainError('Service price must be non-negative');
     }
     return new ServicePrice(numericValue);
   }

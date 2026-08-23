@@ -1,4 +1,6 @@
-export class InvalidLicensePlateError extends Error {
+import { DomainError } from '@common/errors/domain.error';
+
+export class InvalidLicensePlateError extends DomainError {
   constructor(value: string) {
     super(`Placa inválida: "${value}"`);
     this.name = 'InvalidLicensePlateError';

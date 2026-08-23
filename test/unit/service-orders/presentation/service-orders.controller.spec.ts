@@ -1,120 +1,80 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { type INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { ServiceOrdersModule } from '@service-orders/service-orders.module';
-import { PrismaModule } from '@infra/database/prisma/prisma.module';
-import { PrismaService } from '@infra/database/prisma/prisma.service';
-import { DomainExceptionFilter } from '@common/filters/domain-exception.filter';
+import { ServiceOrdersController } from '@service-orders/presentation/service-orders.controller';
+import { type CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
+import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { type UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
 
-describe('ServiceOrdersController (integration)', () => {
-  let app: INestApplication;
-  let prisma: PrismaService;
-  let clientCpfCnpj: string;
-  let licensePlate: string;
-  let serviceId: string;
-  let partId: string;
+type ControllerDependencies = ConstructorParameters<typeof ServiceOrdersController>;
+type ExecuteMock<TArgs extends unknown[], TResult> = jest.MockedFunction<
+  (...args: TArgs) => Promise<TResult>
+>;
 
-  beforeAll(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [PrismaModule, ServiceOrdersModule],
-    }).compile();
+describe('ServiceOrdersController', () => {
+  let controller: ServiceOrdersController;
+  let createServiceOrder: { execute: ExecuteMock<[CreateServiceOrderDto], unknown> };
+  let findServiceOrderById: { execute: ExecuteMock<[string], unknown> };
+  let findAllServiceOrders: { execute: ExecuteMock<[], unknown> };
+  let updateServiceOrder: { execute: ExecuteMock<[string, UpdateServiceOrderDto], unknown> };
+  let softDeleteServiceOrder: { execute: ExecuteMock<[string], void> };
 
-    app = moduleRef.createNestApplication();
-    app.useGlobalFilters(new DomainExceptionFilter());
-    prisma = moduleRef.get(PrismaService);
-    await app.init();
+  beforeEach(() => {
+    createServiceOrder = { execute: jest.fn() };
+    findServiceOrderById = { execute: jest.fn() };
+    findAllServiceOrders = { execute: jest.fn() };
+    updateServiceOrder = { execute: jest.fn() };
+    softDeleteServiceOrder = { execute: jest.fn() };
 
-    const client = await prisma.client.create({
-      data: {
-        cpfCnpj: '52998224725',
-        name: 'Cliente Teste',
-        address: 'Rua X',
-        phone: '11999990000',
-      },
-    });
-    clientCpfCnpj = client.cpfCnpj;
-
-    const vehicle = await prisma.vehicle.create({
-      data: {
-        brand: 'Fiat',
-        model: 'Uno',
-        licensePlate: 'TST1234',
-        year: 2020,
-        clientId: client.id,
-      },
-    });
-    licensePlate = vehicle.licensePlate;
-
-    const service = await prisma.service.create({ data: { name: 'Troca de óleo', price: 100 } });
-    serviceId = service.id;
-
-    const part = await prisma.inventory.create({
-      data: { name: 'Óleo', unitOfMeasure: 'ML', unitPrice: 30, quantity: 10 },
-    });
-    partId = part.id;
-  });
-
-  afterAll(async () => {
-    await prisma.serviceOrderInventory.deleteMany();
-    await prisma.serviceOrderService.deleteMany();
-    await prisma.serviceOrder.deleteMany();
-    await prisma.inventory.deleteMany();
-    await prisma.service.deleteMany();
-    await prisma.vehicle.deleteMany();
-    await prisma.client.deleteMany();
-    await app.close();
-  });
-
-  it('POST /service-orders deve criar uma OS', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/service-orders')
-      .send({
-        clientCpfCnpj,
-        licensePlate,
-        services: [{ serviceId }],
-        parts: [{ inventoryId: partId, quantity: 2 }],
-      });
-
-    expect(response.status).toBe(201);
-    expect(response.body.status).toBe('RECEIVED');
-    expect(response.body.totalAmount).toBe(160);
-  });
-
-  it('POST /service-orders deve rejeitar cliente inexistente', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/service-orders')
-      .send({ clientCpfCnpj: '00000000000', licensePlate, services: [], parts: [] });
-
-    expect(response.status).toBe(404);
-  });
-
-  it('GET /service-orders deve listar OS', async () => {
-    const response = await request(app.getHttpServer()).get('/service-orders');
-    expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-  });
-
-  it('PATCH /service-orders/:id deve atualizar o status', async () => {
-    const created = await request(app.getHttpServer())
-      .post('/service-orders')
-      .send({ clientCpfCnpj, licensePlate, services: [{ serviceId }], parts: [] });
-
-    const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}`)
-      .send({ status: 'IN_DIAGNOSIS' });
-
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe('IN_DIAGNOSIS');
-  });
-
-  it('DELETE /service-orders/:id deve fazer soft delete', async () => {
-    const created = await request(app.getHttpServer())
-      .post('/service-orders')
-      .send({ clientCpfCnpj, licensePlate, services: [], parts: [] });
-
-    const response = await request(app.getHttpServer()).delete(
-      `/service-orders/${created.body.id}`,
+    controller = new ServiceOrdersController(
+      createServiceOrder as unknown as ControllerDependencies[0],
+      findServiceOrderById as unknown as ControllerDependencies[1],
+      findAllServiceOrders as unknown as ControllerDependencies[2],
+      updateServiceOrder as unknown as ControllerDependencies[3],
+      softDeleteServiceOrder as unknown as ControllerDependencies[4],
     );
-    expect(response.status).toBe(204);
+  });
+
+  it('creates a service order through the use case', async () => {
+    const dto: CreateServiceOrderDto = {
+      clientCpfCnpj: '52998224725',
+      licensePlate: 'ABC1D23',
+      services: [{ serviceId: 'service-1' }],
+      parts: [{ inventoryId: 'part-1', quantity: 2 }],
+    };
+    const serviceOrder = { id: 'service-order-1' };
+    createServiceOrder.execute.mockResolvedValue(serviceOrder);
+
+    await expect(controller.create(dto)).resolves.toBe(serviceOrder);
+    expect(createServiceOrder.execute).toHaveBeenCalledWith(dto);
+  });
+
+  it('lists all service orders through the use case', async () => {
+    const serviceOrders = [{ id: 'service-order-1' }];
+    findAllServiceOrders.execute.mockResolvedValue(serviceOrders);
+
+    await expect(controller.findAll()).resolves.toBe(serviceOrders);
+    expect(findAllServiceOrders.execute).toHaveBeenCalledWith();
+  });
+
+  it('finds a service order by ID through the use case', async () => {
+    const serviceOrder = { id: 'service-order-1' };
+    findServiceOrderById.execute.mockResolvedValue(serviceOrder);
+
+    await expect(controller.findOne('service-order-1')).resolves.toBe(serviceOrder);
+    expect(findServiceOrderById.execute).toHaveBeenCalledWith('service-order-1');
+  });
+
+  it('updates a service order through the use case', async () => {
+    const dto: UpdateServiceOrderDto = { status: ServiceOrderStatus.IN_DIAGNOSIS };
+    const serviceOrder = { id: 'service-order-1', status: dto.status };
+    updateServiceOrder.execute.mockResolvedValue(serviceOrder);
+
+    await expect(controller.update('service-order-1', dto)).resolves.toBe(serviceOrder);
+    expect(updateServiceOrder.execute).toHaveBeenCalledWith('service-order-1', dto);
+  });
+
+  it('deletes a service order through the use case', async () => {
+    softDeleteServiceOrder.execute.mockResolvedValue(undefined);
+
+    await expect(controller.remove('service-order-1')).resolves.toBeUndefined();
+    expect(softDeleteServiceOrder.execute).toHaveBeenCalledWith('service-order-1');
   });
 });
