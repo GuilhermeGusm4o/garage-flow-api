@@ -6,16 +6,6 @@ import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service
 import { type FindClientByCpfCnpjUseCase } from '@client/application/use-cases/find-client-by-cpf-cnpj.use-case';
 import { type FindVehicleByLicensePlateUseCase } from '@vehicle/application/use-cases/find-vehicle-by-license-plate.use-case';
 
-type UseCaseDependencies = ConstructorParameters<typeof CreateServiceOrderUseCase>;
-type ExecuteMock<TResult> = jest.MockedFunction<(id: string) => Promise<TResult>>;
-type ClientLookup = { execute: ExecuteMock<{ id: string }> };
-type VehicleLookup = { execute: ExecuteMock<{ id: string; clientId: string }> };
-type ServiceLookup = { execute: ExecuteMock<{ id: string; price: { getValue: () => number } }> };
-type PartLookup = {
-  execute: ExecuteMock<{ id: string; name: string; unitPrice: number }>;
-};
-type AvailabilityLookup = { execute: ExecuteMock<number> };
-
 describe('CreateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
   let findClientByCpfCnpj: { execute: jest.Mock };
