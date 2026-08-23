@@ -9,6 +9,7 @@ import { FindVehicleByLicensePlateUseCase } from '@vehicle/application/use-cases
 import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
 import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
+import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 
 @Injectable()
 export class CreateServiceOrderUseCase {
@@ -19,6 +20,7 @@ export class CreateServiceOrderUseCase {
     private readonly findPartById: FindPartByIdUseCase,
     private readonly calculateAvailability: CalculateAvailabilityUseCase,
     private readonly findServicesByIdList: FindServicesByIdListUseCase,
+    private readonly calculateTotalAmount: CalculateTotalAmountUseCase,
   ) {}
 
   async execute(dto: CreateServiceOrderDto): Promise<ServiceOrder> {
@@ -51,7 +53,8 @@ export class CreateServiceOrderUseCase {
       partItems.push(new PartItem(null, part.id, item.quantity, part.unitPrice));
     }
 
-    const serviceOrder = ServiceOrder.create(vehicle.id, serviceItems, partItems);
+    const totalAmount = await this.calculateTotalAmount.execute(serviceItems, partItems);
+    const serviceOrder = ServiceOrder.create(vehicle.id, serviceItems, partItems, totalAmount);
     await this.serviceOrderRepository.save(serviceOrder);
     return serviceOrder;
   }

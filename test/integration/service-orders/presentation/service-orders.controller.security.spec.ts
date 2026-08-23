@@ -24,7 +24,7 @@ const mockId = '123e4567-e89b-12d3-a456-426614174000' as UUID;
 const ALL_ROLES: UserRole[] = ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR', 'STOCK_CLERK'];
 
 const makeServiceOrder = (): ServiceOrder =>
-  ServiceOrder.create('vehicle-id', [new ServiceItem(null, 'service-id', 100)], []);
+  ServiceOrder.create('vehicle-id', [new ServiceItem(null, 'service-id', 100)], [], 100);
 
 type Endpoint = {
   description: string;
@@ -129,32 +129,35 @@ describe('ServiceOrdersController (security)', () => {
     delete process.env.JWT_SECRET;
   });
 
-  describe.each(endpoints)('$description', ({ method, path, body, allowedRoles, successStatus }) => {
-    it('should return 401 when no Authorization header is sent', async () => {
-      await request(app.getHttpServer())
-        [method](path)
-        .send(body ?? {})
-        .expect(401);
-    });
-
-    it('should return 401 when the Authorization header is "Bearer " (empty token)', async () => {
-      await request(app.getHttpServer())
-        [method](path)
-        .set('Authorization', 'Bearer ')
-        .send(body ?? {})
-        .expect(401);
-    });
-
-    describe.each(ALL_ROLES)('as role %s', (role) => {
-      const isAllowed = allowedRoles.includes(role);
-
-      it(`should return ${isAllowed ? successStatus : 403} when authenticated`, async () => {
+  describe.each(endpoints)(
+    '$description',
+    ({ method, path, body, allowedRoles, successStatus }) => {
+      it('should return 401 when no Authorization header is sent', async () => {
         await request(app.getHttpServer())
           [method](path)
-          .set('Authorization', `Bearer ${tokenFor(role)}`)
           .send(body ?? {})
-          .expect(isAllowed ? successStatus : 403);
+          .expect(401);
       });
-    });
-  });
+
+      it('should return 401 when the Authorization header is "Bearer " (empty token)', async () => {
+        await request(app.getHttpServer())
+          [method](path)
+          .set('Authorization', 'Bearer ')
+          .send(body ?? {})
+          .expect(401);
+      });
+
+      describe.each(ALL_ROLES)('as role %s', (role) => {
+        const isAllowed = allowedRoles.includes(role);
+
+        it(`should return ${isAllowed ? successStatus : 403} when authenticated`, async () => {
+          await request(app.getHttpServer())
+            [method](path)
+            .set('Authorization', `Bearer ${tokenFor(role)}`)
+            .send(body ?? {})
+            .expect(isAllowed ? successStatus : 403);
+        });
+      });
+    },
+  );
 });

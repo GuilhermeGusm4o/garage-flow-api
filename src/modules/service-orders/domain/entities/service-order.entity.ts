@@ -18,8 +18,8 @@ export class ServiceOrder {
     vehicleId: string,
     serviceItems: ServiceItem[],
     partItems: PartItem[],
+    totalAmount: number,
   ): ServiceOrder {
-    const totalAmount = ServiceOrder.calculateTotal(serviceItems, partItems);
     return new ServiceOrder(
       crypto.randomUUID(),
       vehicleId,
@@ -30,12 +30,6 @@ export class ServiceOrder {
       serviceItems,
       partItems,
     );
-  }
-
-  private static calculateTotal(serviceItems: ServiceItem[], partItems: PartItem[]): number {
-    const servicesTotal = serviceItems.reduce((acc, item) => acc + item.price, 0);
-    const partsTotal = partItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
-    return servicesTotal + partsTotal;
   }
 
   updateStatus(newStatus: ServiceOrderStatus): void {

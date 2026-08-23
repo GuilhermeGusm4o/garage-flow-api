@@ -8,6 +8,7 @@ import { type FindVehicleByLicensePlateUseCase } from '@vehicle/application/use-
 import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
 import { type CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
+import { type CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 
 describe('CreateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
@@ -16,6 +17,7 @@ describe('CreateServiceOrderUseCase', () => {
   let findVehicleByLicensePlate: { execute: jest.Mock };
   let findPartById: { execute: jest.Mock };
   let calculateAvailability: { execute: jest.Mock };
+  let calculateTotalAmount: { execute: jest.Mock };
   let useCase: CreateServiceOrderUseCase;
 
   const client = { id: 'client-1' };
@@ -35,6 +37,7 @@ describe('CreateServiceOrderUseCase', () => {
     findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };
     findPartById = { execute: jest.fn().mockResolvedValue(part) };
     calculateAvailability = { execute: jest.fn().mockResolvedValue(10) };
+    calculateTotalAmount = { execute: jest.fn().mockResolvedValue(260) };
 
     useCase = new CreateServiceOrderUseCase(
       repository,
@@ -43,6 +46,7 @@ describe('CreateServiceOrderUseCase', () => {
       findPartById as unknown as FindPartByIdUseCase,
       calculateAvailability as unknown as CalculateAvailabilityUseCase,
       findServicesByIdList as unknown as FindServicesByIdListUseCase,
+      calculateTotalAmount as unknown as CalculateTotalAmountUseCase,
     );
   });
 
@@ -53,12 +57,13 @@ describe('CreateServiceOrderUseCase', () => {
     parts: [{ inventoryId: 'part-1', quantity: 2 }],
   });
 
-  it('deve criar a OS com status RECEIVED e valor total correto', async () => {
+  it('deve criar a OS com status RECEIVED e valor total calculado pelo CalculateTotalAmountUseCase', async () => {
     const os = await useCase.execute(buildDto());
 
     expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
     expect(os.vehicleId).toBe('vehicle-1');
-    expect(os.totalAmount).toBe(160); // 100 (serviço) + 2*30 (peça)
+    expect(calculateTotalAmount.execute).toHaveBeenCalledWith(os.serviceItems, os.partItems);
+    expect(os.totalAmount).toBe(260);
     expect(repository.save).toHaveBeenCalledWith(os);
   });
 
