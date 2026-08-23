@@ -47,6 +47,11 @@ export class ServiceOrder {
     this.status = newStatus;
   }
 
+  startDiagnosis(mechanicId: string): void {
+    this.mechanicId = mechanicId;
+    this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
+  }
+
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
     if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;
