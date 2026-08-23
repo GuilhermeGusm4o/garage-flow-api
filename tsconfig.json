@@ -6,15 +6,39 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@common/*": ["src/common/*"],
-      "@client/*": ["src/modules/client/*"],
-      "@vehicle/*": ["src/modules/vehicle/*"],
-      "@infra/*": ["src/infra/*"],
-      "@service/*": ["src/modules/service/*"],
-      "@auth/*": ["src/modules/auth/*"],
-      "@inventory/*": ["src/modules/inventory/*"],
-      "@service-orders/*": ["src/modules/service-orders/*"],
-      "@generated/prisma/*": ["generated/prisma/*"]
+      "@common/*": [
+        "src/common/*"
+      ],
+      "@client/*": [
+        "src/modules/client/*"
+      ],
+      "@vehicle/*": [
+        "src/modules/vehicle/*"
+      ],
+      "@infra/*": [
+        "src/modules/infra/*"
+      ],
+      "@prisma/*": [
+        "generated/prisma/*"
+      ],
+      "@service/*": [
+        "src/modules/service/*"
+      ],
+      "@auth/*": [
+        "src/modules/auth/*"
+      ],
+      "@generated/prisma/*": [
+        "generated/prisma/*"
+      ],
+      "@inventory/*": [
+        "src/modules/inventory/*"
+      ],
+      "@infra/*": [
+        "src/infra/*"
+      ],
+      "@service-orders/*": [
+        "src/modules/service-orders/*"
+      ],
     },
     "sourceMap": true,
     "declaration": true,

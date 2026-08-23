@@ -1,7 +1,9 @@
+import { DomainError } from '@common/errors/domain.error';
+
 export class Quantity {
   constructor(public readonly value: number) {
     if (value < 0) {
-      throw new Error('Quantidade não pode ser negativa');
+      throw new DomainError('Quantidade não pode ser negativa');
     }
   }
 
@@ -11,7 +13,7 @@ export class Quantity {
 
   subtract(amount: number): Quantity {
     if (this.value - amount < 0) {
-      throw new Error('Estoque insuficiente');
+      throw new DomainError('Estoque insuficiente');
     }
     return new Quantity(this.value - amount);
   }
