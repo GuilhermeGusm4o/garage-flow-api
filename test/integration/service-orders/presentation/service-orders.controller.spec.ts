@@ -166,9 +166,18 @@ describe('ServiceOrdersController (integration)', () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj: '00000000000', licensePlate, description: 'Ruído no motor' });
+      .send({ clientCpfCnpj: '76053610097', licensePlate, description: 'Ruído no motor' });
 
     expect(response.status).toBe(404);
+  });
+
+  it('POST /service-orders deve rejeitar cliente com cpf invalido', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj: '00000000000', licensePlate, description: 'Ruído no motor' });
+
+    expect(response.status).toBe(400);
   });
 
   it('GET /service-orders deve listar apenas as OS criadas neste teste', async () => {
