@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { type INestApplication } from '@nestjs/common';
+import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import request from 'supertest';
 import { ServiceOrdersModule } from '@service-orders/service-orders.module';
@@ -49,6 +49,14 @@ describe('ServiceOrdersController (integration)', () => {
 
     app = moduleRef.createNestApplication();
     app.useGlobalFilters(new GlobalExceptionFilter());
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    );
     prisma = moduleRef.get(PrismaService);
     jwtService = moduleRef.get(JwtService);
     await app.init();
