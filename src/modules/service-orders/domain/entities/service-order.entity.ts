@@ -33,6 +33,7 @@ export class ServiceOrder {
   }
 
   updateStatus(newStatus: ServiceOrderStatus): void {
+    // TODO: add validation for status transitions
     this.status = newStatus;
   }
 }
