@@ -27,9 +27,7 @@ describe('GetServiceOrderTrackingLinkUseCase', () => {
 
     const trackingLink = await useCase.execute(baseUrl, os.id);
 
-    expect(trackingLink).toMatch(
-      /^https:\/\/garage-flow\.example\.com\/service-orders\/track\/.+/,
-    );
+    expect(trackingLink).toMatch(/^https:\/\/garage-flow\.example\.com\/service-orders\/track\/.+/);
     const token = trackingLink.split('/track/')[1];
     expect(resolveTrackingToken(token)).toBe(os.id);
   });
