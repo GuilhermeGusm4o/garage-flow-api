@@ -10,7 +10,16 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreatePartUseCase } from '@inventory/application/use-cases/create-part.use-case';
 import { RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
 import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
@@ -41,6 +50,11 @@ export class InventoryController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STOCK_CLERK')
+  @ApiOperation({
+    summary: 'Creates a new inventory item',
+  })
+  @ApiCreatedResponse({ description: 'Inventory item created successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid inventory item payload' })
   create(@Body() dto: CreatePartDto) {
     return this.createPart.execute(dto);
   }
@@ -48,6 +62,10 @@ export class InventoryController {
   @Get()
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List all inventory items',
+  })
+  @ApiOkResponse({ description: 'Inventory items returned successfully' })
   findAll() {
     return this.listParts.execute();
   }
@@ -56,6 +74,12 @@ export class InventoryController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STOCK_CLERK')
+  @ApiOperation({
+    summary: 'Updates an inventory item by ID',
+  })
+  @ApiOkResponse({ description: 'Inventory item updated successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid inventory item payload' })
+  @ApiNotFoundResponse({ description: 'Inventory item not found' })
   update(@Param('id') id: string, @Body() dto: UpdatePartDto) {
     return this.updatePart.execute(id, dto);
   }
@@ -64,6 +88,12 @@ export class InventoryController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STOCK_CLERK')
+  @ApiOperation({
+    summary: 'Adds quantity to an inventory item',
+  })
+  @ApiOkResponse({ description: 'Inventory item restocked successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid restock quantity' })
+  @ApiNotFoundResponse({ description: 'Inventory item not found' })
   restock(@Param('id') id: string, @Body() dto: RestockPartDto) {
     return this.restockPart.execute(id, dto.quantity);
   }
@@ -72,6 +102,12 @@ export class InventoryController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STOCK_CLERK')
+  @ApiOperation({
+    summary: 'Consumes quantity from an inventory item',
+  })
+  @ApiOkResponse({ description: 'Inventory item consumed successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid quantity or insufficient stock' })
+  @ApiNotFoundResponse({ description: 'Inventory item not found' })
   consume(@Param('id') id: string, @Body() dto: ConsumePartDto) {
     return this.consumePart.execute(id, dto.quantity);
   }
@@ -81,6 +117,11 @@ export class InventoryController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Deletes an inventory item by ID',
+  })
+  @ApiNoContentResponse({ description: 'Inventory item deleted successfully' })
+  @ApiNotFoundResponse({ description: 'Inventory item not found' })
   remove(@Param('id') id: string) {
     return this.softDeletePart.execute(id);
   }
