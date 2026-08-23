@@ -122,6 +122,20 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.serviceItems).toEqual([]);
     expect(response.body.partItems).toEqual([]);
     expect(response.body.totalAmount).toBe(0);
+    expect(response.body.trackingLink).toMatch(/^http:\/\/[^/]+\/service-orders\/track\/.+/);
+  });
+
+  it('POST /service-orders deve retornar um trackingLink que resolve para a mesma OS criada', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+
+    const token = (created.body.trackingLink as string).split('/track/')[1];
+    const response = await request(app.getHttpServer()).get(`/service-orders/track/${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('RECEIVED');
   });
 
   it('deve assumir o status RECEIVED por padrão no banco quando não informado na inserção', async () => {
@@ -358,5 +372,51 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ services: [{ serviceId }], parts: [] });
 
     expect(response.status).toBe(400);
+  });
+
+  it('GET /service-orders/:id/tracking-link deve retornar um link público absoluto para a OS', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+
+    const response = await request(app.getHttpServer())
+      .get(`/service-orders/${created.body.id}/tracking-link`)
+      .set('Authorization', adminAuthHeader());
+
+    expect(response.status).toBe(200);
+    expect(response.body.trackingLink).toMatch(/^http:\/\/[^/]+\/service-orders\/track\/.+/);
+  });
+
+  it('GET /service-orders/:id/tracking-link deve retornar 404 se a OS não existir', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/service-orders/00000000-0000-0000-0000-000000000000/tracking-link')
+      .set('Authorization', adminAuthHeader());
+
+    expect(response.status).toBe(404);
+  });
+
+  it('GET /service-orders/track/:token deve retornar o status e a data de atualização sem autenticação', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+
+    const link = await request(app.getHttpServer())
+      .get(`/service-orders/${created.body.id}/tracking-link`)
+      .set('Authorization', adminAuthHeader());
+    const token = (link.body.trackingLink as string).split('/track/')[1];
+
+    const response = await request(app.getHttpServer()).get(`/service-orders/track/${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('RECEIVED');
+    expect(response.body).not.toHaveProperty('id');
+  });
+
+  it('GET /service-orders/track/:token deve retornar 404 para um token inválido', async () => {
+    const response = await request(app.getHttpServer()).get('/service-orders/track/not-a-token');
+
+    expect(response.status).toBe(404);
   });
 });
