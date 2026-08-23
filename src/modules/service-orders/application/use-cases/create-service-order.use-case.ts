@@ -6,9 +6,9 @@ import { ServiceOrderRepository } from '@service-orders/domain/repositories/serv
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { FindClientByCpfCnpjUseCase } from '@client/application/use-cases/find-client-by-cpf-cnpj.use-case';
 import { FindVehicleByLicensePlateUseCase } from '@vehicle/application/use-cases/find-vehicle-by-license-plate.use-case';
-import { FindServiceByIdUseCase } from '@service/application/use-cases/find-service-by-id.use-case';
 import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
+import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 
 @Injectable()
 export class CreateServiceOrderUseCase {
@@ -16,9 +16,9 @@ export class CreateServiceOrderUseCase {
     private readonly serviceOrderRepository: ServiceOrderRepository,
     private readonly findClientByCpfCnpj: FindClientByCpfCnpjUseCase,
     private readonly findVehicleByLicensePlate: FindVehicleByLicensePlateUseCase,
-    private readonly findServiceById: FindServiceByIdUseCase,
     private readonly findPartById: FindPartByIdUseCase,
     private readonly calculateAvailability: CalculateAvailabilityUseCase,
+    private readonly findServicesByIdList: FindServicesByIdListUseCase,
   ) {}
 
   async execute(dto: CreateServiceOrderDto): Promise<ServiceOrder> {
@@ -29,11 +29,13 @@ export class CreateServiceOrderUseCase {
       throw new BadRequestException('Veículo não pertence ao cliente informado');
     }
 
-    const serviceItems: ServiceItem[] = [];
-    for (const item of dto.services) {
-      const service = await this.findServiceById.execute(item.serviceId);
-      serviceItems.push(new ServiceItem(null, service.id, service.price.getValue()));
-    }
+    const services =
+      dto.services.length > 0
+        ? await this.findServicesByIdList.execute(dto.services.map((item) => item.serviceId))
+        : [];
+    const serviceItems = services.map(
+      (service) => new ServiceItem(null, service.id, service.price.getValue()),
+    );
 
     const partItems: PartItem[] = [];
     for (const item of dto.parts) {

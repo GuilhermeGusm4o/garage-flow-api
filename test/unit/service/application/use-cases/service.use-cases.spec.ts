@@ -8,6 +8,7 @@ import { type ServiceRepository } from '@service/domain/repositories/service.rep
 import { ServiceEntity } from '@service/domain/entities/service.entity';
 import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
 import { type UUID } from 'crypto';
+import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 
 const mockId = '123e4567-e89b-12d3-a456-426614174000' as UUID;
 
@@ -27,6 +28,7 @@ const makeRepository = (): jest.Mocked<ServiceRepository> => ({
   findAll: jest.fn(),
   findById: jest.fn(),
   update: jest.fn(),
+  findByIdList: jest.fn(),
 });
 
 describe('CreateServiceUseCase', () => {
@@ -142,5 +144,30 @@ describe('DeleteServiceUseCase', () => {
 
     const useCase = new DeleteServiceUseCase(repo);
     await expect(useCase.execute(mockId)).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('FindServicesByIdListUseCase', () => {
+  let repo: jest.Mocked<ServiceRepository>;
+
+  beforeEach(() => {
+    repo = makeRepository();
+  });
+
+  it('should return services by id list', async () => {
+    const service1 = makeService({ id: 'id-1' as UUID });
+    const service2 = makeService({ id: 'id-2' as UUID });
+    repo.findByIdList.mockResolvedValue([service1, service2]);
+
+    const useCase = new FindServicesByIdListUseCase(repo);
+    const result = await useCase.execute(['id-1', 'id-2']);
+    expect(result).toEqual([service1, service2]);
+  });
+
+  it('should throw NotFoundException when no services found', async () => {
+    repo.findByIdList.mockResolvedValue([]);
+
+    const useCase = new FindServicesByIdListUseCase(repo);
+    await expect(useCase.execute(['id-1', 'id-2'])).rejects.toThrow(NotFoundException);
   });
 });
