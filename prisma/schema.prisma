@@ -19,7 +19,7 @@ enum ServiceOrderStatus {
   IN_DIAGNOSIS
   AWAITING_APPROVAL
   IN_EXECUTION
-  FINALIZED
+  FINISHED
   DELIVERED
   CANCELED
 }
@@ -85,8 +85,9 @@ model Vehicle {
 model ServiceOrder {
   id          String   @id @default(uuid())
   vehicleId   String   @map("vehicle_id")
+  description String
   mechanicId  String?  @map("mechanic_id")
-  status      ServiceOrderStatus
+  status      ServiceOrderStatus @default(RECEIVED)
   approvedAt  DateTime? @map("approved_at")
   totalAmount Decimal  @db.Decimal(10, 2) @map("total_amount")
 

@@ -1,3 +1,4 @@
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreatePartDto {
@@ -5,7 +6,7 @@ export class CreatePartDto {
   @IsNotEmpty()
   name!: string;
 
-  @IsIn(['ml', 'g', 'kg', 'unit'])
+  @IsIn(UnitOfMeasure.getValidValues())
   unitOfMeasure!: string;
 
   @IsNumber()

@@ -6,6 +6,7 @@ import { ClientModule } from './modules/client/client.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { ServiceModule } from './modules/service/service.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ServiceOrdersModule } from './modules/service-orders/service-orders.module';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { AuthModule } from './modules/auth/auth.module';
     InventoryModule,
     ClientModule,
     VehicleModule,
+    InventoryModule,
+    ServiceOrdersModule,
   ],
   controllers: [],
   providers: [],

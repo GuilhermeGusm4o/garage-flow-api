@@ -5,6 +5,7 @@ import { FindAllServicesUseCase } from '@service/application/use-cases/find-all-
 import { FindServiceByIdUseCase } from '@service/application/use-cases/find-service-by-id.use-case';
 import { UpdateServiceUseCase } from '@service/application/use-cases/update-service.use-case';
 import { DeleteServiceUseCase } from '@service/application/use-cases/delete-service.use-case';
+import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { ServiceRepository } from '@service/domain/repositories/service.repository';
 import { PrismaServiceRepository } from '@service/infrastructure/prisma-service.repository';
 import { PrismaService } from '../../infra/database/prisma/prisma.service';
@@ -22,6 +23,8 @@ import { PrismaService } from '../../infra/database/prisma/prisma.service';
     FindServiceByIdUseCase,
     UpdateServiceUseCase,
     DeleteServiceUseCase,
+    FindServicesByIdListUseCase,
   ],
+  exports: [ServiceRepository, FindServiceByIdUseCase, FindServicesByIdListUseCase],
 })
 export class ServiceModule {}
