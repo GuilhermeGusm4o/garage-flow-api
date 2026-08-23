@@ -79,9 +79,17 @@ export class ServiceOrdersController {
     required: false,
     description: 'Use RECEIVED to list only orders available for diagnosis.',
   })
+  @ApiQuery({
+    name: 'mechanicId',
+    required: false,
+    description: 'Filter service orders assigned to a specific mechanic.',
+  })
   @ApiOkResponse({ type: [ServiceOrderResponseDto] })
-  async findAll(@Query('status') status?: ServiceOrderStatus): Promise<ServiceOrderResponseDto[]> {
-    const serviceOrders = await this.findAllServiceOrders.execute(status);
+  async findAll(
+    @Query('status') status?: ServiceOrderStatus,
+    @Query('mechanicId') mechanicId?: string,
+  ): Promise<ServiceOrderResponseDto[]> {
+    const serviceOrders = await this.findAllServiceOrders.execute(status, mechanicId);
     return serviceOrders.map(ServiceOrderResponseDto.fromListItem);
   }
 

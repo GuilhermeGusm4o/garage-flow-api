@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -20,6 +21,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -39,6 +41,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+import { type UserRole } from '@auth/domain/entities/user.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -58,11 +61,17 @@ export class AuthController {
   @ApiOperation({
     summary: 'List all users',
   })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR', 'STOCK_CLERK'],
+    description: 'Filter users by role. Use MECHANIC to populate mechanic selectors.',
+  })
   @ApiOkResponse({
     type: [UserResponseDto],
   })
-  async listUsers(): Promise<UserResponseDto[]> {
-    const users = await this.listUsersUseCase.execute();
+  async listUsers(@Query('role') role?: UserRole): Promise<UserResponseDto[]> {
+    const users = await this.listUsersUseCase.execute(role);
 
     return users.map(UserResponseDto.fromDomain);
   }

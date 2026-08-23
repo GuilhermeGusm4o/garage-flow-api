@@ -22,6 +22,6 @@ export interface ServiceOrderListItem {
 export abstract class ServiceOrderRepository {
   abstract save(serviceOrder: ServiceOrder): Promise<ServiceOrder>;
   abstract findById(id: string): Promise<ServiceOrder | null>;
-  abstract findAll(status?: ServiceOrderStatus): Promise<ServiceOrderListItem[]>;
+  abstract findAll(status?: ServiceOrderStatus, mechanicId?: string): Promise<ServiceOrderListItem[]>;
   abstract softDelete(id: string): Promise<void>;
 }

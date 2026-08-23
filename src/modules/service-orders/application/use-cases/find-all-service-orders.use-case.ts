@@ -9,7 +9,7 @@ import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service
 export class FindAllServiceOrdersUseCase {
   constructor(private readonly serviceOrderRepository: ServiceOrderRepository) {}
 
-  async execute(status?: ServiceOrderStatus): Promise<ServiceOrderListItem[]> {
-    return this.serviceOrderRepository.findAll(status);
+  async execute(status?: ServiceOrderStatus, mechanicId?: string): Promise<ServiceOrderListItem[]> {
+    return this.serviceOrderRepository.findAll(status, mechanicId);
   }
 }

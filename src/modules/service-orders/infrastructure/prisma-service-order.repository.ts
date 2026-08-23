@@ -44,9 +44,13 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
     return ServiceOrderMapper.toDomain(raw);
   }
 
-  async findAll(status?: ServiceOrderStatus): Promise<ServiceOrderListItem[]> {
+  async findAll(status?: ServiceOrderStatus, mechanicId?: string): Promise<ServiceOrderListItem[]> {
     const raws = await this.prisma.serviceOrder.findMany({
-      where: { deleted_at: null, ...(status ? { status } : {}) },
+      where: {
+        deleted_at: null,
+        ...(status ? { status } : {}),
+        ...(mechanicId ? { mechanicId } : {}),
+      },
       include: {
         services: true,
         inventory: { include: { inventory: true } },
