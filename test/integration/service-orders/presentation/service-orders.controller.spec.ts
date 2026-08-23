@@ -152,6 +152,16 @@ describe('ServiceOrdersController (integration)', () => {
     expect(serviceOrder.status).toBe('RECEIVED');
   });
 
+  it('POST /service-orders deve criar a OS quando o CPF/CNPJ do cliente é informado com pontuação', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj: '529.982.247-25', licensePlate, description: 'Ruído no motor' });
+
+    expect(response.status).toBe(201);
+    expect(response.body.status).toBe('RECEIVED');
+  });
+
   it('POST /service-orders deve rejeitar cliente inexistente', async () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
