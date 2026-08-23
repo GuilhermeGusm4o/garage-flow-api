@@ -54,7 +54,6 @@ export class ServiceOrder {
     this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
   }
 
-
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
     if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;

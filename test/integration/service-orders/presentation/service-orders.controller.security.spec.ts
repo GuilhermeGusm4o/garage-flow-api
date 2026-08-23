@@ -61,14 +61,14 @@ const endpoints: Endpoint[] = [
     description: 'GET /service-orders',
     method: 'get',
     path: '/service-orders',
-    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    allowedRoles: ALL_ROLES,
     successStatus: 200,
   },
   {
     description: 'GET /service-orders/:id',
     method: 'get',
     path: `/service-orders/${mockId}`,
-    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    allowedRoles: ALL_ROLES,
     successStatus: 200,
   },
   {

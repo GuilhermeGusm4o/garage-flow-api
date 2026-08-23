@@ -71,7 +71,9 @@ export class AuthController {
     type: [UserResponseDto],
   })
   async listUsers(@Query('role') role?: UserRole): Promise<UserResponseDto[]> {
-    const users = await this.listUsersUseCase.execute(role);
+    const users = role
+      ? await this.listUsersUseCase.execute(role)
+      : await this.listUsersUseCase.execute();
 
     return users.map(UserResponseDto.fromDomain);
   }
