@@ -40,11 +40,11 @@ export class CreateServiceOrderUseCase {
     const partItems: PartItem[] = [];
     for (const item of dto.parts) {
       const part = await this.findPartById.execute(item.inventoryId);
-      const available = await this.calculateAvailability.execute(item.inventoryId);
+      const availableQuantity = await this.calculateAvailability.execute(item.inventoryId);
 
-      if (item.quantity > available) {
+      if (item.quantity > availableQuantity) {
         throw new BadRequestException(
-          `Quantidade indisponível para a peça ${part.name}. Disponível: ${available}, solicitado: ${item.quantity}`,
+          `Quantidade indisponível para a peça ${part.name}. Disponível: ${availableQuantity}, solicitado: ${item.quantity}`,
         );
       }
 
