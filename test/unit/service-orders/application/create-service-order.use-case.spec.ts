@@ -1,16 +1,26 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases/create-service-order.use-case';
-import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
-import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
+import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
+import { type CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+
+type UseCaseDependencies = ConstructorParameters<typeof CreateServiceOrderUseCase>;
+type ExecuteMock<TResult> = jest.MockedFunction<(id: string) => Promise<TResult>>;
+type ClientLookup = { execute: ExecuteMock<{ id: string }> };
+type VehicleLookup = { execute: ExecuteMock<{ id: string; clientId: string }> };
+type ServiceLookup = { execute: ExecuteMock<{ id: string; price: { getValue: () => number } }> };
+type PartLookup = {
+  execute: ExecuteMock<{ id: string; name: string; unitPrice: number }>;
+};
+type AvailabilityLookup = { execute: ExecuteMock<number> };
 
 describe('CreateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
-  let findClientByCpfCnpj: { execute: jest.Mock };
-  let findVehicleByLicensePlate: { execute: jest.Mock };
-  let findServiceById: { execute: jest.Mock };
-  let findPartById: { execute: jest.Mock };
-  let calculateAvailability: { execute: jest.Mock };
+  let findClientByCpfCnpj: ClientLookup;
+  let findVehicleByLicensePlate: VehicleLookup;
+  let findServiceById: ServiceLookup;
+  let findPartById: PartLookup;
+  let calculateAvailability: AvailabilityLookup;
   let useCase: CreateServiceOrderUseCase;
 
   const client = { id: 'client-1' };
@@ -33,11 +43,11 @@ describe('CreateServiceOrderUseCase', () => {
 
     useCase = new CreateServiceOrderUseCase(
       repository,
-      findClientByCpfCnpj as any,
-      findVehicleByLicensePlate as any,
-      findServiceById as any,
-      findPartById as any,
-      calculateAvailability as any,
+      findClientByCpfCnpj as unknown as UseCaseDependencies[1],
+      findVehicleByLicensePlate as unknown as UseCaseDependencies[2],
+      findServiceById as unknown as UseCaseDependencies[3],
+      findPartById as unknown as UseCaseDependencies[4],
+      calculateAvailability as unknown as UseCaseDependencies[5],
     );
   });
 

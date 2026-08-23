@@ -1,15 +1,20 @@
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
-import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { type ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { type Prisma } from '@generated/prisma/client';
+
+type ServiceOrderWithItems = Prisma.ServiceOrderGetPayload<{
+  include: { services: true; inventory: true };
+}>;
 
 export class ServiceOrderMapper {
-  static toDomain(raw: any): ServiceOrder {
-    const serviceItems = (raw.services ?? []).map(
-      (s: any) => new ServiceItem(s.id, s.serviceId, Number(s.price)),
+  static toDomain(raw: ServiceOrderWithItems): ServiceOrder {
+    const serviceItems = raw.services.map(
+      (service) => new ServiceItem(service.id, service.serviceId, Number(service.price)),
     );
-    const partItems = (raw.inventory ?? []).map(
-      (p: any) => new PartItem(p.id, p.inventoryId, Number(p.quantity), Number(p.unitPrice)),
+    const partItems = raw.inventory.map(
+      (part) => new PartItem(part.id, part.inventoryId, Number(part.quantity), Number(part.unitPrice)),
     );
 
     return new ServiceOrder(
