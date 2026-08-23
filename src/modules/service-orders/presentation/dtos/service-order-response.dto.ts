@@ -53,6 +53,9 @@ export class ServiceOrderResponseDto {
   @ApiProperty()
   vehicleId!: string;
 
+  @ApiProperty({ description: 'Reclamação do cliente relatada na abertura da OS' })
+  description!: string;
+
   @ApiPropertyOptional({ nullable: true })
   mechanicId!: string | null;
 
@@ -75,6 +78,7 @@ export class ServiceOrderResponseDto {
     const response = new ServiceOrderResponseDto();
     response.id = entity.id;
     response.vehicleId = entity.vehicleId;
+    response.description = entity.description;
     response.mechanicId = entity.mechanicId;
     response.status = entity.status;
     response.approvedAt = entity.approvedAt;

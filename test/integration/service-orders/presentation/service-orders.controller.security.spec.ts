@@ -26,7 +26,13 @@ const mockId = '123e4567-e89b-12d3-a456-426614174000' as UUID;
 const ALL_ROLES: UserRole[] = ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR', 'STOCK_CLERK'];
 
 const makeServiceOrder = (): ServiceOrder =>
-  ServiceOrder.create('vehicle-id', [new ServiceItem(null, 'service-id', 100)], [], 100);
+  ServiceOrder.create(
+    'vehicle-id',
+    'Ruído no motor',
+    [new ServiceItem(null, 'service-id', 100)],
+    [],
+    100,
+  );
 
 type Endpoint = {
   description: string;
@@ -45,6 +51,7 @@ const endpoints: Endpoint[] = [
     body: {
       clientCpfCnpj: '123.456.789-00',
       licensePlate: 'ABC1D23',
+      description: 'Ruído no motor',
     },
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 201,

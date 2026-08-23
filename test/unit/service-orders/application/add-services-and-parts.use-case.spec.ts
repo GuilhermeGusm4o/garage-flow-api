@@ -22,7 +22,7 @@ describe('AddServicesAndPartsUseCase', () => {
   const part = { id: 'part-1', name: 'Óleo', unitPrice: 30 };
 
   const buildServiceOrder = () => {
-    const serviceOrder = ServiceOrder.create('vehicle-1', [], [], 0);
+    const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     serviceOrder.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
     return serviceOrder;
   };
@@ -96,7 +96,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve lançar BadRequestException se a OS não estiver em diagnóstico', async () => {
-    const serviceOrder = ServiceOrder.create('vehicle-1', [], [], 0);
+    const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     repository.findById.mockResolvedValue(serviceOrder);
 
     await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);

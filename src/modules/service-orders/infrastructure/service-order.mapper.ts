@@ -25,6 +25,7 @@ export class ServiceOrderMapper {
     return new ServiceOrder(
       raw.id,
       raw.vehicleId,
+      raw.description,
       raw.mechanicId,
       raw.status as ServiceOrderStatus,
       raw.approvedAt,
@@ -38,6 +39,7 @@ export class ServiceOrderMapper {
     return {
       id: serviceOrder.id,
       vehicleId: serviceOrder.vehicleId,
+      description: serviceOrder.description,
       mechanicId: serviceOrder.mechanicId,
       status: serviceOrder.status,
       approvedAt: serviceOrder.approvedAt,

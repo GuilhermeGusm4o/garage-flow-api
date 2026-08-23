@@ -13,6 +13,7 @@ export class ServiceOrder {
   constructor(
     public readonly id: string,
     public vehicleId: string,
+    public readonly description: string,
     public mechanicId: string | null,
     public status: ServiceOrderStatus,
     public approvedAt: Date | null,
@@ -23,6 +24,7 @@ export class ServiceOrder {
 
   static create(
     vehicleId: string,
+    description: string,
     serviceItems: ServiceItem[],
     partItems: PartItem[],
     totalAmount: number,
@@ -30,6 +32,7 @@ export class ServiceOrder {
     return new ServiceOrder(
       crypto.randomUUID(),
       vehicleId,
+      description,
       null,
       ServiceOrderStatus.RECEIVED,
       null,

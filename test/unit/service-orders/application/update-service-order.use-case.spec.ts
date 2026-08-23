@@ -9,7 +9,7 @@ describe('UpdateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
   let useCase: UpdateServiceOrderUseCase;
 
-  const buildServiceOrder = () => ServiceOrder.create('vehicle-1', [], [], 0);
+  const buildServiceOrder = () => ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
 
   beforeEach(() => {
     repository = {

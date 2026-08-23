@@ -21,7 +21,7 @@ export class CreateServiceOrderUseCase {
       throw new BadRequestException('Veículo não pertence ao cliente informado');
     }
 
-    const serviceOrder = ServiceOrder.create(vehicle.id, [], [], 0);
+    const serviceOrder = ServiceOrder.create(vehicle.id, dto.description, [], [], 0);
     const savedServiceOrder = await this.serviceOrderRepository.save(serviceOrder);
     return savedServiceOrder;
   }

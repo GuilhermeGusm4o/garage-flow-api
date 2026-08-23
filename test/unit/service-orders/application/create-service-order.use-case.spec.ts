@@ -35,13 +35,15 @@ describe('CreateServiceOrderUseCase', () => {
   const buildDto = (): CreateServiceOrderDto => ({
     clientCpfCnpj: '123.456.789-00',
     licensePlate: 'ABC1D23',
+    description: 'Ruído no motor',
   });
 
-  it('deve criar a OS com status RECEIVED, sem itens e valor total zerado', async () => {
+  it('deve criar a OS com status RECEIVED, sem itens, valor total zerado e a descrição informada', async () => {
     const os = await useCase.execute(buildDto());
 
     expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
     expect(os.vehicleId).toBe('vehicle-1');
+    expect(os.description).toBe('Ruído no motor');
     expect(os.serviceItems).toEqual([]);
     expect(os.partItems).toEqual([]);
     expect(os.totalAmount).toBe(0);

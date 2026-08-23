@@ -114,20 +114,35 @@ describe('ServiceOrdersController (integration)', () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     expect(response.status).toBe(201);
     expect(response.body.status).toBe('RECEIVED');
+    expect(response.body.description).toBe('Ruído no motor');
     expect(response.body.serviceItems).toEqual([]);
     expect(response.body.partItems).toEqual([]);
     expect(response.body.totalAmount).toBe(0);
+  });
+
+  it('deve assumir o status RECEIVED por padrão no banco quando não informado na inserção', async () => {
+    const vehicle = await prisma.vehicle.findFirstOrThrow({ where: { licensePlate } });
+
+    const serviceOrder = await prisma.serviceOrder.create({
+      data: {
+        vehicleId: vehicle.id,
+        description: 'Ruído no motor',
+        totalAmount: 0,
+      },
+    });
+
+    expect(serviceOrder.status).toBe('RECEIVED');
   });
 
   it('POST /service-orders deve rejeitar cliente inexistente', async () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj: '00000000000', licensePlate });
+      .send({ clientCpfCnpj: '00000000000', licensePlate, description: 'Ruído no motor' });
 
     expect(response.status).toBe(404);
   });
@@ -136,7 +151,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .get('/service-orders')
@@ -151,7 +166,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}`)
@@ -166,7 +181,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}`)
@@ -191,7 +206,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/status`)
@@ -215,7 +230,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/status`)
@@ -229,7 +244,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .delete(`/service-orders/${created.body.id}`)
@@ -242,7 +257,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
@@ -264,7 +279,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
 
     await request(app.getHttpServer())
@@ -291,7 +306,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
 
     await request(app.getHttpServer())
@@ -320,7 +335,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
@@ -335,7 +350,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate });
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)

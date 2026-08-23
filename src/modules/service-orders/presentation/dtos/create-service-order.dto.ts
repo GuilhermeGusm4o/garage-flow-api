@@ -11,4 +11,12 @@ export class CreateServiceOrderDto {
   @IsString()
   @IsNotEmpty()
   licensePlate!: string;
+
+  @ApiProperty({
+    example: 'Barulho estranho ao freiar e vibração no volante em alta velocidade',
+    description: 'Reclamação do cliente relatada na abertura da OS',
+  })
+  @IsString()
+  @IsNotEmpty()
+  description!: string;
 }
