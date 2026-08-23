@@ -55,7 +55,10 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
     });
   }
 
-  private async deleteAndCreateServiceItems(serviceOrderId: string, serviceItems: ServiceItem[]): Promise<void> {
+  private async deleteAndCreateServiceItems(
+    serviceOrderId: string,
+    serviceItems: ServiceItem[],
+  ): Promise<void> {
     await this.prisma.serviceOrderService.deleteMany({ where: { serviceOrderId } });
     if (serviceItems.length > 0) {
       await this.prisma.serviceOrderService.createMany({
@@ -68,7 +71,10 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
     }
   }
 
-  private async deleteAndCreatePartItems(serviceOrderId: string, partItems: PartItem[]): Promise<void> {
+  private async deleteAndCreatePartItems(
+    serviceOrderId: string,
+    partItems: PartItem[],
+  ): Promise<void> {
     await this.prisma.serviceOrderInventory.deleteMany({ where: { serviceOrderId } });
     if (partItems.length > 0) {
       await this.prisma.serviceOrderInventory.createMany({
