@@ -13,7 +13,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
 
     const raw = await this.prisma.$transaction(async (tx) => {
       await tx.serviceOrder.upsert({
-        where: { id: serviceOrder.id },
+        where: { id: serviceOrder.id, deleted_at: null },
         create: data,
         update: data,
       });
@@ -42,7 +42,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
       }
 
       return tx.serviceOrder.findUniqueOrThrow({
-        where: { id: serviceOrder.id },
+        where: { id: serviceOrder.id, deleted_at: null },
         include: { services: true, inventory: true },
       });
     });
@@ -68,7 +68,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
 
   async softDelete(id: string): Promise<void> {
     await this.prisma.serviceOrder.update({
-      where: { id },
+      where: { id, deleted_at: null },
       data: { deleted_at: new Date() },
     });
   }
