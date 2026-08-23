@@ -5,7 +5,7 @@ import request from 'supertest';
 import { ServiceOrdersModule } from '@service-orders/service-orders.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
-import { DomainExceptionFilter } from '@common/filters/domain-exception.filter';
+import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 import { JwtStrategy } from '@auth/infrastructure/security/jwt.strategy';
@@ -48,7 +48,7 @@ describe('ServiceOrdersController (integration)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalFilters(new DomainExceptionFilter());
+    app.useGlobalFilters(new GlobalExceptionFilter());
     prisma = moduleRef.get(PrismaService);
     jwtService = moduleRef.get(JwtService);
     await app.init();
