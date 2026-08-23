@@ -44,7 +44,8 @@ services:
       postgres:
         condition: service_healthy
     command: >
-      sh -c "npm run db:migrate:deploy &&
+      sh -c "rm -rf /app/dist /app/tsconfig.tsbuildinfo &&
+      npm run db:migrate:deploy &&
       npx prisma db seed &&
       npm run start:debug"
 
