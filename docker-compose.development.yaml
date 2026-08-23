@@ -36,6 +36,10 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      # Testcontainers needs access to the host Docker daemon when tests run in this service.
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       postgres:
         condition: service_healthy

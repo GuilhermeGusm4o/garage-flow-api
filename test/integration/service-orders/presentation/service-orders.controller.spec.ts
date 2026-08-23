@@ -63,8 +63,8 @@ describe('ServiceOrdersController (integration)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
-    await stopTestDatabase(testDatabase);
+    await app?.close();
+    if (testDatabase) await stopTestDatabase(testDatabase);
     process.env.DATABASE_URL = originalDatabaseUrl;
   });
 
