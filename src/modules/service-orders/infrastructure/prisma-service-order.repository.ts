@@ -3,6 +3,8 @@ import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { ServiceOrderMapper } from '@service-orders/infrastructure/service-order.mapper';
+import { PartItem } from '@service-orders/domain/entities/part-item.entity';
+import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 
 @Injectable()
 export class PrismaServiceOrderRepository implements ServiceOrderRepository {
@@ -18,28 +20,8 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
         update: data,
       });
 
-      await tx.serviceOrderService.deleteMany({ where: { serviceOrderId: serviceOrder.id } });
-      if (serviceOrder.serviceItems.length > 0) {
-        await tx.serviceOrderService.createMany({
-          data: serviceOrder.serviceItems.map((item) => ({
-            serviceId: item.serviceId,
-            serviceOrderId: serviceOrder.id,
-            price: item.price,
-          })),
-        });
-      }
-
-      await tx.serviceOrderInventory.deleteMany({ where: { serviceOrderId: serviceOrder.id } });
-      if (serviceOrder.partItems.length > 0) {
-        await tx.serviceOrderInventory.createMany({
-          data: serviceOrder.partItems.map((item) => ({
-            inventoryId: item.inventoryId,
-            serviceOrderId: serviceOrder.id,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          })),
-        });
-      }
+      await this.deleteAndCreateServiceItems(serviceOrder.id, serviceOrder.serviceItems);
+      await this.deleteAndCreatePartItems(serviceOrder.id, serviceOrder.partItems);
 
       return tx.serviceOrder.findUniqueOrThrow({
         where: { id: serviceOrder.id, deleted_at: null },
@@ -71,5 +53,32 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
       where: { id, deleted_at: null },
       data: { deleted_at: new Date() },
     });
+  }
+
+  private async deleteAndCreateServiceItems(serviceOrderId: string, serviceItems: ServiceItem[]): Promise<void> {
+    await this.prisma.serviceOrderService.deleteMany({ where: { serviceOrderId } });
+    if (serviceItems.length > 0) {
+      await this.prisma.serviceOrderService.createMany({
+        data: serviceItems.map((item) => ({
+          serviceId: item.serviceId,
+          serviceOrderId,
+          price: item.price,
+        })),
+      });
+    }
+  }
+
+  private async deleteAndCreatePartItems(serviceOrderId: string, partItems: PartItem[]): Promise<void> {
+    await this.prisma.serviceOrderInventory.deleteMany({ where: { serviceOrderId } });
+    if (partItems.length > 0) {
+      await this.prisma.serviceOrderInventory.createMany({
+        data: partItems.map((item) => ({
+          inventoryId: item.inventoryId,
+          serviceOrderId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        })),
+      });
+    }
   }
 }

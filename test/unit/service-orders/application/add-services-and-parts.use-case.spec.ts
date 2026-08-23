@@ -66,6 +66,12 @@ describe('AddServicesAndPartsUseCase', () => {
     expect(repository.save).toHaveBeenCalledWith(os);
   });
 
+  it('deve mover a OS para AWAITING_APPROVAL após adicionar serviços e peças', async () => {
+    const os = await useCase.execute('os-1', buildDto());
+
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+  });
+
   it('deve preservar os itens já existentes na OS ao adicionar novos', async () => {
     const existingServiceOrder = buildServiceOrder();
     existingServiceOrder.addServicesAndParts(
@@ -98,6 +104,15 @@ describe('AddServicesAndPartsUseCase', () => {
     expect(findPartById.execute).not.toHaveBeenCalled();
     expect(calculateAvailability.execute).not.toHaveBeenCalled();
     expect(calculateTotalAmount.execute).not.toHaveBeenCalled();
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em AWAITING_APPROVAL', async () => {
+    const serviceOrder = buildServiceOrder();
+    serviceOrder.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
