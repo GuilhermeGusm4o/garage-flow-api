@@ -35,9 +35,7 @@ export class AddServicesAndPartsUseCase {
         ? this.findServicesByIdList
             .execute(dto.services.map((item) => item.serviceId))
             .then((services) =>
-              services.map(
-                (service) => new ServiceItem(null, service.id, service.price.getValue()),
-              ),
+              services.map((service) => ServiceItem.create(service.id, service.price.getValue())),
             )
         : Promise.resolve([]);
 
@@ -54,7 +52,7 @@ export class AddServicesAndPartsUseCase {
           );
         }
 
-        return new PartItem(null, part.id, item.quantity, part.unitPrice, part.unitOfMeasure.value);
+        return PartItem.create(part.id, item.quantity, part.unitPrice, part.unitOfMeasure.value);
       }),
     );
 

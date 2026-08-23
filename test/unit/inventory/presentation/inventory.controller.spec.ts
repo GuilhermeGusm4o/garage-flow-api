@@ -5,21 +5,8 @@ import { type ConsumePartUseCase } from '@inventory/application/use-cases/consum
 import { type ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
 import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { type SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
-
-const makePart = (overrides: Partial<Part> = {}): Part =>
-  Object.assign(
-    new Part(
-      '123e4567-e89b-12d3-a456-426614174000',
-      'Óleo de motor 5W30',
-      new UnitOfMeasure('ML'),
-      45.9,
-      new Quantity(20),
-    ),
-    overrides,
-  );
+import { makePart } from '../part.factory';
 
 describe('InventoryController', () => {
   let controller: InventoryController;

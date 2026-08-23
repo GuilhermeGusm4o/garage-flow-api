@@ -16,31 +16,41 @@ type PrismaServiceOrderWithRelations = PrismaServiceOrder & {
 
 export class ServiceOrderMapper {
   static toDomain(raw: PrismaServiceOrderWithRelations): ServiceOrder {
-    const serviceItems = raw.services.map(
-      (s) => new ServiceItem(s.id, s.serviceId, Number(s.price)),
+    const serviceItems = raw.services.map((s) =>
+      ServiceItem.reconstitute({
+        id: s.id,
+        serviceId: s.serviceId,
+        price: Number(s.price),
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
+      }),
     );
-    const partItems = raw.inventory.map(
-      (p) =>
-        new PartItem(
-          p.id,
-          p.inventoryId,
-          Number(p.quantity),
-          Number(p.unitPrice),
-          p.inventory.unitOfMeasure,
-        ),
+    const partItems = raw.inventory.map((p) =>
+      PartItem.reconstitute({
+        id: p.id,
+        inventoryId: p.inventoryId,
+        quantity: Number(p.quantity),
+        unitPrice: Number(p.unitPrice),
+        unitOfMeasure: p.inventory.unitOfMeasure,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+      }),
     );
 
-    return new ServiceOrder(
-      raw.id,
-      raw.vehicleId,
-      raw.description,
-      raw.mechanicId,
-      raw.status as ServiceOrderStatus,
-      raw.approvedAt,
-      Number(raw.totalAmount),
+    return ServiceOrder.reconstitute({
+      id: raw.id,
+      vehicleId: raw.vehicleId,
+      description: raw.description,
+      mechanicId: raw.mechanicId,
+      status: raw.status as ServiceOrderStatus,
+      approvedAt: raw.approvedAt,
+      totalAmount: Number(raw.totalAmount),
       serviceItems,
       partItems,
-    );
+      createdAt: raw.created_at,
+      updatedAt: raw.updated_at,
+      deletedAt: raw.deleted_at,
+    });
   }
 
   static toPersistence(serviceOrder: ServiceOrder) {

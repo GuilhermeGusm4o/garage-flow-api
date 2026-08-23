@@ -1,29 +1,72 @@
+import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
+
 export type UserRole = 'ADMIN' | 'MECHANIC' | 'SERVICE_ADVISOR' | 'STOCK_CLERK';
 
-export class User {
-  constructor(
-    public readonly id: string,
-    public name: string,
-    public email: string,
-    public passwordHash: string,
-    public role: UserRole,
-    public readonly createdAt?: Date,
-    public updatedAt?: Date,
-    public deletedAt?: Date | null,
-  ) {}
+export interface UserProps extends BaseEntityProps {
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: UserRole;
+}
 
-  isDeleted(): boolean {
-    return this.deletedAt !== null && this.deletedAt !== undefined;
+export interface UpdateUserProps {
+  name?: string;
+  email?: string;
+  passwordHash?: string;
+  role?: UserRole;
+}
+
+export class User extends BaseEntity {
+  private _name: string;
+  private _email: string;
+  private _passwordHash: string;
+  private _role: UserRole;
+
+  private constructor(props: UserProps) {
+    super(props);
+    this._name = props.name;
+    this._email = props.email;
+    this._passwordHash = props.passwordHash;
+    this._role = props.role;
   }
 
-  softDelete(): void {
-    this.deletedAt = new Date();
-    this.updatedAt = new Date();
+  static create(props: UserProps): User {
+    return new User(props);
+  }
+
+  get name(): string {
+    return this._name;
+  }
+
+  get email(): string {
+    return this._email;
+  }
+
+  get passwordHash(): string {
+    return this._passwordHash;
+  }
+
+  get role(): UserRole {
+    return this._role;
+  }
+
+  update(props: UpdateUserProps): void {
+    if (props.name !== undefined) this._name = props.name;
+    if (props.email !== undefined) this._email = props.email;
+    if (props.passwordHash !== undefined) this._passwordHash = props.passwordHash;
+    if (props.role !== undefined) this._role = props.role;
+    this.touch();
   }
 
   toJSON() {
-    const { passwordHash: _passwordHash, ...rest } = this;
-
-    return rest;
+    return {
+      id: this.id,
+      name: this._name,
+      email: this._email,
+      role: this._role,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      deletedAt: this.deletedAt,
+    };
   }
 }

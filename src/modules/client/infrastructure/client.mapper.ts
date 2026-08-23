@@ -1,12 +1,11 @@
 import { type Client as ClientModel } from '@generated/prisma/client';
-import { type UUID } from 'crypto';
 import { ClientEntity } from '@client/domain/entities/client.entity';
 import { CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
 
 export class ClientMapper {
   static toDomain(raw: ClientModel): ClientEntity {
     return ClientEntity.create({
-      id: raw.id as UUID,
+      id: raw.id,
       cpfCnpj: CpfCnpj.create(raw.cpfCnpj),
       name: raw.name,
       phone: raw.phone,

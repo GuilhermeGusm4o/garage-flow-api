@@ -5,8 +5,8 @@ import { type PartItem } from '@service-orders/domain/entities/part-item.entity'
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 export class ServiceItemResponseDto {
-  @ApiPropertyOptional({ nullable: true })
-  id!: string | null;
+  @ApiProperty()
+  id!: string;
 
   @ApiProperty()
   serviceId!: string;
@@ -24,8 +24,8 @@ export class ServiceItemResponseDto {
 }
 
 export class PartItemResponseDto {
-  @ApiPropertyOptional({ nullable: true })
-  id!: string | null;
+  @ApiProperty()
+  id!: string;
 
   @ApiProperty()
   inventoryId!: string;

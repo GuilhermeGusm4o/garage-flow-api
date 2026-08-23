@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -80,7 +81,7 @@ export class InventoryController {
   @ApiOkResponse({ description: 'Inventory item updated successfully' })
   @ApiBadRequestResponse({ description: 'Invalid inventory item payload' })
   @ApiNotFoundResponse({ description: 'Inventory item not found' })
-  update(@Param('id') id: string, @Body() dto: UpdatePartDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePartDto) {
     return this.updatePart.execute(id, dto);
   }
 
@@ -94,7 +95,7 @@ export class InventoryController {
   @ApiOkResponse({ description: 'Inventory item restocked successfully' })
   @ApiBadRequestResponse({ description: 'Invalid restock quantity' })
   @ApiNotFoundResponse({ description: 'Inventory item not found' })
-  restock(@Param('id') id: string, @Body() dto: RestockPartDto) {
+  restock(@Param('id', ParseUUIDPipe) id: string, @Body() dto: RestockPartDto) {
     return this.restockPart.execute(id, dto.quantity);
   }
 
@@ -108,7 +109,7 @@ export class InventoryController {
   @ApiOkResponse({ description: 'Inventory item consumed successfully' })
   @ApiBadRequestResponse({ description: 'Invalid quantity or insufficient stock' })
   @ApiNotFoundResponse({ description: 'Inventory item not found' })
-  consume(@Param('id') id: string, @Body() dto: ConsumePartDto) {
+  consume(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ConsumePartDto) {
     return this.consumePart.execute(id, dto.quantity);
   }
 
@@ -122,7 +123,7 @@ export class InventoryController {
   })
   @ApiNoContentResponse({ description: 'Inventory item deleted successfully' })
   @ApiNotFoundResponse({ description: 'Inventory item not found' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.softDeletePart.execute(id);
   }
 }

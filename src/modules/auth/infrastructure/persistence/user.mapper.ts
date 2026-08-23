@@ -3,16 +3,16 @@ import { User, type UserRole } from '@auth/domain/entities/user.entity';
 
 export const UserMapper = {
   toDomain(raw: PrismaUser): User {
-    return new User(
-      raw.id,
-      raw.name,
-      raw.email,
-      raw.passwordHash,
-      raw.role as UserRole,
-      raw.created_at,
-      raw.updated_at,
-      raw.deleted_at,
-    );
+    return User.create({
+      id: raw.id,
+      name: raw.name,
+      email: raw.email,
+      passwordHash: raw.passwordHash,
+      role: raw.role as UserRole,
+      createdAt: raw.created_at,
+      updatedAt: raw.updated_at,
+      deletedAt: raw.deleted_at,
+    });
   },
 
   toPersistence(user: User) {

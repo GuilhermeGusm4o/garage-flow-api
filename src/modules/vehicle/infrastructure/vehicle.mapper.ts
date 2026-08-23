@@ -1,12 +1,11 @@
 import { type Vehicle as VehicleModel } from '@generated/prisma/client';
-import { type UUID } from 'crypto';
 import { VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';
 import { LicensePlate } from '@vehicle/domain/value-objects/license-plate.vo';
 
 export class VehicleMapper {
   static toDomain(raw: VehicleModel): VehicleEntity {
     return VehicleEntity.create({
-      id: raw.id as UUID,
+      id: raw.id,
       brand: raw.brand,
       model: raw.model,
       licensePlate: LicensePlate.create(raw.licensePlate),

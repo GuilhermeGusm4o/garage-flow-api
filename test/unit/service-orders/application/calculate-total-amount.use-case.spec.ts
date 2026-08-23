@@ -18,7 +18,7 @@ describe('CalculateTotalAmountUseCase', () => {
     findServicesByIdList.execute.mockResolvedValue([
       { id: 'service-1', price: { getValue: () => 120 } },
     ]);
-    const serviceItems = [new ServiceItem(null, 'service-1', 100)];
+    const serviceItems = [ServiceItem.create('service-1', 100)];
 
     const total = await useCase.execute(serviceItems, []);
 
@@ -30,8 +30,8 @@ describe('CalculateTotalAmountUseCase', () => {
     findServicesByIdList.execute.mockResolvedValue([
       { id: 'service-1', price: { getValue: () => 100 } },
     ]);
-    const serviceItems = [new ServiceItem(null, 'service-1', 100)];
-    const partItems = [new PartItem(null, 'part-1', 2, 30)];
+    const serviceItems = [ServiceItem.create('service-1', 100)];
+    const partItems = [PartItem.create('part-1', 2, 30)];
 
     const total = await useCase.execute(serviceItems, partItems);
 
@@ -39,7 +39,7 @@ describe('CalculateTotalAmountUseCase', () => {
   });
 
   it('não deve consultar serviços quando não houver ServiceItem', async () => {
-    const total = await useCase.execute([], [new PartItem(null, 'part-1', 1, 10)]);
+    const total = await useCase.execute([], [PartItem.create('part-1', 1, 10)]);
 
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
     expect(total).toBe(10);

@@ -74,11 +74,7 @@ describe('AddServicesAndPartsUseCase', () => {
 
   it('deve preservar os itens já existentes na OS ao adicionar novos', async () => {
     const existingServiceOrder = buildServiceOrder();
-    existingServiceOrder.addServicesAndParts(
-      [new ServiceItem(null, 'service-existing', 50)],
-      [],
-      50,
-    );
+    existingServiceOrder.addServicesAndParts([ServiceItem.create('service-existing', 50)], [], 50);
     repository.findById.mockResolvedValue(existingServiceOrder);
 
     const os = await useCase.execute('os-1', buildDto());

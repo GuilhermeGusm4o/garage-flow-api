@@ -17,8 +17,19 @@ describe('Auth Use Cases', () => {
   let passwordHasher: jest.Mocked<BcryptPasswordHasher>;
   let jwtService: jest.Mocked<JwtService>;
 
-  const createUser = () =>
-    new User('user-id', 'John Doe', 'john@example.com', 'hashed-password', 'MECHANIC');
+  const createUser = () => {
+    const now = new Date();
+
+    return User.create({
+      id: 'user-id',
+      name: 'John Doe',
+      email: 'john@example.com',
+      passwordHash: 'hashed-password',
+      role: 'MECHANIC',
+      createdAt: now,
+      updatedAt: now,
+    });
+  };
 
   beforeEach(() => {
     repository = {
@@ -89,7 +100,7 @@ describe('Auth Use Cases', () => {
 
       await useCase.execute(user.id);
 
-      expect(user.isDeleted()).toBe(true);
+      expect(user.isDeleted).toBe(true);
       expect(repository.update).toHaveBeenCalledWith(user);
     });
 

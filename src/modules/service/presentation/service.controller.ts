@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -75,7 +76,7 @@ export class ServiceController {
   })
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
-  async findOne(@Param('id') id: string): Promise<ServiceResponse> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceResponse> {
     const service = await this.findServiceByIdUseCase.execute(id);
     return ServiceResponse.fromEntity(service);
   }
@@ -90,7 +91,7 @@ export class ServiceController {
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateServiceRequest,
   ): Promise<ServiceResponse> {
     const service = await this.updateServiceUseCase.execute(id, body.name, body.price);
@@ -107,7 +108,7 @@ export class ServiceController {
   })
   @ApiNoContentResponse({ description: 'Service deleted successfully' })
   @ApiNotFoundResponse({ description: 'Service not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteServiceUseCase.execute(id);
   }
 }
