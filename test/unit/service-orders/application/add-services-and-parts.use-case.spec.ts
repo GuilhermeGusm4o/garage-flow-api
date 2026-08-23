@@ -8,6 +8,7 @@ import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-
 import { type CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { type CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
+import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 describe('AddServicesAndPartsUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
@@ -20,7 +21,11 @@ describe('AddServicesAndPartsUseCase', () => {
   const service = { id: 'service-1', price: { getValue: () => 100 } };
   const part = { id: 'part-1', name: 'Óleo', unitPrice: 30 };
 
-  const buildServiceOrder = () => ServiceOrder.create('vehicle-1', [], [], 0);
+  const buildServiceOrder = () => {
+    const serviceOrder = ServiceOrder.create('vehicle-1', [], [], 0);
+    serviceOrder.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
+    return serviceOrder;
+  };
 
   beforeEach(() => {
     repository = {
@@ -62,7 +67,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve preservar os itens já existentes na OS ao adicionar novos', async () => {
-    const existingServiceOrder = ServiceOrder.create('vehicle-1', [], [], 0);
+    const existingServiceOrder = buildServiceOrder();
     existingServiceOrder.addServicesAndParts(
       [new ServiceItem(null, 'service-existing', 50)],
       [],
@@ -82,6 +87,18 @@ describe('AddServicesAndPartsUseCase', () => {
     repository.findById.mockResolvedValue(null);
 
     await expect(useCase.execute('os-inexistente', buildDto())).rejects.toThrow(NotFoundException);
+  });
+
+  it('deve lançar BadRequestException se a OS não estiver em diagnóstico', async () => {
+    const serviceOrder = ServiceOrder.create('vehicle-1', [], [], 0);
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+    expect(findServicesByIdList.execute).not.toHaveBeenCalled();
+    expect(findPartById.execute).not.toHaveBeenCalled();
+    expect(calculateAvailability.execute).not.toHaveBeenCalled();
+    expect(calculateTotalAmount.execute).not.toHaveBeenCalled();
+    expect(repository.save).not.toHaveBeenCalled();
   });
 
   it('deve lançar BadRequestException se a quantidade de peça for maior que a disponível', async () => {

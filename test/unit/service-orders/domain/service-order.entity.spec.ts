@@ -39,6 +39,44 @@ describe('ServiceOrder', () => {
     expect(os1.id).not.toBe(os2.id);
   });
 
+  it('deve atualizar vehicleId, mechanicId, approvedAt e status via update()', () => {
+    const os = ServiceOrder.create('vehicle-1', [], [], 0);
+    const approvedAt = new Date('2026-08-22T10:00:00.000Z');
+
+    os.update({
+      vehicleId: 'vehicle-2',
+      mechanicId: 'mechanic-1',
+      status: ServiceOrderStatus.IN_DIAGNOSIS,
+      approvedAt,
+    });
+
+    expect(os.vehicleId).toBe('vehicle-2');
+    expect(os.mechanicId).toBe('mechanic-1');
+    expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
+    expect(os.approvedAt).toBe(approvedAt);
+  });
+
+  it('deve permitir limpar mechanicId e approvedAt via update() passando null', () => {
+    const os = ServiceOrder.create('vehicle-1', [], [], 0);
+    os.update({ mechanicId: 'mechanic-1', approvedAt: new Date() });
+
+    os.update({ mechanicId: null, approvedAt: null });
+
+    expect(os.mechanicId).toBeNull();
+    expect(os.approvedAt).toBeNull();
+  });
+
+  it('deve manter os campos não informados inalterados ao chamar update() parcialmente', () => {
+    const os = ServiceOrder.create('vehicle-1', [], [], 0);
+    os.update({ mechanicId: 'mechanic-1' });
+
+    os.update({ status: ServiceOrderStatus.IN_EXECUTION });
+
+    expect(os.vehicleId).toBe('vehicle-1');
+    expect(os.mechanicId).toBe('mechanic-1');
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+  });
+
   it('deve adicionar serviços e peças preservando os itens já existentes', () => {
     const os = ServiceOrder.create(
       'vehicle-1',

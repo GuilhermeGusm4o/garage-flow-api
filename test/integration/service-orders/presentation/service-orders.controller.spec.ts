@@ -144,6 +144,69 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.status).toBe('IN_DIAGNOSIS');
   });
 
+  it('PATCH /service-orders/:id deve atualizar mechanicId e approvedAt', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}`)
+      .set('Authorization', adminAuthHeader())
+      .send({ mechanicId: 'mechanic-1', approvedAt: '2026-08-22T10:00:00.000Z' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.mechanicId).toBe('mechanic-1');
+    expect(response.body.approvedAt).toBe('2026-08-22T10:00:00.000Z');
+  });
+
+  it('PATCH /service-orders/:id deve retornar 404 se a OS não existir', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', adminAuthHeader())
+      .send({ status: 'IN_DIAGNOSIS' });
+
+    expect(response.status).toBe(404);
+  });
+
+  it('PATCH /service-orders/:id/status deve atualizar exclusivamente o status', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/status`)
+      .set('Authorization', adminAuthHeader())
+      .send({ status: 'AWAITING_APPROVAL' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('AWAITING_APPROVAL');
+  });
+
+  it('PATCH /service-orders/:id/status deve retornar 404 se a OS não existir', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/status')
+      .set('Authorization', adminAuthHeader())
+      .send({ status: 'AWAITING_APPROVAL' });
+
+    expect(response.status).toBe(404);
+  });
+
+  it('PATCH /service-orders/:id/status deve retornar 400 para um status inválido', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/status`)
+      .set('Authorization', adminAuthHeader())
+      .send({ status: 'NOT_A_REAL_STATUS' });
+
+    expect(response.status).toBe(400);
+  });
+
   it('DELETE /service-orders/:id deve fazer soft delete', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')

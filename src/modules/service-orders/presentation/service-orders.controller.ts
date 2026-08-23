@@ -18,10 +18,12 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
+import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
+import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 
 @ApiTags('Service Orders')
@@ -32,6 +34,7 @@ export class ServiceOrdersController {
     private readonly findServiceOrderById: FindServiceOrderByIdUseCase,
     private readonly findAllServiceOrders: FindAllServiceOrdersUseCase,
     private readonly updateServiceOrder: UpdateServiceOrderUseCase,
+    private readonly updateServiceOrderStatus: UpdateServiceOrderStatusUseCase,
     private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
   ) {}
@@ -71,13 +74,24 @@ export class ServiceOrdersController {
 
   @Patch(':id')
   @ApiBearerAuth('access-token')
-  @Roles('ADMIN') // TODO: check if SERVICE_ADVISOR and MECANIC should also be allowed
+  @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Updates a service order by ID',
   })
   update(@Param('id') id: string, @Body() dto: UpdateServiceOrderDto) {
     return this.updateServiceOrder.execute(id, dto);
+  }
+
+  @Patch(':id/status')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'MECHANIC', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Updates the status of a service order by ID',
+  })
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateServiceOrderStatusDto) {
+    return this.updateServiceOrderStatus.execute(id, dto);
   }
 
   @Patch(':id/services-and-parts')

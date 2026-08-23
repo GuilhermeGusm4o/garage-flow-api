@@ -2,6 +2,13 @@ import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service
 import { type ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { type PartItem } from '@service-orders/domain/entities/part-item.entity';
 
+export interface UpdateServiceOrderProps {
+  vehicleId?: string;
+  mechanicId?: string | null;
+  status?: ServiceOrderStatus;
+  approvedAt?: Date | null;
+}
+
 export class ServiceOrder {
   constructor(
     public readonly id: string,
@@ -35,6 +42,13 @@ export class ServiceOrder {
   updateStatus(newStatus: ServiceOrderStatus): void {
     // TODO: add validation for status transitions
     this.status = newStatus;
+  }
+
+  update(props: UpdateServiceOrderProps): void {
+    if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
+    if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;
+    if (props.approvedAt !== undefined) this.approvedAt = props.approvedAt;
+    if (props.status !== undefined) this.updateStatus(props.status);
   }
 
   addServicesAndParts(
