@@ -40,6 +40,8 @@ export class ServiceOrderMapper {
       Number(raw.totalAmount),
       serviceItems,
       partItems,
+      raw.serviceStartedAt,
+      raw.serviceFinishedAt,
     );
   }
 
@@ -52,6 +54,8 @@ export class ServiceOrderMapper {
       status: serviceOrder.status,
       approvedAt: serviceOrder.approvedAt,
       totalAmount: serviceOrder.totalAmount,
+      serviceStartedAt: serviceOrder.serviceStartedAt,
+      serviceFinishedAt: serviceOrder.serviceFinishedAt,
     };
   }
 }

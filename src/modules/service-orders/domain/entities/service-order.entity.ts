@@ -20,6 +20,8 @@ export class ServiceOrder {
     public totalAmount: number,
     public serviceItems: ServiceItem[],
     public partItems: PartItem[],
+    public serviceStartedAt: Date | null = null,
+    public serviceFinishedAt: Date | null = null,
   ) {}
 
   static create(
@@ -51,6 +53,7 @@ export class ServiceOrder {
     this.mechanicId = mechanicId;
     this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
   }
+
 
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;

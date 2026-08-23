@@ -306,7 +306,7 @@ async function main() {
       id: seedIds.serviceOrders[3],
       vehicleId: seedIds.vehicles[3],
       description: 'Revisao preventiva antes de viagem longa.',
-      status: 'AWAITING_EXECUTION',
+      status: 'IN_EXECUTION',
       mechanicId: mechanic.id,
       approvedAt: new Date('2026-08-18T10:00:00.000Z'),
       services: [1],

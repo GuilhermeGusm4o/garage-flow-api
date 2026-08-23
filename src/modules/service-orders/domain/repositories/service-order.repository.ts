@@ -11,6 +11,8 @@ export interface ServiceOrderListItem {
   status: ServiceOrder['status'];
   approvedAt: Date | null;
   totalAmount: number;
+  serviceStartedAt: Date | null;
+  serviceFinishedAt: Date | null;
   serviceItems: ServiceItem[];
   partItems: PartItem[];
   vehicleLicensePlate: string;
