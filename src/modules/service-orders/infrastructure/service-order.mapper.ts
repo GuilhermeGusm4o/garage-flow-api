@@ -6,7 +6,7 @@ import {
   type ServiceOrder as PrismaServiceOrder,
   type ServiceOrderService as PrismaServiceOrderService,
   type ServiceOrderInventory as PrismaServiceOrderInventory,
-} from '../../../../generated/prisma/client';
+} from '@generated/prisma/client';
 
 type PrismaServiceOrderWithRelations = PrismaServiceOrder & {
   services: PrismaServiceOrderService[];

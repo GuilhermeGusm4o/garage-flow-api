@@ -61,7 +61,7 @@ export class CreateServiceOrderUseCase {
 
     const totalAmount = await this.calculateTotalAmount.execute(serviceItems, partItems);
     const serviceOrder = ServiceOrder.create(vehicle.id, serviceItems, partItems, totalAmount);
-    await this.serviceOrderRepository.save(serviceOrder);
-    return serviceOrder;
+    const savedServiceOrder = await this.serviceOrderRepository.save(serviceOrder);
+    return savedServiceOrder;
   }
 }

@@ -8,10 +8,10 @@ import { ServiceOrderMapper } from '@service-orders/infrastructure/service-order
 export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(serviceOrder: ServiceOrder): Promise<void> {
+  async save(serviceOrder: ServiceOrder): Promise<ServiceOrder> {
     const data = ServiceOrderMapper.toPersistence(serviceOrder);
 
-    await this.prisma.$transaction(async (tx) => {
+    const raw = await this.prisma.$transaction(async (tx) => {
       await tx.serviceOrder.upsert({
         where: { id: serviceOrder.id },
         create: data,
@@ -40,7 +40,13 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
           })),
         });
       }
+
+      return tx.serviceOrder.findUniqueOrThrow({
+        where: { id: serviceOrder.id },
+        include: { services: true, inventory: true },
+      });
     });
+    return ServiceOrderMapper.toDomain(raw);
   }
 
   async findById(id: string): Promise<ServiceOrder | null> {
