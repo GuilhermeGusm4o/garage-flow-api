@@ -12,17 +12,7 @@ describe('FinishServiceUseCase', () => {
   const useCase = new FinishServiceUseCase(repository);
 
   const makeOrder = (status: ServiceOrderStatus, mechanicId: string | null) =>
-    new ServiceOrder(
-      'order-1',
-      'vehicle-1',
-      'Falha no motor',
-      mechanicId,
-      status,
-      null,
-      0,
-      [],
-      [],
-    );
+    new ServiceOrder('order-1', 'vehicle-1', 'Falha no motor', mechanicId, status, null, 0, [], []);
 
   beforeEach(() => jest.clearAllMocks());
 
@@ -50,17 +40,13 @@ describe('FinishServiceUseCase', () => {
     const order = makeOrder(ServiceOrderStatus.IN_DIAGNOSIS, 'mechanic-1');
     repository.findById.mockResolvedValue(order);
 
-    await expect(useCase.execute(order.id, 'mechanic-1')).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(useCase.execute(order.id, 'mechanic-1')).rejects.toThrow(BadRequestException);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
   it('returns not found when the order does not exist', async () => {
     repository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('missing-order', 'mechanic-1')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(useCase.execute('missing-order', 'mechanic-1')).rejects.toThrow(NotFoundException);
   });
 });
