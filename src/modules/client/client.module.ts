@@ -7,8 +7,8 @@ import { UpdateClientUseCase } from '@client/application/use-cases/update-client
 import { DeleteClientUseCase } from '@client/application/use-cases/delete-client.use-case';
 import { ClientRepository } from '@client/domain/repositories/client.repository';
 import { PrismaClientRepository } from '@client/infrastructure/prisma-client.repository';
-import { PrismaService } from '../infra/database/prisma/prisma.service';
 import { FindClientByCpfCnpjUseCase } from '@client/application/use-cases/find-client-by-cpf-cnpj.use-case';
+import { PrismaService } from '@infra/database/prisma/prisma.service';
 
 @Module({
   controllers: [ClientController],

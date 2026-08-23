@@ -43,24 +43,24 @@ export class ServiceController {
   ) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Creates a new service',
   })
   @ApiCreatedResponse({ type: ServiceResponse })
-  @ApiBearerAuth('access-token')
   async create(@Body() body: CreateServiceRequest): Promise<ServiceResponse> {
     const service = await this.createServiceUseCase.execute(body.name, body.price);
     return ServiceResponse.fromEntity(service);
   }
 
   @Get()
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'List all services',
   })
-  @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: [ServiceResponse] })
   async findAll(): Promise<ServiceResponse[]> {
     const services = await this.findAllServicesUseCase.execute();
@@ -68,11 +68,11 @@ export class ServiceController {
   }
 
   @Get(':id')
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Fetch a service by ID',
   })
-  @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async findOne(@Param('id') id: string): Promise<ServiceResponse> {
@@ -81,12 +81,12 @@ export class ServiceController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Updates a service by ID',
   })
-  @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: ServiceResponse })
   @ApiNotFoundResponse({ description: 'Service not found' })
   async update(
@@ -98,10 +98,10 @@ export class ServiceController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Deletes a service by ID',
   })
