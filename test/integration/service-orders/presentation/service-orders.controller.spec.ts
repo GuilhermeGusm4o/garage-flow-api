@@ -1,31 +1,66 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { type INestApplication } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import request from 'supertest';
 import { ServiceOrdersModule } from '@service-orders/service-orders.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { DomainExceptionFilter } from '@common/filters/domain-exception.filter';
+import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
+import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+import { JwtStrategy } from '@auth/infrastructure/security/jwt.strategy';
+import {
+  startTestDatabase,
+  stopTestDatabase,
+  type TestDatabase,
+} from '../../../support/postgres-test-container';
+import { truncateAllTables } from '../../../support/truncate-database';
+
+jest.setTimeout(120_000);
 
 describe('ServiceOrdersController (integration)', () => {
+  let testDatabase: TestDatabase;
+  let originalDatabaseUrl: string | undefined;
   let app: INestApplication;
   let prisma: PrismaService;
-  let clientId: string;
+  let jwtService: JwtService;
+
   let clientCpfCnpj: string;
-  let vehicleId: string;
   let licensePlate: string;
   let serviceId: string;
   let partId: string;
-  const createdServiceOrderIds: string[] = [];
+
+  const adminAuthHeader = () => `Bearer ${jwtService.sign({ sub: 'admin-id', role: 'ADMIN' })}`;
 
   beforeAll(async () => {
+    originalDatabaseUrl = process.env.DATABASE_URL;
+    testDatabase = await startTestDatabase();
+    process.env.DATABASE_URL = testDatabase.databaseUrl;
+
     const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [PrismaModule, ServiceOrdersModule],
+      imports: [
+        PrismaModule,
+        ServiceOrdersModule,
+        JwtModule.register({ secret: process.env.JWT_SECRET, signOptions: { expiresIn: '1h' } }),
+      ],
+      providers: [JwtStrategy, JwtAuthGuard, RolesGuard],
     }).compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalFilters(new DomainExceptionFilter());
     prisma = moduleRef.get(PrismaService);
+    jwtService = moduleRef.get(JwtService);
     await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+    await stopTestDatabase(testDatabase);
+    process.env.DATABASE_URL = originalDatabaseUrl;
+  });
+
+  beforeEach(async () => {
+    await truncateAllTables(prisma);
 
     const client = await prisma.client.create({
       data: {
@@ -35,7 +70,6 @@ describe('ServiceOrdersController (integration)', () => {
         phone: '11999990000',
       },
     });
-    clientId = client.id;
     clientCpfCnpj = client.cpfCnpj;
 
     const vehicle = await prisma.vehicle.create({
@@ -47,7 +81,6 @@ describe('ServiceOrdersController (integration)', () => {
         clientId: client.id,
       },
     });
-    vehicleId = vehicle.id;
     licensePlate = vehicle.licensePlate;
 
     const service = await prisma.service.create({ data: { name: 'Troca de óleo', price: 100 } });
@@ -59,24 +92,10 @@ describe('ServiceOrdersController (integration)', () => {
     partId = part.id;
   });
 
-  afterAll(async () => {
-    await prisma.serviceOrderInventory.deleteMany({
-      where: { serviceOrderId: { in: createdServiceOrderIds } },
-    });
-    await prisma.serviceOrderService.deleteMany({
-      where: { serviceOrderId: { in: createdServiceOrderIds } },
-    });
-    await prisma.serviceOrder.deleteMany({ where: { id: { in: createdServiceOrderIds } } });
-    await prisma.inventory.deleteMany({ where: { id: partId } });
-    await prisma.service.deleteMany({ where: { id: serviceId } });
-    await prisma.vehicle.deleteMany({ where: { id: vehicleId } });
-    await prisma.client.deleteMany({ where: { id: clientId } });
-    await app.close();
-  });
-
   it('POST /service-orders deve criar uma OS', async () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
       .send({
         clientCpfCnpj,
         licensePlate,
@@ -86,32 +105,42 @@ describe('ServiceOrdersController (integration)', () => {
 
     expect(response.status).toBe(201);
     expect(response.body.status).toBe('RECEIVED');
-    expect(response.body.totalAmount).toBe(160);
-    createdServiceOrderIds.push(response.body.id);
+    expect(response.body.totalAmount).toBe(260); // 100 (item) + 100 (serviço atual) + 2*30 (peça)
   });
 
   it('POST /service-orders deve rejeitar cliente inexistente', async () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj: '00000000000', licensePlate, services: [], parts: [] });
 
     expect(response.status).toBe(404);
   });
 
-  it('GET /service-orders deve listar OS', async () => {
-    const response = await request(app.getHttpServer()).get('/service-orders');
+  it('GET /service-orders deve listar apenas as OS criadas neste teste', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, services: [{ serviceId }], parts: [] });
+
+    const response = await request(app.getHttpServer())
+      .get('/service-orders')
+      .set('Authorization', adminAuthHeader());
+
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].id).toBe(created.body.id);
   });
 
   it('PATCH /service-orders/:id deve atualizar o status', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, services: [{ serviceId }], parts: [] });
-    createdServiceOrderIds.push(created.body.id);
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}`)
+      .set('Authorization', adminAuthHeader())
       .send({ status: 'IN_DIAGNOSIS' });
 
     expect(response.status).toBe(200);
@@ -121,12 +150,13 @@ describe('ServiceOrdersController (integration)', () => {
   it('DELETE /service-orders/:id deve fazer soft delete', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, services: [], parts: [] });
-    createdServiceOrderIds.push(created.body.id);
 
-    const response = await request(app.getHttpServer()).delete(
-      `/service-orders/${created.body.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .delete(`/service-orders/${created.body.id}`)
+      .set('Authorization', adminAuthHeader());
+
     expect(response.status).toBe(204);
   });
 });
