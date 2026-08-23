@@ -31,27 +31,33 @@ export class CreateServiceOrderUseCase {
       throw new BadRequestException('Veículo não pertence ao cliente informado');
     }
 
-    const services =
+    const serviceItemsPromise =
       dto.services.length > 0
-        ? await this.findServicesByIdList.execute(dto.services.map((item) => item.serviceId))
-        : [];
-    const serviceItems = services.map(
-      (service) => new ServiceItem(null, service.id, service.price.getValue()),
+        ? this.findServicesByIdList
+            .execute(dto.services.map((item) => item.serviceId))
+            .then((services) =>
+              services.map((service) => new ServiceItem(null, service.id, service.price.getValue())),
+            )
+        : Promise.resolve([]);
+
+    const partItemsPromise = Promise.all(
+      dto.parts.map(async (item) => {
+        const [part, availableQuantity] = await Promise.all([
+          this.findPartById.execute(item.inventoryId),
+          this.calculateAvailability.execute(item.inventoryId),
+        ]);
+
+        if (item.quantity > availableQuantity) {
+          throw new BadRequestException(
+            `Quantidade indisponível para a peça ${part.name}. Disponível: ${availableQuantity}, solicitado: ${item.quantity}`,
+          );
+        }
+
+        return new PartItem(null, part.id, item.quantity, part.unitPrice);
+      }),
     );
 
-    const partItems: PartItem[] = [];
-    for (const item of dto.parts) {
-      const part = await this.findPartById.execute(item.inventoryId);
-      const availableQuantity = await this.calculateAvailability.execute(item.inventoryId);
-
-      if (item.quantity > availableQuantity) {
-        throw new BadRequestException(
-          `Quantidade indisponível para a peça ${part.name}. Disponível: ${availableQuantity}, solicitado: ${item.quantity}`,
-        );
-      }
-
-      partItems.push(new PartItem(null, part.id, item.quantity, part.unitPrice));
-    }
+    const [serviceItems, partItems] = await Promise.all([serviceItemsPromise, partItemsPromise]);
 
     const totalAmount = await this.calculateTotalAmount.execute(serviceItems, partItems);
     const serviceOrder = ServiceOrder.create(vehicle.id, serviceItems, partItems, totalAmount);
