@@ -19,6 +19,8 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
   const config = new DocumentBuilder()
     .setTitle('Garage Flow API')
     .setDescription('Garage Flow API')

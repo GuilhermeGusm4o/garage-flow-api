@@ -4,7 +4,7 @@ import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import {
   type UnitOfMeasure as PrismaUnitOfMeasure,
   type Inventory as PrismaInventory,
-} from '../../../generated/prisma/client';
+} from '@generated/prisma/client';
 
 export class PartMapper {
   static toDomain(row: PrismaInventory): Part {

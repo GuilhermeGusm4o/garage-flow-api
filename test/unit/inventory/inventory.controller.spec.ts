@@ -5,6 +5,7 @@ import { InventoryModule } from '@inventory/inventory.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { DomainExceptionFilter } from '@common/filters/domain-exception.filter';
+import { type Part } from '@inventory/domain/entities/part.entity';
 
 describe('InventoryController (integration)', () => {
   let app: INestApplication;
@@ -92,7 +93,7 @@ describe('InventoryController (integration)', () => {
     expect(response.status).toBe(204);
 
     const listResponse = await request(app.getHttpServer()).get('/inventory');
-    const stillListed = listResponse.body.some((p: { id: string }) => p.id === created.body.id);
+    const stillListed = listResponse.body.some((p: Part) => p.id === created.body.id);
     expect(stillListed).toBe(false);
   });
 });

@@ -10,7 +10,6 @@
       "@client/*": ["src/client/*"],
       "@vehicle/*": ["src/vehicle/*"],
       "@infra/*": ["src/infra/*"],
-      "@prisma/*": ["generated/prisma/*"],
       "@service/*": ["src/modules/service/*"],
       "@auth/*": ["src/modules/auth/*"],
       "@inventory/*": ["src/inventory/*"],
@@ -23,7 +22,10 @@
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
-    "types": ["node", "jest"],
+    "types": [
+      "node",
+      "jest"
+    ],
     "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true

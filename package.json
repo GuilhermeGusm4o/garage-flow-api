@@ -108,6 +108,8 @@
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
   },
   "overrides": {
-    "js-yaml": "4.3.1"
+    "js-yaml": "4.3.1",
+    "deepmerge-ts": "8.0.0",
+    "test-exclude": "8.0.0"
   }
 }
