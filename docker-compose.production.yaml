@@ -33,6 +33,19 @@ services:
         condition: service_healthy
     restart: 'no'
 
+  # Init container: inserts the demo users and catalog data after migrations.
+  seed:
+    build:
+      context: .
+      target: build
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/garage-flow?schema=public
+    command: npx prisma db seed
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: 'no'
+
   api:
     build:
       context: .
@@ -48,6 +61,8 @@ services:
       postgres:
         condition: service_healthy
       migrate:
+        condition: service_completed_successfully
+      seed:
         condition: service_completed_successfully
     restart: unless-stopped
 

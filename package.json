@@ -89,11 +89,11 @@
       "^@service/(.*)$": "<rootDir>/src/modules/service/$1",
       "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
       "^@generated/prisma/(.*)$": "<rootDir>/generated/prisma/$1",
-      "^@inventory/(.*)$": "<rootDir>/src/inventory/$1",
+      "^@inventory/(.*)$": "<rootDir>/src/modules/inventory/$1",
       "^@common/(.*)$": "<rootDir>/src/common/$1",
       "^@infra/(.*)$": "<rootDir>/src/infra/$1",
-      "^@client/(.*)$": "<rootDir>/src/client/$1",
-      "^@vehicle/(.*)$": "<rootDir>/src/vehicle/$1",
+      "^@client/(.*)$": "<rootDir>/src/modules/client/$1",
+      "^@vehicle/(.*)$": "<rootDir>/src/modules/vehicle/$1",
       "^@service-orders/(.*)$": "<rootDir>/src/modules/service-orders/$1"
     },
     "collectCoverageFrom": [
