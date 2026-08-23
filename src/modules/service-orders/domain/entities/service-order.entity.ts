@@ -54,6 +54,19 @@ export class ServiceOrder {
     this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
   }
 
+  finishService(mechanicId: string, finishedAt = new Date()): void {
+    if (this.mechanicId !== mechanicId) {
+      throw new Error('Only the mechanic assigned to the service order can finish it');
+    }
+
+    if (this.status !== ServiceOrderStatus.IN_EXECUTION) {
+      throw new Error('Service order is not in execution');
+    }
+
+    this.updateStatus(ServiceOrderStatus.FINISHED);
+    this.serviceFinishedAt = finishedAt;
+  }
+
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
     if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;

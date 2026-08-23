@@ -33,6 +33,7 @@ import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
+import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
@@ -52,6 +53,7 @@ export class ServiceOrdersController {
     private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
     private readonly startDiagnosis: StartDiagnosisUseCase,
+    private readonly finishService: FinishServiceUseCase,
   ) {}
 
   @Post()
@@ -173,6 +175,25 @@ export class ServiceOrdersController {
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.startDiagnosis.execute(id, request.user.id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Patch(':id/finish-service')
+  @ApiBearerAuth('access-token')
+  @Roles('MECHANIC')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Finishes service execution by ID',
+    description:
+      'The service order must be in execution and assigned to the authenticated mechanic.',
+  })
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async finishServiceExecution(
+    @Param('id') id: string,
+    @Req() request: { user: { id: string } },
+  ): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.finishService.execute(id, request.user.id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
