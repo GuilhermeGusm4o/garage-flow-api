@@ -36,12 +36,16 @@ export class PartItemResponseDto {
   @ApiProperty()
   unitPrice!: number;
 
+  @ApiPropertyOptional({ nullable: true })
+  unitOfMeasure!: string | null;
+
   static fromEntity(entity: PartItem): PartItemResponseDto {
     const response = new PartItemResponseDto();
     response.id = entity.id;
     response.inventoryId = entity.inventoryId;
     response.quantity = entity.quantity;
     response.unitPrice = entity.unitPrice;
+    response.unitOfMeasure = entity.unitOfMeasure;
     return response;
   }
 }

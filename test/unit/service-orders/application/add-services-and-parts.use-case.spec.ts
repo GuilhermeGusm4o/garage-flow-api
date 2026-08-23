@@ -19,7 +19,7 @@ describe('AddServicesAndPartsUseCase', () => {
   let useCase: AddServicesAndPartsUseCase;
 
   const service = { id: 'service-1', price: { getValue: () => 100 } };
-  const part = { id: 'part-1', name: 'Óleo', unitPrice: 30 };
+  const part = { id: 'part-1', name: 'Óleo', unitPrice: 30, unitOfMeasure: { value: 'ML' } };
 
   const buildServiceOrder = () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);

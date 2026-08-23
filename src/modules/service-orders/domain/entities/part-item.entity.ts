@@ -4,5 +4,6 @@ export class PartItem {
     public readonly inventoryId: string,
     public readonly quantity: number,
     public readonly unitPrice: number,
+    public readonly unitOfMeasure: string | null = null,
   ) {}
 }

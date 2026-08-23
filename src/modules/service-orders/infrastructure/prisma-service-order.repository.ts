@@ -25,7 +25,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
 
       return tx.serviceOrder.findUniqueOrThrow({
         where: { id: serviceOrder.id, deleted_at: null },
-        include: { services: true, inventory: true },
+        include: { services: true, inventory: { include: { inventory: true } } },
       });
     });
     return ServiceOrderMapper.toDomain(raw);
@@ -34,7 +34,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   async findById(id: string): Promise<ServiceOrder | null> {
     const raw = await this.prisma.serviceOrder.findFirst({
       where: { id, deleted_at: null },
-      include: { services: true, inventory: true },
+      include: { services: true, inventory: { include: { inventory: true } } },
     });
     if (!raw) return null;
     return ServiceOrderMapper.toDomain(raw);
@@ -43,7 +43,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   async findAll(): Promise<ServiceOrder[]> {
     const raws = await this.prisma.serviceOrder.findMany({
       where: { deleted_at: null },
-      include: { services: true, inventory: true },
+      include: { services: true, inventory: { include: { inventory: true } } },
     });
     return raws.map(ServiceOrderMapper.toDomain);
   }

@@ -54,7 +54,7 @@ export class AddServicesAndPartsUseCase {
           );
         }
 
-        return new PartItem(null, part.id, item.quantity, part.unitPrice);
+        return new PartItem(null, part.id, item.quantity, part.unitPrice, part.unitOfMeasure.value);
       }),
     );
 

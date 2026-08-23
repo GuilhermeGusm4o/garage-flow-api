@@ -6,11 +6,12 @@ import {
   type ServiceOrder as PrismaServiceOrder,
   type ServiceOrderService as PrismaServiceOrderService,
   type ServiceOrderInventory as PrismaServiceOrderInventory,
+  type Inventory as PrismaInventory,
 } from '@generated/prisma/client';
 
 type PrismaServiceOrderWithRelations = PrismaServiceOrder & {
   services: PrismaServiceOrderService[];
-  inventory: PrismaServiceOrderInventory[];
+  inventory: (PrismaServiceOrderInventory & { inventory: PrismaInventory })[];
 };
 
 export class ServiceOrderMapper {
@@ -19,7 +20,14 @@ export class ServiceOrderMapper {
       (s) => new ServiceItem(s.id, s.serviceId, Number(s.price)),
     );
     const partItems = raw.inventory.map(
-      (p) => new PartItem(p.id, p.inventoryId, Number(p.quantity), Number(p.unitPrice)),
+      (p) =>
+        new PartItem(
+          p.id,
+          p.inventoryId,
+          Number(p.quantity),
+          Number(p.unitPrice),
+          p.inventory.unitOfMeasure,
+        ),
     );
 
     return new ServiceOrder(
