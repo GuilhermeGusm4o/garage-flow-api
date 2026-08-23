@@ -8,7 +8,7 @@ import { UpdateVehicleUseCase } from '@vehicle/application/use-cases/update-vehi
 import { DeleteVehicleUseCase } from '@vehicle/application/use-cases/delete-vehicle.use-case';
 import { VehicleRepository } from '@vehicle/domain/repositories/vehicle.repository';
 import { PrismaVehicleRepository } from '@vehicle/infrastructure/prisma-vehicle.repository';
-import { PrismaService } from '../infra/database/prisma/prisma.service';
+import { PrismaService } from '../../infra/database/prisma/prisma.service';
 
 @Module({
   imports: [ClientModule],

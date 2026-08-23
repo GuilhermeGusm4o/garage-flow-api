@@ -8,9 +8,11 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -27,6 +29,9 @@ import { DeleteClientUseCase } from '@client/application/use-cases/delete-client
 import { CreateClientRequest } from '@client/presentation/dtos/create-client.request';
 import { UpdateClientRequest } from '@client/presentation/dtos/update-client.request';
 import { ClientResponse } from '@client/presentation/dtos/client.response';
+import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
+import { Roles } from '@auth/infrastructure/security/roles.decorator';
+import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 
 @ApiTags('Clients')
 @Controller('clients')
@@ -40,6 +45,9 @@ export class ClientController {
   ) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Creates a new client',
   })
@@ -58,6 +66,8 @@ export class ClientController {
   }
 
   @Get()
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'List all clients',
   })
@@ -68,6 +78,8 @@ export class ClientController {
   }
 
   @Get(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Fetch a client by ID',
   })
@@ -79,6 +91,9 @@ export class ClientController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Updates a client by ID',
   })
@@ -98,6 +113,9 @@ export class ClientController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Deletes a client by ID',

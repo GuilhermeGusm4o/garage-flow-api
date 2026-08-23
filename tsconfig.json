@@ -10,13 +10,13 @@
         "src/common/*"
       ],
       "@client/*": [
-        "src/client/*"
+        "src/modules/client/*"
       ],
       "@vehicle/*": [
-        "src/vehicle/*"
+        "src/modules/vehicle/*"
       ],
       "@infra/*": [
-        "src/infra/*"
+        "src/modules/infra/*"
       ],
       "@prisma/*": [
         "generated/prisma/*"
@@ -31,17 +31,11 @@
         "generated/prisma/*"
       ],
       "@inventory/*": [
-        "src/inventory/*"
-      ],
-      "@client/*": [
-        "src/client/*"
-      ],
-      "@vehicle/*": [
-        "src/vehicle/*"
+        "src/modules/inventory/*"
       ],
       "@infra/*": [
         "src/infra/*"
-      ],
+      ]
     },
     "sourceMap": true,
     "declaration": true,
