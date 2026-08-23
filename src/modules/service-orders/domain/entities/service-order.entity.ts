@@ -36,4 +36,14 @@ export class ServiceOrder {
     // TODO: add validation for status transitions
     this.status = newStatus;
   }
+
+  addServicesAndParts(
+    serviceItems: ServiceItem[],
+    partItems: PartItem[],
+    totalAmount: number,
+  ): void {
+    this.serviceItems = [...this.serviceItems, ...serviceItems];
+    this.partItems = [...this.partItems, ...partItems];
+    this.totalAmount = totalAmount;
+  }
 }

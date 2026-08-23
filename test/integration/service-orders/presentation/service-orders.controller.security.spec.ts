@@ -10,6 +10,7 @@ import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cas
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
+import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -43,8 +44,6 @@ const endpoints: Endpoint[] = [
     body: {
       clientCpfCnpj: '123.456.789-00',
       licensePlate: 'ABC1D23',
-      services: [{ serviceId: mockId }],
-      parts: [],
     },
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 201,
@@ -77,6 +76,14 @@ const endpoints: Endpoint[] = [
     path: `/service-orders/${mockId}`,
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 204,
+  },
+  {
+    description: 'PATCH /service-orders/:id/services-and-parts',
+    method: 'patch',
+    path: `/service-orders/${mockId}/services-and-parts`,
+    body: { services: [], parts: [] },
+    allowedRoles: ['ADMIN', 'MECHANIC'],
+    successStatus: 200,
   },
 ];
 
@@ -112,6 +119,10 @@ describe('ServiceOrdersController (security)', () => {
         {
           provide: SoftDeleteServiceOrderUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: AddServicesAndPartsUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         JwtStrategy,
         JwtAuthGuard,

@@ -6,6 +6,7 @@ import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cas
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
+import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { PrismaServiceOrderRepository } from '@service-orders/infrastructure/prisma-service-order.repository';
 import { ClientModule } from '@client/client.module';
@@ -23,6 +24,7 @@ import { InventoryModule } from '@inventory/inventory.module';
     UpdateServiceOrderUseCase,
     SoftDeleteServiceOrderUseCase,
     CalculateTotalAmountUseCase,
+    AddServicesAndPartsUseCase,
     { provide: ServiceOrderRepository, useClass: PrismaServiceOrderRepository },
   ],
 })

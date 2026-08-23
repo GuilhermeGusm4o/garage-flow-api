@@ -19,8 +19,10 @@ import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cas
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
+import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
+import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -31,6 +33,7 @@ export class ServiceOrdersController {
     private readonly findAllServiceOrders: FindAllServiceOrdersUseCase,
     private readonly updateServiceOrder: UpdateServiceOrderUseCase,
     private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
+    private readonly addServicesAndParts: AddServicesAndPartsUseCase,
   ) {}
 
   @Post()
@@ -75,6 +78,17 @@ export class ServiceOrdersController {
   })
   update(@Param('id') id: string, @Body() dto: UpdateServiceOrderDto) {
     return this.updateServiceOrder.execute(id, dto);
+  }
+
+  @Patch(':id/services-and-parts')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'MECHANIC')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Adds services and parts to a service order',
+  })
+  addServicesAndPartsToServiceOrder(@Param('id') id: string, @Body() dto: AddServicesAndPartsDto) {
+    return this.addServicesAndParts.execute(id, dto);
   }
 
   @Delete(':id')

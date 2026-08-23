@@ -38,4 +38,23 @@ describe('ServiceOrder', () => {
     const os2 = ServiceOrder.create('vehicle-1', [], [], 0);
     expect(os1.id).not.toBe(os2.id);
   });
+
+  it('deve adicionar serviços e peças preservando os itens já existentes', () => {
+    const os = ServiceOrder.create(
+      'vehicle-1',
+      [new ServiceItem(null, 'service-1', 100)],
+      [new PartItem(null, 'part-1', 1, 30)],
+      130,
+    );
+
+    os.addServicesAndParts(
+      [new ServiceItem(null, 'service-2', 50)],
+      [new PartItem(null, 'part-2', 2, 20)],
+      220,
+    );
+
+    expect(os.serviceItems.map((item) => item.serviceId)).toEqual(['service-1', 'service-2']);
+    expect(os.partItems.map((item) => item.inventoryId)).toEqual(['part-1', 'part-2']);
+    expect(os.totalAmount).toBe(220);
+  });
 });

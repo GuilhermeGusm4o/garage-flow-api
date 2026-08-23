@@ -92,27 +92,24 @@ describe('ServiceOrdersController (integration)', () => {
     partId = part.id;
   });
 
-  it('POST /service-orders deve criar uma OS', async () => {
+  it('POST /service-orders deve criar uma OS sem itens e com valor total zerado', async () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({
-        clientCpfCnpj,
-        licensePlate,
-        services: [{ serviceId }],
-        parts: [{ inventoryId: partId, quantity: 2 }],
-      });
+      .send({ clientCpfCnpj, licensePlate });
 
     expect(response.status).toBe(201);
     expect(response.body.status).toBe('RECEIVED');
-    expect(response.body.totalAmount).toBe(260); // 100 (item) + 100 (serviço atual) + 2*30 (peça)
+    expect(response.body.serviceItems).toEqual([]);
+    expect(response.body.partItems).toEqual([]);
+    expect(response.body.totalAmount).toBe(0);
   });
 
   it('POST /service-orders deve rejeitar cliente inexistente', async () => {
     const response = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj: '00000000000', licensePlate, services: [], parts: [] });
+      .send({ clientCpfCnpj: '00000000000', licensePlate });
 
     expect(response.status).toBe(404);
   });
@@ -121,7 +118,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate, services: [{ serviceId }], parts: [] });
+      .send({ clientCpfCnpj, licensePlate });
 
     const response = await request(app.getHttpServer())
       .get('/service-orders')
@@ -136,7 +133,7 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate, services: [{ serviceId }], parts: [] });
+      .send({ clientCpfCnpj, licensePlate });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}`)
@@ -151,12 +148,76 @@ describe('ServiceOrdersController (integration)', () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate, services: [], parts: [] });
+      .send({ clientCpfCnpj, licensePlate });
 
     const response = await request(app.getHttpServer())
       .delete(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(204);
+  });
+
+  it('PATCH /service-orders/:id/services-and-parts deve adicionar serviços e peças e recalcular o total', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .set('Authorization', adminAuthHeader())
+      .send({
+        services: [{ serviceId }],
+        parts: [{ inventoryId: partId, quantity: 2 }],
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.serviceItems).toHaveLength(1);
+    expect(response.body.partItems).toHaveLength(1);
+    expect(response.body.totalAmount).toBe(260); // 100 (item) + 100 (serviço atual) + 2*30 (peça)
+  });
+
+  it('PATCH /service-orders/:id/services-and-parts deve acumular itens em chamadas sucessivas', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate });
+
+    await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .set('Authorization', adminAuthHeader())
+      .send({ services: [{ serviceId }], parts: [] });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .set('Authorization', adminAuthHeader())
+      .send({ services: [], parts: [{ inventoryId: partId, quantity: 1 }] });
+
+    expect(response.status).toBe(200);
+    expect(response.body.serviceItems).toHaveLength(1);
+    expect(response.body.partItems).toHaveLength(1);
+  });
+
+  it('PATCH /service-orders/:id/services-and-parts deve retornar 404 se a OS não existir', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/services-and-parts')
+      .set('Authorization', adminAuthHeader())
+      .send({ services: [{ serviceId }], parts: [] });
+
+    expect(response.status).toBe(404);
+  });
+
+  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 se a quantidade solicitada exceder a disponível', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .set('Authorization', adminAuthHeader())
+      .send({ services: [], parts: [{ inventoryId: partId, quantity: 999 }] });
+
+    expect(response.status).toBe(400);
   });
 });
