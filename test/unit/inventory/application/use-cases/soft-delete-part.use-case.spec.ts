@@ -14,7 +14,8 @@ describe('SoftDeletePartUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
-      findBelowMinimum: jest.fn(),
+      findReservedQuantities: jest.fn(),
+      findReservedQuantityForPart: jest.fn(),
       softDelete: jest.fn(),
     };
     useCase = new SoftDeletePartUseCase(repository);

@@ -17,6 +17,7 @@ export class CreatePartUseCase {
       new UnitOfMeasure(dto.unitOfMeasure),
       dto.unitPrice,
       new Quantity(dto.quantity ?? 0),
+      new Quantity(dto.minQuantity ?? 0),
     );
 
     await this.partRepository.save(part);

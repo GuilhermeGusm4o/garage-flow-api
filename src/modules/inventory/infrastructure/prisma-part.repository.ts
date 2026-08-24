@@ -3,6 +3,7 @@ import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { PartRepository } from '@inventory/domain/repositories/part.repository';
 import { PartMapper } from '@inventory/infrastructure/part.mapper';
+import { type ServiceOrderStatus as PrismaServiceOrderStatus } from '@generated/prisma/client';
 
 @Injectable()
 export class PrismaPartRepository extends PartRepository {
@@ -31,9 +32,37 @@ export class PrismaPartRepository extends PartRepository {
     return rows.map(PartMapper.toDomain);
   }
 
-  async findBelowMinimum(): Promise<Part[]> {
-    const rows = await this.prisma.inventory.findMany();
-    return rows.map(PartMapper.toDomain).filter((part: Part) => part.isBelowMinimum());
+  async findReservedQuantities(serviceOrderStatuses: string[]): Promise<Map<string, number>> {
+    const rows = await this.prisma.serviceOrderInventory.groupBy({
+      by: ['inventoryId'],
+      where: {
+        serviceOrder: {
+          deleted_at: null,
+          status: { in: serviceOrderStatuses as PrismaServiceOrderStatus[] },
+        },
+      },
+      _sum: { quantity: true },
+    });
+
+    return new Map(rows.map((row) => [row.inventoryId, Number(row._sum.quantity ?? 0)]));
+  }
+
+  async findReservedQuantityForPart(
+    partId: string,
+    serviceOrderStatuses: string[],
+  ): Promise<number> {
+    const result = await this.prisma.serviceOrderInventory.aggregate({
+      where: {
+        inventoryId: partId,
+        serviceOrder: {
+          deleted_at: null,
+          status: { in: serviceOrderStatuses as PrismaServiceOrderStatus[] },
+        },
+      },
+      _sum: { quantity: true },
+    });
+
+    return Number(result._sum.quantity ?? 0);
   }
 
   async softDelete(id: string): Promise<void> {

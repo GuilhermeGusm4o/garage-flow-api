@@ -4,6 +4,9 @@ import { CreatePartUseCase } from '@inventory/application/use-cases/create-part.
 import { RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
 import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
 import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
+import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
+import { ListStockLevelsUseCase } from '@inventory/application/use-cases/list-stock-levels.use-case';
+import { GetStockLevelUseCase } from '@inventory/application/use-cases/get-stock-level.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
@@ -18,12 +21,21 @@ import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-
     RestockPartUseCase,
     ConsumePartUseCase,
     ListPartsUseCase,
+    ListStockLevelsUseCase,
+    GetStockLevelUseCase,
+    ListLowStockPartsUseCase,
     UpdatePartUseCase,
     SoftDeletePartUseCase,
     CalculateAvailabilityUseCase,
     FindPartByIdUseCase,
     { provide: PartRepository, useClass: PrismaPartRepository },
   ],
-  exports: [CalculateAvailabilityUseCase, ConsumePartUseCase, FindPartByIdUseCase],
+  exports: [
+    CalculateAvailabilityUseCase,
+    ConsumePartUseCase,
+    FindPartByIdUseCase,
+    ListStockLevelsUseCase,
+    GetStockLevelUseCase,
+  ],
 })
 export class InventoryModule {}
