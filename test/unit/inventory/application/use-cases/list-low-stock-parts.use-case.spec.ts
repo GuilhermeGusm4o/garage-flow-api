@@ -28,10 +28,7 @@ describe('ListLowStockPartsUseCase', () => {
   });
 
   it('mantém apenas as peças abaixo do mínimo', async () => {
-    listStockLevels.execute.mockResolvedValue([
-      buildLevel('ok', 20, 5),
-      buildLevel('baixa', 3, 5),
-    ]);
+    listStockLevels.execute.mockResolvedValue([buildLevel('ok', 20, 5), buildLevel('baixa', 3, 5)]);
 
     const result = await useCase.execute();
 
