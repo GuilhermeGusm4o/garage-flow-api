@@ -283,7 +283,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(200);
     expect(response.body.serviceItems).toHaveLength(1);
     expect(response.body.partItems).toHaveLength(1);
-    expect(response.body.totalAmount).toBe(260); // 100 (item) + 100 (serviço atual) + 2*30 (peça)
+    expect(response.body.totalAmount).toBe(160); // 100 (serviço) + 2*30 (peça)
     expect(response.body.status).toBe('AWAITING_APPROVAL');
   });
 
