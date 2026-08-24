@@ -26,7 +26,9 @@ describe('buildServiceOrderBudgetHtml', () => {
       licensePlate: 'ABC1D23',
       year: 2020,
     },
-    services: [{ name: 'Troca de óleo', quantity: 1, unitOfMeasure: null, unitPrice: 100, subtotal: 100 }],
+    services: [
+      { name: 'Troca de óleo', quantity: 1, unitOfMeasure: null, unitPrice: 100, subtotal: 100 },
+    ],
     parts: [
       { name: 'Filtro de óleo', quantity: 2, unitOfMeasure: 'UNIT', unitPrice: 30, subtotal: 60 },
     ],

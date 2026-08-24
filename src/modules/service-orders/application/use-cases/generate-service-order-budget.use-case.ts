@@ -12,7 +12,10 @@ import {
   type ServiceOrderBudgetLineItem,
 } from '@service-orders/infrastructure/pdf/budget-html.template';
 
-const NON_BUDGETABLE_STATUSES = new Set([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS]);
+const NON_BUDGETABLE_STATUSES = new Set([
+  ServiceOrderStatus.RECEIVED,
+  ServiceOrderStatus.IN_DIAGNOSIS,
+]);
 
 @Injectable()
 export class GenerateServiceOrderBudgetUseCase {
@@ -47,27 +50,33 @@ export class GenerateServiceOrderBudgetUseCase {
       serviceOrder.serviceItems.length > 0
         ? this.findServicesByIdList.execute(serviceOrder.serviceItems.map((item) => item.serviceId))
         : Promise.resolve([]),
-      Promise.all(serviceOrder.partItems.map((item) => this.findPartById.execute(item.inventoryId))),
+      Promise.all(
+        serviceOrder.partItems.map((item) => this.findPartById.execute(item.inventoryId)),
+      ),
     ]);
     const servicesById = new Map<string, ServiceEntity>(
       services.map((service) => [service.id, service]),
     );
 
-    const serviceLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.serviceItems.map((item) => ({
-      name: servicesById.get(item.serviceId)?.name ?? 'Serviço não encontrado',
-      quantity: 1,
-      unitOfMeasure: null,
-      unitPrice: item.price,
-      subtotal: item.price,
-    }));
+    const serviceLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.serviceItems.map(
+      (item) => ({
+        name: servicesById.get(item.serviceId)?.name ?? 'Serviço não encontrado',
+        quantity: 1,
+        unitOfMeasure: null,
+        unitPrice: item.price,
+        subtotal: item.price,
+      }),
+    );
 
-    const partLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.partItems.map((item, index) => ({
-      name: parts[index].name,
-      quantity: item.quantity,
-      unitOfMeasure: item.unitOfMeasure,
-      unitPrice: item.unitPrice,
-      subtotal: item.quantity * item.unitPrice,
-    }));
+    const partLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.partItems.map(
+      (item, index) => ({
+        name: parts[index].name,
+        quantity: item.quantity,
+        unitOfMeasure: item.unitOfMeasure,
+        unitPrice: item.unitPrice,
+        subtotal: item.quantity * item.unitPrice,
+      }),
+    );
 
     const html = buildServiceOrderBudgetHtml({
       serviceOrderId: serviceOrder.id,

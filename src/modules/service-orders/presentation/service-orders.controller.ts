@@ -102,7 +102,7 @@ export class ServiceOrdersController {
     summary: 'Generates and returns the budget PDF for a service order',
   })
   @ApiProduces('application/pdf')
-  @ApiOkResponse({ 
+  @ApiOkResponse({
     description: 'Budget PDF generated successfully',
     schema: {
       type: 'string',
