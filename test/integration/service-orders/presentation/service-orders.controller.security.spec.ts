@@ -142,7 +142,11 @@ describe('ServiceOrdersController (security)', () => {
         },
         {
           provide: AddServicesAndPartsUseCase,
-          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+          useValue: {
+            execute: jest
+              .fn()
+              .mockResolvedValue({ serviceOrder: makeServiceOrder(), stockAlerts: [] }),
+          },
         },
         JwtStrategy,
         JwtAuthGuard,

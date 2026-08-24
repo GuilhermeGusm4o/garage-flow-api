@@ -34,6 +34,7 @@ import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
+import { AddServicesAndPartsResponseDto } from '@service-orders/presentation/dtos/add-services-and-parts-response.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -129,14 +130,14 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Adds services and parts to a service order',
   })
-  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiOkResponse({ type: AddServicesAndPartsResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async addServicesAndPartsToServiceOrder(
     @Param('id') id: string,
     @Body() dto: AddServicesAndPartsDto,
-  ): Promise<ServiceOrderResponseDto> {
-    const serviceOrder = await this.addServicesAndParts.execute(id, dto);
-    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  ): Promise<AddServicesAndPartsResponseDto> {
+    const result = await this.addServicesAndParts.execute(id, dto);
+    return AddServicesAndPartsResponseDto.fromResult(result);
   }
 
   @Delete(':id')

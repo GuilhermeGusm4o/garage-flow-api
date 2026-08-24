@@ -7,6 +7,7 @@ import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.us
 import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { ListStockLevelsUseCase } from '@inventory/application/use-cases/list-stock-levels.use-case';
 import { GetStockLevelUseCase } from '@inventory/application/use-cases/get-stock-level.use-case';
+import { WriteOffPartsUseCase } from '@inventory/application/use-cases/write-off-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
@@ -23,6 +24,7 @@ import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-
     ListPartsUseCase,
     ListStockLevelsUseCase,
     GetStockLevelUseCase,
+    WriteOffPartsUseCase,
     ListLowStockPartsUseCase,
     UpdatePartUseCase,
     SoftDeletePartUseCase,
@@ -36,6 +38,7 @@ import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-
     FindPartByIdUseCase,
     ListStockLevelsUseCase,
     GetStockLevelUseCase,
+    WriteOffPartsUseCase,
   ],
 })
 export class InventoryModule {}
