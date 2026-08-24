@@ -5,6 +5,7 @@ import request from 'supertest';
 import { ServiceOrdersModule } from '@service-orders/service-orders.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
+import { PdfGenerator } from '@infra/pdf/pdf-generator';
 import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -45,7 +46,10 @@ describe('ServiceOrdersController (integration)', () => {
         JwtModule.register({ secret: process.env.JWT_SECRET, signOptions: { expiresIn: '1h' } }),
       ],
       providers: [JwtStrategy, JwtAuthGuard, RolesGuard],
-    }).compile();
+    })
+      .overrideProvider(PdfGenerator)
+      .useValue({ generate: jest.fn().mockResolvedValue(Buffer.from('%PDF-fake')) })
+      .compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalFilters(new GlobalExceptionFilter());
@@ -364,6 +368,72 @@ describe('ServiceOrdersController (integration)', () => {
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
       .set('Authorization', adminAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('GET /service-orders/:id/budget deve retornar o PDF do orçamento quando a OS possui itens', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+    await putServiceOrderInDiagnosis(created.body.id);
+    await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .set('Authorization', adminAuthHeader())
+      .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 2 }] });
+
+    const response = await request(app.getHttpServer())
+      .get(`/service-orders/${created.body.id}/budget`)
+      .set('Authorization', adminAuthHeader())
+      .buffer()
+      .parse((res, callback) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toBe('application/pdf');
+    expect(Buffer.isBuffer(response.body)).toBe(true);
+    expect(response.body.toString('utf-8')).toBe('%PDF-fake');
+  });
+
+  it('GET /service-orders/:id/budget deve retornar 404 se a OS não existir', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/service-orders/00000000-0000-0000-0000-000000000000/budget')
+      .set('Authorization', adminAuthHeader());
+
+    expect(response.status).toBe(404);
+  });
+
+  it('GET /service-orders/:id/budget deve retornar 400 se a OS estiver em RECEIVED', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+
+    const response = await request(app.getHttpServer())
+      .get(`/service-orders/${created.body.id}/budget`)
+      .set('Authorization', adminAuthHeader());
+
+    expect(response.status).toBe(400);
+  });
+
+  it('GET /service-orders/:id/budget deve retornar 400 se a OS não possuir serviços nem peças', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+    await putServiceOrderInDiagnosis(created.body.id);
+    await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/status`)
+      .set('Authorization', adminAuthHeader())
+      .send({ status: 'AWAITING_APPROVAL' });
+
+    const response = await request(app.getHttpServer())
+      .get(`/service-orders/${created.body.id}/budget`)
+      .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(400);
   });

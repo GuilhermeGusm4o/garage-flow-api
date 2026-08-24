@@ -2,6 +2,11 @@ FROM node:24.19.0-alpine AS base
 
 RUN apk update && apk upgrade --no-cache && npm install -g npm@11.19.0
 
+# Playwright's bundled Chromium doesn't run on musl/Alpine; use the distro package instead,
+# pointed to via CHROMIUM_EXECUTABLE_PATH (see PlaywrightPdfGenerator).
+RUN apk add --no-cache chromium
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 WORKDIR /app
 
 COPY package*.json ./

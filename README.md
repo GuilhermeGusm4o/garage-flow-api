@@ -175,6 +175,7 @@ Além dos contextos de negócio, `common` contém elementos compartilhados pela 
 * Docker
 * Node.js 20+
 * npm
+* Para rodar a API fora do Docker (`npm run start:dev`) ou os testes que renderizam PDF de verdade: `npx playwright install chromium` (dentro do Docker, o Chromium do Alpine já é instalado pelo `Dockerfile`)
 
 ### 1. Configuração
 

@@ -8,6 +8,8 @@ import {
   Param,
   Patch,
   Post,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -17,8 +19,10 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
   ApiTags,
 } from '@nestjs/swagger';
+import { type Response } from 'express';
 import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -29,6 +33,7 @@ import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
@@ -46,6 +51,7 @@ export class ServiceOrdersController {
     private readonly updateServiceOrderStatus: UpdateServiceOrderStatusUseCase,
     private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
+    private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
   ) {}
 
   @Post()
@@ -86,6 +92,34 @@ export class ServiceOrdersController {
   async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.findServiceOrderById.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Get(':id/budget')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Generates and returns the budget PDF for a service order',
+  })
+  @ApiProduces('application/pdf')
+  @ApiOkResponse({ 
+    description: 'Budget PDF generated successfully',
+    schema: {
+      type: 'string',
+      format: 'binary',
+    },
+  })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async generateBudget(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const pdf = await this.generateServiceOrderBudget.execute(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="orcamento-${id}.pdf"`,
+    });
+    return new StreamableFile(pdf);
   }
 
   @Patch(':id')

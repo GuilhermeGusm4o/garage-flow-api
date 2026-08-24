@@ -1,0 +1,133 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
+import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { ServiceEntity } from '@service/domain/entities/service.entity';
+import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { type PdfGenerator } from '@infra/pdf/pdf-generator';
+import { type FindVehicleByIdUseCase } from '@vehicle/application/use-cases/find-vehicle-by-id.use-case';
+import { type FindClientByIdUseCase } from '@client/application/use-cases/find-client-by-id.use-case';
+import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
+import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
+import { makeClient } from '../../client/client.factory';
+import { makeVehicle } from '../../vehicle/vehicle.factory';
+import {
+  makeServiceOrder,
+  makeServiceItem,
+  makePartItem,
+  makeServiceOrderRepositoryMock,
+} from '../service-order.factory';
+
+describe('GenerateServiceOrderBudgetUseCase', () => {
+  let repository: ReturnType<typeof makeServiceOrderRepositoryMock>;
+  let findVehicleById: { execute: jest.Mock };
+  let findClientById: { execute: jest.Mock };
+  let findServicesByIdList: { execute: jest.Mock };
+  let findPartById: { execute: jest.Mock };
+  let pdfGenerator: { generate: jest.Mock };
+  let useCase: GenerateServiceOrderBudgetUseCase;
+
+  const FIXED_DATE = new Date('2026-01-01T00:00:00.000Z');
+  const client = makeClient({ name: 'João da Silva' });
+  const vehicle = makeVehicle({ clientId: client.id, licensePlate: 'ABC1D23' });
+
+  const service = ServiceEntity.create({
+    id: crypto.randomUUID(),
+    name: 'Troca de óleo',
+    price: ServicePrice.create(100),
+    createdAt: FIXED_DATE,
+    updatedAt: FIXED_DATE,
+  });
+
+  const part = new Part(
+    crypto.randomUUID(),
+    'Filtro de óleo',
+    new UnitOfMeasure('UNIT'),
+    30,
+    new Quantity(10),
+  );
+
+  const buildServiceOrder = (overrides: Parameters<typeof makeServiceOrder>[0] = {}) =>
+    makeServiceOrder({
+      vehicleId: vehicle.id,
+      status: ServiceOrderStatus.AWAITING_APPROVAL,
+      totalAmount: 130,
+      serviceItems: [makeServiceItem({ serviceId: service.id, price: 100 })],
+      partItems: [makePartItem({ inventoryId: part.id, quantity: 1, unitPrice: 30 })],
+      ...overrides,
+    });
+
+  beforeEach(() => {
+    repository = makeServiceOrderRepositoryMock();
+    findVehicleById = { execute: jest.fn().mockResolvedValue(vehicle) };
+    findClientById = { execute: jest.fn().mockResolvedValue(client) };
+    findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };
+    findPartById = { execute: jest.fn().mockResolvedValue(part) };
+    pdfGenerator = { generate: jest.fn().mockResolvedValue(Buffer.from('%PDF-fake')) };
+
+    useCase = new GenerateServiceOrderBudgetUseCase(
+      repository,
+      findVehicleById as unknown as FindVehicleByIdUseCase,
+      findClientById as unknown as FindClientByIdUseCase,
+      findServicesByIdList as unknown as FindServicesByIdListUseCase,
+      findPartById as unknown as FindPartByIdUseCase,
+      pdfGenerator as unknown as PdfGenerator,
+    );
+  });
+
+  it('deve gerar o PDF com os dados do cliente, veículo, serviços e peças', async () => {
+    const serviceOrder = buildServiceOrder();
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    const pdf = await useCase.execute(serviceOrder.id);
+
+    expect(pdf).toEqual(Buffer.from('%PDF-fake'));
+    expect(findVehicleById.execute).toHaveBeenCalledWith(serviceOrder.vehicleId);
+    expect(findClientById.execute).toHaveBeenCalledWith(vehicle.clientId);
+    expect(findServicesByIdList.execute).toHaveBeenCalledWith([service.id]);
+    expect(findPartById.execute).toHaveBeenCalledWith(part.id);
+
+    const html = pdfGenerator.generate.mock.calls[0][0] as string;
+    expect(html).toContain('João da Silva');
+    expect(html).toContain('ABC1D23');
+    expect(html).toContain('Troca de óleo');
+    expect(html).toContain('Filtro de óleo');
+  });
+
+  it('não deve buscar serviços quando a OS não possui itens de serviço', async () => {
+    const serviceOrder = buildServiceOrder({ serviceItems: [] });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    await useCase.execute(serviceOrder.id);
+
+    expect(findServicesByIdList.execute).not.toHaveBeenCalled();
+  });
+
+  it('deve lançar NotFoundException se a OS não existir', async () => {
+    repository.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute('inexistente')).rejects.toThrow(NotFoundException);
+    expect(pdfGenerator.generate).not.toHaveBeenCalled();
+  });
+
+  it.each([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS])(
+    'deve lançar BadRequestException se a OS estiver com status %s',
+    async (status) => {
+      const serviceOrder = buildServiceOrder({ status });
+      repository.findById.mockResolvedValue(serviceOrder);
+
+      await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(BadRequestException);
+      expect(pdfGenerator.generate).not.toHaveBeenCalled();
+    },
+  );
+
+  it('deve lançar BadRequestException se a OS não possuir serviços nem peças', async () => {
+    const serviceOrder = buildServiceOrder({ serviceItems: [], partItems: [] });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(BadRequestException);
+    expect(pdfGenerator.generate).not.toHaveBeenCalled();
+  });
+});

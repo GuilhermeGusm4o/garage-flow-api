@@ -12,6 +12,7 @@ import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -101,6 +102,13 @@ const endpoints: Endpoint[] = [
     allowedRoles: ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR'],
     successStatus: 200,
   },
+  {
+    description: 'GET /service-orders/:id/budget',
+    method: 'get',
+    path: `/service-orders/${mockId}/budget`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
 ];
 
 describe('ServiceOrdersController (security)', () => {
@@ -143,6 +151,10 @@ describe('ServiceOrdersController (security)', () => {
         {
           provide: AddServicesAndPartsUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: GenerateServiceOrderBudgetUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(Buffer.from('%PDF-fake')) },
         },
         JwtStrategy,
         JwtAuthGuard,
