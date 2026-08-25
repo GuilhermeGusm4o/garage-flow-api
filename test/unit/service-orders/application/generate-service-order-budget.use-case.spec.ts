@@ -123,6 +123,31 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     expect(pdfGenerator.generate).not.toHaveBeenCalled();
   });
 
+  it('deve lançar NotFoundException se um serviço referenciado pela OS não for retornado pela busca em lote', async () => {
+    const serviceOrder = buildServiceOrder();
+    repository.findById.mockResolvedValue(serviceOrder);
+    findServicesByIdList.execute.mockResolvedValue([]);
+
+    await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(NotFoundException);
+    expect(pdfGenerator.generate).not.toHaveBeenCalled();
+  });
+
+  it('deve lançar NotFoundException se o serviço encontrado não possuir nome', async () => {
+    const serviceOrder = buildServiceOrder();
+    repository.findById.mockResolvedValue(serviceOrder);
+    const serviceWithoutName = ServiceEntity.create({
+      id: service.id,
+      name: '',
+      price: ServicePrice.create(100),
+      createdAt: FIXED_DATE,
+      updatedAt: FIXED_DATE,
+    });
+    findServicesByIdList.execute.mockResolvedValue([serviceWithoutName]);
+
+    await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(NotFoundException);
+    expect(pdfGenerator.generate).not.toHaveBeenCalled();
+  });
+
   it('deve lançar NotFoundException se a OS não existir', async () => {
     repository.findById.mockResolvedValue(null);
 
