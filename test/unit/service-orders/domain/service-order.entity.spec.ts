@@ -40,6 +40,11 @@ describe('ServiceOrder', () => {
     expect(os1.id).not.toBe(os2.id);
   });
 
+  it('deve popular updatedAt na criação', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    expect(os.updatedAt).toBeInstanceOf(Date);
+  });
+
   it('deve atualizar vehicleId, mechanicId, approvedAt e status via update()', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     const approvedAt = new Date('2026-08-22T10:00:00.000Z');

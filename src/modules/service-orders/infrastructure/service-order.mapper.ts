@@ -42,6 +42,7 @@ export class ServiceOrderMapper {
       partItems,
       raw.serviceStartedAt,
       raw.serviceFinishedAt,
+      raw.updated_at,
     );
   }
 

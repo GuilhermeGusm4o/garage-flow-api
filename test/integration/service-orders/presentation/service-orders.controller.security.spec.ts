@@ -14,6 +14,9 @@ import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-c
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
+import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
+import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -117,6 +120,20 @@ const endpoints: Endpoint[] = [
     allowedRoles: ['MECHANIC'],
     successStatus: 200,
   },
+  {
+    description: 'GET /service-orders/:id/tracking-link',
+    method: 'get',
+    path: `/service-orders/${mockId}/tracking-link`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
+    description: 'GET /service-orders/:id/budget',
+    method: 'get',
+    path: `/service-orders/${mockId}/budget`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
 ];
 
 describe('ServiceOrdersController (security)', () => {
@@ -168,6 +185,49 @@ describe('ServiceOrdersController (security)', () => {
           provide: FinishServiceUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
+        {
+          provide: FindServiceOrderByTrackingTokenUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: GetServiceOrderTrackingLinkUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue('mock-token') },
+        },
+        {
+          provide: GenerateServiceOrderBudgetUseCase,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({
+              serviceOrderId: mockId,
+              description: 'Ruído no motor',
+              status: ServiceOrderStatus.AWAITING_APPROVAL,
+              client: {
+                name: 'João da Silva',
+                cpfCnpj: '52998224725',
+                phone: '11999998888',
+                address: 'Rua das Flores, 123',
+                email: 'joao@email.com',
+              },
+              vehicle: {
+                brand: 'Volkswagen',
+                model: 'Gol',
+                licensePlate: 'ABC1D23',
+                year: 2020,
+              },
+              services: [
+                {
+                  name: 'Troca de óleo',
+                  quantity: 1,
+                  unitOfMeasure: null,
+                  unitPrice: 100,
+                  subtotal: 100,
+                },
+              ],
+              parts: [],
+              totalAmount: 100,
+              generatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            }),
+          },
+        },
         JwtStrategy,
         JwtAuthGuard,
         RolesGuard,
@@ -215,4 +275,10 @@ describe('ServiceOrdersController (security)', () => {
       });
     },
   );
+
+  describe('GET /service-orders/track/:token', () => {
+    it('should return 200 with no Authorization header (public endpoint)', async () => {
+      await request(app.getHttpServer()).get('/service-orders/track/some-token').expect(200);
+    });
+  });
 });

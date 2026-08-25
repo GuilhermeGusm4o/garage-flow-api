@@ -22,6 +22,7 @@ export class ServiceOrder {
     public partItems: PartItem[],
     public serviceStartedAt: Date | null = null,
     public serviceFinishedAt: Date | null = null,
+    public readonly updatedAt: Date = new Date(),
   ) {}
 
   static create(
@@ -41,6 +42,7 @@ export class ServiceOrder {
       totalAmount,
       serviceItems,
       partItems,
+      new Date(),
     );
   }
 

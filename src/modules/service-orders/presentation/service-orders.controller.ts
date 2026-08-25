@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { type Request } from 'express';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -34,12 +35,20 @@ import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-c
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
+import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
+import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
+import { buildTrackingLink } from '@service-orders/infrastructure/security/tracking-token.util';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { ServiceOrderBudgetResponseDto } from '@service-orders/presentation/dtos/service-order-budget-response.dto';
+import { ServiceOrderCreatedResponseDto } from '@service-orders/presentation/dtos/service-order-created-response.dto';
+import { ServiceOrderTrackingResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-response.dto';
+import { ServiceOrderTrackingLinkResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-link-response.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -54,6 +63,9 @@ export class ServiceOrdersController {
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
     private readonly startDiagnosis: StartDiagnosisUseCase,
     private readonly finishService: FinishServiceUseCase,
+    private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
+    private readonly findServiceOrderByTrackingToken: FindServiceOrderByTrackingTokenUseCase,
+    private readonly getServiceOrderTrackingLink: GetServiceOrderTrackingLinkUseCase,
   ) {}
 
   @Post()
@@ -63,10 +75,14 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Creates a new service order',
   })
-  @ApiCreatedResponse({ type: ServiceOrderResponseDto })
-  async create(@Body() dto: CreateServiceOrderDto): Promise<ServiceOrderResponseDto> {
+  @ApiCreatedResponse({ type: ServiceOrderCreatedResponseDto })
+  async create(
+    @Body() dto: CreateServiceOrderDto,
+    @Req() request: Request,
+  ): Promise<ServiceOrderCreatedResponseDto> {
     const serviceOrder = await this.createServiceOrder.execute(dto);
-    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+    const trackingLink = buildTrackingLink(this.getBaseUrl(request), serviceOrder.id);
+    return ServiceOrderCreatedResponseDto.fromEntityWithLink(serviceOrder, trackingLink);
   }
 
   @Get()
@@ -95,6 +111,17 @@ export class ServiceOrdersController {
     return serviceOrders.map(ServiceOrderResponseDto.fromListItem);
   }
 
+  @Get('track/:token')
+  @ApiOperation({
+    summary: 'Publicly retrieves the current status and last update date of a service order',
+  })
+  @ApiOkResponse({ type: ServiceOrderTrackingResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async trackByToken(@Param('token') token: string): Promise<ServiceOrderTrackingResponseDto> {
+    const serviceOrder = await this.findServiceOrderByTrackingToken.execute(token);
+    return ServiceOrderTrackingResponseDto.fromEntity(serviceOrder);
+  }
+
   @Get(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
@@ -106,6 +133,40 @@ export class ServiceOrdersController {
   async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.findServiceOrderById.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Get(':id/budget')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Generates and returns the budget data for a service order',
+  })
+  @ApiOkResponse({ type: ServiceOrderBudgetResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
+    const budget = await this.generateServiceOrderBudget.execute(id);
+    return ServiceOrderBudgetResponseDto.fromViewModel(budget);
+  }
+
+  @Get(':id/tracking-link')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Retrieves the public tracking link to share with the client',
+  })
+  @ApiOkResponse({ type: ServiceOrderTrackingLinkResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async getTrackingLink(
+    @Param('id') id: string,
+    @Req() request: Request,
+  ): Promise<ServiceOrderTrackingLinkResponseDto> {
+    const trackingLink = await this.getServiceOrderTrackingLink.execute(
+      this.getBaseUrl(request),
+      id,
+    );
+    return new ServiceOrderTrackingLinkResponseDto(trackingLink);
   }
 
   @Patch(':id')
@@ -209,5 +270,9 @@ export class ServiceOrdersController {
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.softDeleteServiceOrder.execute(id);
+  }
+
+  private getBaseUrl(request: Request): string {
+    return `${request.protocol}://${request.get('host')}`;
   }
 }
