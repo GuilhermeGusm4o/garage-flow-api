@@ -44,10 +44,8 @@ export class GenerateServiceOrderBudgetUseCase {
       );
     }
 
-    const vehicle = await this.findVehicleById.execute(serviceOrder.vehicleId);
-    const client = await this.findClientById.execute(vehicle.clientId);
-
-    const [services, parts] = await Promise.all([
+    const [vehicle, services, parts] = await Promise.all([
+      this.findVehicleById.execute(serviceOrder.vehicleId),
       serviceOrder.serviceItems.length > 0
         ? this.findServicesByIdList.execute(serviceOrder.serviceItems.map((item) => item.serviceId))
         : Promise.resolve([]),
@@ -55,6 +53,8 @@ export class GenerateServiceOrderBudgetUseCase {
         ? this.findPartsByIdList.execute(serviceOrder.partItems.map((item) => item.inventoryId))
         : Promise.resolve([]),
     ]);
+    const client = await this.findClientById.execute(vehicle.clientId);
+
     const servicesById = new Map<string, ServiceEntity>(
       services.map((service) => [service.id, service]),
     );
