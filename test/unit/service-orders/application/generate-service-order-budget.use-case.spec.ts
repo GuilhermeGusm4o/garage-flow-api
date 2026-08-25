@@ -10,7 +10,7 @@ import { type PdfGenerator } from '@infra/pdf/pdf-generator';
 import { type FindVehicleByIdUseCase } from '@vehicle/application/use-cases/find-vehicle-by-id.use-case';
 import { type FindClientByIdUseCase } from '@client/application/use-cases/find-client-by-id.use-case';
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
-import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
+import { type FindPartsByIdListUseCase } from '@inventory/application/use-cases/find-parts-by-id-list.use-case';
 import { makeClient } from '../../client/client.factory';
 import { makeVehicle } from '../../vehicle/vehicle.factory';
 import {
@@ -25,7 +25,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
   let findVehicleById: { execute: jest.Mock };
   let findClientById: { execute: jest.Mock };
   let findServicesByIdList: { execute: jest.Mock };
-  let findPartById: { execute: jest.Mock };
+  let findPartsByIdList: { execute: jest.Mock };
   let pdfGenerator: { generate: jest.Mock };
   let useCase: GenerateServiceOrderBudgetUseCase;
 
@@ -64,7 +64,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     findVehicleById = { execute: jest.fn().mockResolvedValue(vehicle) };
     findClientById = { execute: jest.fn().mockResolvedValue(client) };
     findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };
-    findPartById = { execute: jest.fn().mockResolvedValue(part) };
+    findPartsByIdList = { execute: jest.fn().mockResolvedValue([part]) };
     pdfGenerator = { generate: jest.fn().mockResolvedValue(Buffer.from('%PDF-fake')) };
 
     useCase = new GenerateServiceOrderBudgetUseCase(
@@ -72,7 +72,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
       findVehicleById as unknown as FindVehicleByIdUseCase,
       findClientById as unknown as FindClientByIdUseCase,
       findServicesByIdList as unknown as FindServicesByIdListUseCase,
-      findPartById as unknown as FindPartByIdUseCase,
+      findPartsByIdList as unknown as FindPartsByIdListUseCase,
       pdfGenerator as unknown as PdfGenerator,
     );
   });
@@ -87,7 +87,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     expect(findVehicleById.execute).toHaveBeenCalledWith(serviceOrder.vehicleId);
     expect(findClientById.execute).toHaveBeenCalledWith(vehicle.clientId);
     expect(findServicesByIdList.execute).toHaveBeenCalledWith([service.id]);
-    expect(findPartById.execute).toHaveBeenCalledWith(part.id);
+    expect(findPartsByIdList.execute).toHaveBeenCalledWith([part.id]);
 
     const html = pdfGenerator.generate.mock.calls[0][0] as string;
     expect(html).toContain('João da Silva');
@@ -103,6 +103,24 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     await useCase.execute(serviceOrder.id);
 
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
+  });
+
+  it('não deve buscar peças quando a OS não possui itens de peça', async () => {
+    const serviceOrder = buildServiceOrder({ partItems: [] });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    await useCase.execute(serviceOrder.id);
+
+    expect(findPartsByIdList.execute).not.toHaveBeenCalled();
+  });
+
+  it('deve lançar NotFoundException se uma peça referenciada pela OS não for retornada pela busca em lote', async () => {
+    const serviceOrder = buildServiceOrder();
+    repository.findById.mockResolvedValue(serviceOrder);
+    findPartsByIdList.execute.mockResolvedValue([]);
+
+    await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(NotFoundException);
+    expect(pdfGenerator.generate).not.toHaveBeenCalled();
   });
 
   it('deve lançar NotFoundException se a OS não existir', async () => {

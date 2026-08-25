@@ -14,6 +14,7 @@ describe('RestockPartUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
       softDelete: jest.fn(),
     };
