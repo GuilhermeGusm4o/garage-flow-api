@@ -15,10 +15,9 @@ import { ClientModule } from '@client/client.module';
 import { VehicleModule } from '@vehicle/vehicle.module';
 import { ServiceModule } from '@service/service.module';
 import { InventoryModule } from '@inventory/inventory.module';
-import { PdfModule } from '@infra/pdf/pdf.module';
 
 @Module({
-  imports: [ClientModule, VehicleModule, ServiceModule, InventoryModule, PdfModule],
+  imports: [ClientModule, VehicleModule, ServiceModule, InventoryModule],
   controllers: [ServiceOrdersController],
   providers: [
     CreateServiceOrderUseCase,

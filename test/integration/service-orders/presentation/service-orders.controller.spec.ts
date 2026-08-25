@@ -5,7 +5,6 @@ import request from 'supertest';
 import { ServiceOrdersModule } from '@service-orders/service-orders.module';
 import { PrismaModule } from '@infra/database/prisma/prisma.module';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
-import { PdfGenerator } from '@infra/pdf/pdf-generator';
 import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -46,10 +45,7 @@ describe('ServiceOrdersController (integration)', () => {
         JwtModule.register({ secret: process.env.JWT_SECRET, signOptions: { expiresIn: '1h' } }),
       ],
       providers: [JwtStrategy, JwtAuthGuard, RolesGuard],
-    })
-      .overrideProvider(PdfGenerator)
-      .useValue({ generate: jest.fn().mockResolvedValue(Buffer.from('%PDF-fake')) })
-      .compile();
+    }).compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalFilters(new GlobalExceptionFilter());
@@ -372,7 +368,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(400);
   });
 
-  it('GET /service-orders/:id/budget deve retornar o PDF do orçamento quando a OS possui itens', async () => {
+  it('GET /service-orders/:id/budget deve retornar os dados do orçamento quando a OS possui itens', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -385,18 +381,26 @@ describe('ServiceOrdersController (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .get(`/service-orders/${created.body.id}/budget`)
-      .set('Authorization', adminAuthHeader())
-      .buffer()
-      .parse((res, callback) => {
-        const chunks: Buffer[] = [];
-        res.on('data', (chunk: Buffer) => chunks.push(chunk));
-        res.on('end', () => callback(null, Buffer.concat(chunks)));
-      });
+      .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(200);
-    expect(response.headers['content-type']).toBe('application/pdf');
-    expect(Buffer.isBuffer(response.body)).toBe(true);
-    expect(response.body.toString('utf-8')).toBe('%PDF-fake');
+    expect(response.headers['content-type']).toContain('application/json');
+    expect(response.body.serviceOrderId).toBe(created.body.id);
+    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.client).toMatchObject({ name: 'Cliente Teste', address: 'Rua X' });
+    expect(response.body.vehicle).toMatchObject({
+      brand: 'Fiat',
+      model: 'Uno',
+      licensePlate: 'TST1234',
+    });
+    expect(response.body.services).toEqual([
+      { name: 'Troca de óleo', quantity: 1, unitOfMeasure: null, unitPrice: 100, subtotal: 100 },
+    ]);
+    expect(response.body.parts).toEqual([
+      { name: 'Óleo', quantity: 2, unitOfMeasure: 'ML', unitPrice: 30, subtotal: 60 },
+    ]);
+    expect(response.body.totalAmount).toBe(160);
+    expect(response.body.generatedAt).toBeDefined();
   });
 
   it('GET /service-orders/:id/budget deve retornar 404 se a OS não existir', async () => {

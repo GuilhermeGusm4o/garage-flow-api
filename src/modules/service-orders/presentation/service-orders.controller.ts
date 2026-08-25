@@ -8,8 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  Res,
-  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -19,10 +17,8 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiProduces,
   ApiTags,
 } from '@nestjs/swagger';
-import { type Response } from 'express';
 import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -39,6 +35,7 @@ import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
+import { ServiceOrderBudgetResponseDto } from '@service-orders/presentation/dtos/service-order-budget-response.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -99,27 +96,13 @@ export class ServiceOrdersController {
   @Roles('ADMIN', 'SERVICE_ADVISOR')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
-    summary: 'Generates and returns the budget PDF for a service order',
+    summary: 'Generates and returns the budget data for a service order',
   })
-  @ApiProduces('application/pdf')
-  @ApiOkResponse({
-    description: 'Budget PDF generated successfully',
-    schema: {
-      type: 'string',
-      format: 'binary',
-    },
-  })
+  @ApiOkResponse({ type: ServiceOrderBudgetResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async generateBudget(
-    @Param('id') id: string,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<StreamableFile> {
-    const pdf = await this.generateServiceOrderBudget.execute(id);
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="orcamento-${id}.pdf"`,
-    });
-    return new StreamableFile(pdf);
+  async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
+    const budget = await this.generateServiceOrderBudget.execute(id);
+    return ServiceOrderBudgetResponseDto.fromViewModel(budget);
   }
 
   @Patch(':id')
