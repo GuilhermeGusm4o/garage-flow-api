@@ -3,13 +3,16 @@ import { type Part } from '@inventory/domain/entities/part.entity';
 export abstract class PartRepository {
   abstract save(part: Part): Promise<void>;
   abstract findById(id: string): Promise<Part | null>;
+  abstract findByIds(ids: string[]): Promise<Part[]>;
   abstract findAll(): Promise<Part[]>;
   abstract softDelete(id: string): Promise<void>;
-  abstract findReservedQuantities(serviceOrderStatuses: string[]): Promise<Map<string, number>>;
 
-  /** Quantidade já comprometida de uma única peça, nos mesmos termos acima. */
-  abstract findReservedQuantityForPart(
-    partId: string,
+  /**
+   * Soma, por peça, a quantidade já comprometida com ordens de serviço nos status
+   * informados. Sem `partIds`, cobre todo o estoque. Peças sem reserva não aparecem no mapa.
+   */
+  abstract findReservedQuantities(
     serviceOrderStatuses: string[],
-  ): Promise<number>;
+    partIds?: string[],
+  ): Promise<Map<string, number>>;
 }
