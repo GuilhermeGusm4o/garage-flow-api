@@ -31,6 +31,7 @@ import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { buildTrackingLink } from '@service-orders/infrastructure/security/tracking-token.util';
@@ -39,6 +40,7 @@ import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-
 import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
+import { ServiceOrderBudgetResponseDto } from '@service-orders/presentation/dtos/service-order-budget-response.dto';
 import { ServiceOrderCreatedResponseDto } from '@service-orders/presentation/dtos/service-order-created-response.dto';
 import { ServiceOrderTrackingResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-response.dto';
 import { ServiceOrderTrackingLinkResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-link-response.dto';
@@ -54,6 +56,7 @@ export class ServiceOrdersController {
     private readonly updateServiceOrderStatus: UpdateServiceOrderStatusUseCase,
     private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
+    private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
     private readonly findServiceOrderByTrackingToken: FindServiceOrderByTrackingTokenUseCase,
     private readonly getServiceOrderTrackingLink: GetServiceOrderTrackingLinkUseCase,
   ) {}
@@ -111,6 +114,20 @@ export class ServiceOrdersController {
   async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.findServiceOrderById.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Get(':id/budget')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Generates and returns the budget data for a service order',
+  })
+  @ApiOkResponse({ type: ServiceOrderBudgetResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
+    const budget = await this.generateServiceOrderBudget.execute(id);
+    return ServiceOrderBudgetResponseDto.fromViewModel(budget);
   }
 
   @Get(':id/tracking-link')

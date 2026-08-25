@@ -31,6 +31,13 @@ export class PrismaPartRepository extends PartRepository {
     return rows.map(PartMapper.toDomain);
   }
 
+  async findByIdList(idList: string[]): Promise<Part[]> {
+    const rows = await this.prisma.inventory.findMany({
+      where: { id: { in: idList }, deleted_at: null },
+    });
+    return rows.map(PartMapper.toDomain);
+  }
+
   async findBelowMinimum(): Promise<Part[]> {
     const rows = await this.prisma.inventory.findMany();
     return rows.map(PartMapper.toDomain).filter((part: Part) => part.isBelowMinimum());

@@ -12,6 +12,7 @@ import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
@@ -110,6 +111,13 @@ const endpoints: Endpoint[] = [
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 200,
   },
+  {
+    description: 'GET /service-orders/:id/budget',
+    method: 'get',
+    path: `/service-orders/${mockId}/budget`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
 ];
 
 describe('ServiceOrdersController (security)', () => {
@@ -160,6 +168,41 @@ describe('ServiceOrdersController (security)', () => {
         {
           provide: GetServiceOrderTrackingLinkUseCase,
           useValue: { execute: jest.fn().mockResolvedValue('mock-token') },
+        },
+        {
+          provide: GenerateServiceOrderBudgetUseCase,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({
+              serviceOrderId: mockId,
+              description: 'Ruído no motor',
+              status: ServiceOrderStatus.AWAITING_APPROVAL,
+              client: {
+                name: 'João da Silva',
+                cpfCnpj: '52998224725',
+                phone: '11999998888',
+                address: 'Rua das Flores, 123',
+                email: 'joao@email.com',
+              },
+              vehicle: {
+                brand: 'Volkswagen',
+                model: 'Gol',
+                licensePlate: 'ABC1D23',
+                year: 2020,
+              },
+              services: [
+                {
+                  name: 'Troca de óleo',
+                  quantity: 1,
+                  unitOfMeasure: null,
+                  unitPrice: 100,
+                  subtotal: 100,
+                },
+              ],
+              parts: [],
+              totalAmount: 100,
+              generatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            }),
+          },
         },
         JwtStrategy,
         JwtAuthGuard,
