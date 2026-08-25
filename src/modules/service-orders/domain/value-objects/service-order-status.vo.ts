@@ -7,3 +7,15 @@ export enum ServiceOrderStatus {
   DELIVERED = 'DELIVERED',
   CANCELED = 'CANCELED',
 }
+
+/**
+ * Status em que a OS ainda está em andamento: o serviço não terminou e as peças
+ * dela ainda não foram consumidas. FINISHED e DELIVERED já consumiram; CANCELED
+ * devolve as peças.
+ */
+export const OPEN_SERVICE_ORDER_STATUSES: ServiceOrderStatus[] = [
+  ServiceOrderStatus.RECEIVED,
+  ServiceOrderStatus.IN_DIAGNOSIS,
+  ServiceOrderStatus.AWAITING_APPROVAL,
+  ServiceOrderStatus.IN_EXECUTION,
+];

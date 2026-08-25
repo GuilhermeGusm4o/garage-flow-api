@@ -4,9 +4,10 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { type AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
-import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
-import { type CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
-import { type GetStockLevelUseCase } from '@inventory/application/use-cases/get-stock-level.use-case';
+import {
+  type CheckPartsAvailabilityUseCase,
+  type PartAvailability,
+} from '@inventory/application/use-cases/check-parts-availability.use-case';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
@@ -17,28 +18,37 @@ import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service
 
 describe('AddServicesAndPartsUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
-  let findPartById: { execute: jest.Mock };
-  let calculateAvailability: { execute: jest.Mock };
+  let checkPartsAvailability: { execute: jest.Mock };
   let findServicesByIdList: { execute: jest.Mock };
   let calculateTotalAmount: { execute: jest.Mock };
-  let getStockLevel: { execute: jest.Mock };
   let useCase: AddServicesAndPartsUseCase;
 
-  const buildStockLevel = (quantity: number, minQuantity: number, reserved: number) =>
-    new StockLevel(
+  const service = { id: 'service-1', price: { getValue: () => 100 } };
+
+  /** Disponibilidade da peça: `physical` na prateleira, `reserved` já comprometido com OS em aberto. */
+  const buildAvailability = (
+    physical: number,
+    reserved = 0,
+    requested = 2,
+    minQuantity = 0,
+  ): PartAvailability => {
+    const stockLevel = new StockLevel(
       new Part(
         'part-1',
         'Óleo',
         new UnitOfMeasure('ML'),
         30,
-        new Quantity(quantity),
+        new Quantity(physical),
         new Quantity(minQuantity),
       ),
       reserved,
     );
-
-  const service = { id: 'service-1', price: { getValue: () => 100 } };
-  const part = { id: 'part-1', name: 'Óleo', unitPrice: 30, unitOfMeasure: { value: 'ML' } };
+    return {
+      stockLevel,
+      requestedQuantity: requested,
+      isAvailable: requested <= stockLevel.availableQuantity,
+    };
+  };
 
   const buildServiceOrder = () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
@@ -54,16 +64,12 @@ describe('AddServicesAndPartsUseCase', () => {
       softDelete: jest.fn(),
     };
     findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };
-    findPartById = { execute: jest.fn().mockResolvedValue(part) };
-    calculateAvailability = { execute: jest.fn().mockResolvedValue(10) };
+    checkPartsAvailability = { execute: jest.fn().mockResolvedValue([buildAvailability(10)]) };
     calculateTotalAmount = { execute: jest.fn().mockResolvedValue(160) };
-    getStockLevel = { execute: jest.fn().mockResolvedValue(buildStockLevel(100, 5, 0)) };
 
     useCase = new AddServicesAndPartsUseCase(
       repository,
-      findPartById as unknown as FindPartByIdUseCase,
-      calculateAvailability as unknown as CalculateAvailabilityUseCase,
-      getStockLevel as unknown as GetStockLevelUseCase,
+      checkPartsAvailability as unknown as CheckPartsAvailabilityUseCase,
       findServicesByIdList as unknown as FindServicesByIdListUseCase,
       calculateTotalAmount as unknown as CalculateTotalAmountUseCase,
     );
@@ -122,8 +128,7 @@ describe('AddServicesAndPartsUseCase', () => {
 
     await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
-    expect(findPartById.execute).not.toHaveBeenCalled();
-    expect(calculateAvailability.execute).not.toHaveBeenCalled();
+    expect(checkPartsAvailability.execute).not.toHaveBeenCalled();
     expect(calculateTotalAmount.execute).not.toHaveBeenCalled();
     expect(repository.save).not.toHaveBeenCalled();
   });
@@ -138,9 +143,25 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve lançar BadRequestException se a quantidade de peça for maior que a disponível', async () => {
-    calculateAvailability.execute.mockResolvedValue(1); // pediu 2, só tem 1
+    checkPartsAvailability.execute.mockResolvedValue([buildAvailability(1)]); // pediu 2, só tem 1
 
     await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+  });
+
+  it('deve barrar quando o estoque físico cobre mas outra OS já reservou a peça', async () => {
+    // 10 na prateleira, 9 comprometidos com OS em aberto -> só 1 realmente livre
+    checkPartsAvailability.execute.mockResolvedValue([buildAvailability(10, 9)]);
+
+    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('deve aceitar quando o estoque lógico ainda cobre o pedido', async () => {
+    // 10 na prateleira, 5 reservados -> 5 livres, pedido de 2 passa
+    checkPartsAvailability.execute.mockResolvedValue([buildAvailability(10, 5)]);
+
+    await expect(useCase.execute('os-1', buildDto())).resolves.toBeDefined();
+    expect(repository.save).toHaveBeenCalled();
   });
 
   it('deve propagar NotFoundException se o serviço não existir', async () => {
@@ -150,7 +171,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve propagar NotFoundException se a peça não existir', async () => {
-    findPartById.execute.mockRejectedValue(new NotFoundException('Peça não encontrada'));
+    checkPartsAvailability.execute.mockRejectedValue(new NotFoundException('Peça não encontrada'));
 
     await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(NotFoundException);
   });
@@ -162,8 +183,12 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   describe('alerta de estoque mínimo', () => {
+    /** 1ª chamada valida a disponibilidade; a 2ª, depois do save, monta o alerta. */
+    const mockAvailability = (availability: PartAvailability) =>
+      checkPartsAvailability.execute.mockResolvedValue([availability]);
+
     it('acusa a peça cujo estoque lógico ficou abaixo do mínimo', async () => {
-      getStockLevel.execute.mockResolvedValue(buildStockLevel(20, 10, 18));
+      mockAvailability(buildAvailability(20, 18, 2, 10));
 
       const { stockAlerts } = await useCase.execute('os-1', buildDto());
 
@@ -174,7 +199,7 @@ describe('AddServicesAndPartsUseCase', () => {
     });
 
     it('não acusa nada quando o estoque lógico cobre o mínimo', async () => {
-      getStockLevel.execute.mockResolvedValue(buildStockLevel(100, 5, 0));
+      mockAvailability(buildAvailability(100, 0, 2, 5));
 
       const { stockAlerts } = await useCase.execute('os-1', buildDto());
 
@@ -182,7 +207,7 @@ describe('AddServicesAndPartsUseCase', () => {
     });
 
     it('usa o estoque lógico, e não o físico, para decidir o alerta', async () => {
-      getStockLevel.execute.mockResolvedValue(buildStockLevel(20, 10, 18));
+      mockAvailability(buildAvailability(20, 18, 2, 10));
 
       const { stockAlerts } = await useCase.execute('os-1', buildDto());
 
@@ -190,23 +215,23 @@ describe('AddServicesAndPartsUseCase', () => {
       expect(stockAlerts[0].isBelowMinimum()).toBe(true);
     });
 
-    it('consulta o nível de estoque só depois de salvar a OS', async () => {
+    it('monta o alerta só depois de salvar a OS', async () => {
       const order: string[] = [];
       repository.save.mockImplementation((serviceOrder) => {
         order.push('save');
         return Promise.resolve(serviceOrder);
       });
-      getStockLevel.execute.mockImplementation(() => {
+      checkPartsAvailability.execute.mockImplementation(() => {
         order.push('stock');
-        return Promise.resolve(buildStockLevel(100, 5, 0));
+        return Promise.resolve([buildAvailability(100, 0, 2, 5)]);
       });
 
       await useCase.execute('os-1', buildDto());
 
-      expect(order).toEqual(['save', 'stock']);
+      expect(order).toEqual(['stock', 'save', 'stock']);
     });
 
-    it('consulta cada peça uma única vez mesmo se repetida no payload', async () => {
+    it('consulta o estoque em lote: uma chamada para validar, outra para o alerta', async () => {
       await useCase.execute('os-1', {
         services: [],
         parts: [
@@ -215,7 +240,7 @@ describe('AddServicesAndPartsUseCase', () => {
         ],
       });
 
-      expect(getStockLevel.execute).toHaveBeenCalledTimes(1);
+      expect(checkPartsAvailability.execute).toHaveBeenCalledTimes(2);
     });
   });
 });

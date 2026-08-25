@@ -4,9 +4,7 @@ import { ServiceItem } from '@service-orders/domain/entities/service-item.entity
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
-import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
-import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
-import { GetStockLevelUseCase } from '@inventory/application/use-cases/get-stock-level.use-case';
+import { CheckPartsAvailabilityUseCase } from '@inventory/application/use-cases/check-parts-availability.use-case';
 import { type StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
@@ -25,9 +23,7 @@ export interface AddServicesAndPartsResult {
 export class AddServicesAndPartsUseCase {
   constructor(
     private readonly serviceOrderRepository: ServiceOrderRepository,
-    private readonly findPartById: FindPartByIdUseCase,
-    private readonly calculateAvailability: CalculateAvailabilityUseCase,
-    private readonly getStockLevel: GetStockLevelUseCase,
+    private readonly checkPartsAvailability: CheckPartsAvailabilityUseCase,
     private readonly findServicesByIdList: FindServicesByIdListUseCase,
     private readonly calculateTotalAmount: CalculateTotalAmountUseCase,
   ) {}
@@ -53,22 +49,40 @@ export class AddServicesAndPartsUseCase {
             )
         : Promise.resolve([]);
 
-    const partItemsPromise = Promise.all(
-      dto.parts.map(async (item) => {
-        const [part, availableQuantity] = await Promise.all([
-          this.findPartById.execute(item.inventoryId),
-          this.calculateAvailability.execute(item.inventoryId),
-        ]);
-
-        if (item.quantity > availableQuantity) {
+    // Estoque lógico em lote: já desconta o que outras OS em aberto reservaram,
+    // para que a mesma peça não seja comprometida duas vezes.
+    const partItemsPromise = this.checkPartsAvailability
+      .execute(dto.parts)
+      .then((availabilities) => {
+        const unavailable = availabilities.find((availability) => !availability.isAvailable);
+        if (unavailable) {
+          const { part, availableQuantity } = unavailable.stockLevel;
           throw new BadRequestException(
-            `Quantidade indisponível para a peça ${part.name}. Disponível: ${availableQuantity}, solicitado: ${item.quantity}`,
+            `Quantidade indisponível para a peça ${part.name}. Disponível: ${availableQuantity}, solicitado: ${unavailable.requestedQuantity}`,
           );
         }
 
-        return new PartItem(null, part.id, item.quantity, part.unitPrice, part.unitOfMeasure.value);
-      }),
-    );
+        const partsById = new Map(
+          availabilities.map((availability) => [
+            availability.stockLevel.part.id,
+            availability.stockLevel.part,
+          ]),
+        );
+
+        return dto.parts.map((item) => {
+          const part = partsById.get(item.inventoryId);
+          if (!part) {
+            throw new NotFoundException(`Peça ${item.inventoryId} não encontrada`);
+          }
+          return new PartItem(
+            null,
+            part.id,
+            item.quantity,
+            part.unitPrice,
+            part.unitOfMeasure.value,
+          );
+        });
+      });
 
     const [newServiceItems, newPartItems] = await Promise.all([
       serviceItemsPromise,
@@ -96,12 +110,12 @@ export class AddServicesAndPartsUseCase {
    * estoque, então o nível lógico aqui já considera as peças recém-adicionadas.
    */
   private async collectStockAlerts(partItems: PartItem[]): Promise<StockLevel[]> {
-    const inventoryIds = [...new Set(partItems.map((item) => item.inventoryId))];
-
-    const levels = await Promise.all(
-      inventoryIds.map((inventoryId) => this.getStockLevel.execute(inventoryId)),
+    const availabilities = await this.checkPartsAvailability.execute(
+      partItems.map((item) => ({ inventoryId: item.inventoryId, quantity: item.quantity })),
     );
 
-    return levels.filter((level) => level.isBelowMinimum());
+    return availabilities
+      .map((availability) => availability.stockLevel)
+      .filter((stockLevel) => stockLevel.isBelowMinimum());
   }
 }

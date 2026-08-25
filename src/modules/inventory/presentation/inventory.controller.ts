@@ -80,13 +80,13 @@ export class InventoryController {
   @ApiOperation({
     summary: 'Lists inventory items whose logical stock is below the configured minimum',
     description:
-      'Logical stock discounts, from the physical quantity, everything already committed to ' +
+      'Logical stock subtracts from the physical quantity everything already committed to ' +
       'service orders that are still open (RECEIVED, IN_DIAGNOSIS, AWAITING_APPROVAL, IN_EXECUTION).',
   })
   @ApiOkResponse({ type: [LowStockPartResponseDto] })
   async findLowStock(): Promise<LowStockPartResponseDto[]> {
-    const levels = await this.listLowStockParts.execute();
-    return levels.map(LowStockPartResponseDto.fromStockLevel);
+    const lowStockParts = await this.listLowStockParts.execute();
+    return lowStockParts.map(LowStockPartResponseDto.fromStockLevel);
   }
 
   @Patch(':id')

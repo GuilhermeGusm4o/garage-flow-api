@@ -25,6 +25,13 @@ export class PrismaPartRepository extends PartRepository {
     return row ? PartMapper.toDomain(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<Part[]> {
+    if (ids.length === 0) return [];
+
+    const rows = await this.prisma.inventory.findMany({ where: { id: { in: ids } } });
+    return rows.map(PartMapper.toDomain);
+  }
+
   async findAll(): Promise<Part[]> {
     const rows = await this.prisma.inventory.findMany({
       where: { deleted_at: null },
@@ -32,10 +39,14 @@ export class PrismaPartRepository extends PartRepository {
     return rows.map(PartMapper.toDomain);
   }
 
-  async findReservedQuantities(serviceOrderStatuses: string[]): Promise<Map<string, number>> {
+  async findReservedQuantities(
+    serviceOrderStatuses: string[],
+    partIds?: string[],
+  ): Promise<Map<string, number>> {
     const rows = await this.prisma.serviceOrderInventory.groupBy({
       by: ['inventoryId'],
       where: {
+        ...(partIds ? { inventoryId: { in: partIds } } : {}),
         serviceOrder: {
           deleted_at: null,
           status: { in: serviceOrderStatuses as PrismaServiceOrderStatus[] },
@@ -45,24 +56,6 @@ export class PrismaPartRepository extends PartRepository {
     });
 
     return new Map(rows.map((row) => [row.inventoryId, Number(row._sum.quantity ?? 0)]));
-  }
-
-  async findReservedQuantityForPart(
-    partId: string,
-    serviceOrderStatuses: string[],
-  ): Promise<number> {
-    const result = await this.prisma.serviceOrderInventory.aggregate({
-      where: {
-        inventoryId: partId,
-        serviceOrder: {
-          deleted_at: null,
-          status: { in: serviceOrderStatuses as PrismaServiceOrderStatus[] },
-        },
-      },
-      _sum: { quantity: true },
-    });
-
-    return Number(result._sum.quantity ?? 0);
   }
 
   async softDelete(id: string): Promise<void> {

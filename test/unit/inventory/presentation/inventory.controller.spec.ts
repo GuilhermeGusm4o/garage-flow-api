@@ -100,7 +100,7 @@ describe('InventoryController', () => {
         id: 'part-1',
         name: 'Óleo de motor 5W30',
         unitOfMeasure: 'ML',
-        quantity: 20,
+        physicalQuantity: 20,
         reservedQuantity: 8,
         availableQuantity: 12,
         minQuantity: 15,

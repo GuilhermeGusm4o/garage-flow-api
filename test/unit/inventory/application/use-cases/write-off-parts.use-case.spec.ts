@@ -16,10 +16,10 @@ describe('WriteOffPartsUseCase', () => {
     repository = {
       save: jest.fn(),
       findById: jest.fn(),
+      findByIds: jest.fn(),
       findAll: jest.fn(),
       softDelete: jest.fn(),
       findReservedQuantities: jest.fn(),
-      findReservedQuantityForPart: jest.fn(),
     };
     useCase = new WriteOffPartsUseCase(repository);
   });
