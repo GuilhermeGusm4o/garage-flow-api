@@ -173,7 +173,13 @@ describe('ServiceOrdersController (security)', () => {
                 year: 2020,
               },
               services: [
-                { name: 'Troca de óleo', quantity: 1, unitOfMeasure: null, unitPrice: 100, subtotal: 100 },
+                {
+                  name: 'Troca de óleo',
+                  quantity: 1,
+                  unitOfMeasure: null,
+                  unitPrice: 100,
+                  subtotal: 100,
+                },
               ],
               parts: [],
               totalAmount: 100,
