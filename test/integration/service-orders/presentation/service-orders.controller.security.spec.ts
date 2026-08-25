@@ -13,6 +13,8 @@ import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
+import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
+import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -103,12 +105,19 @@ const endpoints: Endpoint[] = [
     successStatus: 200,
   },
   {
+    description: 'GET /service-orders/:id/tracking-link',
+    method: 'get',
+    path: `/service-orders/${mockId}/tracking-link`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
     description: 'GET /service-orders/:id/budget',
     method: 'get',
     path: `/service-orders/${mockId}/budget`,
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 200,
-  },
+  }
 ];
 
 describe('ServiceOrdersController (security)', () => {
@@ -151,6 +160,14 @@ describe('ServiceOrdersController (security)', () => {
         {
           provide: AddServicesAndPartsUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: FindServiceOrderByTrackingTokenUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: GetServiceOrderTrackingLinkUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue('mock-token') },
         },
         {
           provide: GenerateServiceOrderBudgetUseCase,
@@ -234,4 +251,10 @@ describe('ServiceOrdersController (security)', () => {
       });
     },
   );
+
+  describe('GET /service-orders/track/:token', () => {
+    it('should return 200 with no Authorization header (public endpoint)', async () => {
+      await request(app.getHttpServer()).get('/service-orders/track/some-token').expect(200);
+    });
+  });
 });

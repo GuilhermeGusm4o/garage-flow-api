@@ -40,6 +40,7 @@ export class ServiceOrderMapper {
       Number(raw.totalAmount),
       serviceItems,
       partItems,
+      raw.updated_at,
     );
   }
 
