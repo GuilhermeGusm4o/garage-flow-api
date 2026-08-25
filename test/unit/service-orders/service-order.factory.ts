@@ -5,6 +5,9 @@ import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 
+/** Data fixa no passado para que `touch()` sempre produza um `updatedAt` maior. */
+export const FIXED_DATE = new Date('2026-01-01T00:00:00.000Z');
+
 export interface MakeServiceOrderOverrides {
   id?: UUID;
   vehicleId?: string;
@@ -15,6 +18,7 @@ export interface MakeServiceOrderOverrides {
   totalAmount?: number;
   serviceItems?: ServiceItem[];
   partItems?: PartItem[];
+  updatedAt?: Date;
 }
 
 export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): ServiceOrder {
@@ -28,6 +32,7 @@ export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): Ser
     overrides.totalAmount ?? 0,
     overrides.serviceItems ?? [],
     overrides.partItems ?? [],
+    overrides.updatedAt ?? FIXED_DATE,
   );
 }
 

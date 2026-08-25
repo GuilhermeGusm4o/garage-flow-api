@@ -117,7 +117,7 @@ const endpoints: Endpoint[] = [
     path: `/service-orders/${mockId}/budget`,
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 200,
-  }
+  },
 ];
 
 describe('ServiceOrdersController (security)', () => {
