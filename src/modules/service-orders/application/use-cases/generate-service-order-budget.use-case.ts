@@ -85,21 +85,19 @@ export class GenerateServiceOrderBudgetUseCase {
     );
     const partsById = new Map<string, Part>(parts.map((part) => [part.id, part]));
 
-    const serviceLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.serviceItems.map(
-      (item) => {
-        const service = servicesById.get(item.serviceId);
-        if (!service?.name) {
-          throw new NotFoundException(`Service not found: ${item.serviceId}`);
-        }
-        return {
-          name: service.name,
-          quantity: 1,
-          unitOfMeasure: null,
-          unitPrice: item.price,
-          subtotal: item.price,
-        };
-      },
-    );
+    const serviceLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.serviceItems.map((item) => {
+      const service = servicesById.get(item.serviceId);
+      if (!service?.name) {
+        throw new NotFoundException(`Service not found: ${item.serviceId}`);
+      }
+      return {
+        name: service.name,
+        quantity: 1,
+        unitOfMeasure: null,
+        unitPrice: item.price,
+        subtotal: item.price,
+      };
+    });
 
     const partLineItems: ServiceOrderBudgetLineItem[] = serviceOrder.partItems.map((item) => {
       const part = partsById.get(item.inventoryId);

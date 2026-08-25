@@ -22,8 +22,20 @@ describe('FindPartsByIdListUseCase', () => {
   });
 
   it('deve retornar as peças pelo id list', async () => {
-    const part1 = new Part('id-1', 'Óleo de motor', new UnitOfMeasure('ML'), 45.9, new Quantity(20));
-    const part2 = new Part('id-2', 'Filtro de óleo', new UnitOfMeasure('UNIT'), 30, new Quantity(10));
+    const part1 = new Part(
+      'id-1',
+      'Óleo de motor',
+      new UnitOfMeasure('ML'),
+      45.9,
+      new Quantity(20),
+    );
+    const part2 = new Part(
+      'id-2',
+      'Filtro de óleo',
+      new UnitOfMeasure('UNIT'),
+      30,
+      new Quantity(10),
+    );
     repository.findByIdList.mockResolvedValue([part1, part2]);
 
     const result = await useCase.execute(['id-1', 'id-2']);
