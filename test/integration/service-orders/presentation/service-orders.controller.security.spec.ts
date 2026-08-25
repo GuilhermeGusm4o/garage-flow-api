@@ -154,7 +154,32 @@ describe('ServiceOrdersController (security)', () => {
         },
         {
           provide: GenerateServiceOrderBudgetUseCase,
-          useValue: { execute: jest.fn().mockResolvedValue(Buffer.from('%PDF-fake')) },
+          useValue: {
+            execute: jest.fn().mockResolvedValue({
+              serviceOrderId: mockId,
+              description: 'Ruído no motor',
+              status: ServiceOrderStatus.AWAITING_APPROVAL,
+              client: {
+                name: 'João da Silva',
+                cpfCnpj: '52998224725',
+                phone: '11999998888',
+                address: 'Rua das Flores, 123',
+                email: 'joao@email.com',
+              },
+              vehicle: {
+                brand: 'Volkswagen',
+                model: 'Gol',
+                licensePlate: 'ABC1D23',
+                year: 2020,
+              },
+              services: [
+                { name: 'Troca de óleo', quantity: 1, unitOfMeasure: null, unitPrice: 100, subtotal: 100 },
+              ],
+              parts: [],
+              totalAmount: 100,
+              generatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            }),
+          },
         },
         JwtStrategy,
         JwtAuthGuard,
