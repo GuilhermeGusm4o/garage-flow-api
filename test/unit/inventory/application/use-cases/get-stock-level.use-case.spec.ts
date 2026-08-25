@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { GetStockLevelUseCase } from '@inventory/application/use-cases/get-stock-level.use-case';
-import { STOCK_RESERVING_STATUSES } from '@inventory/application/stock-reserving-statuses';
+import { OPEN_SERVICE_ORDER_STATUSES } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
@@ -52,7 +52,7 @@ describe('GetStockLevelUseCase', () => {
 
     expect(repository.findReservedQuantityForPart).toHaveBeenCalledWith(
       'part-1',
-      STOCK_RESERVING_STATUSES,
+      OPEN_SERVICE_ORDER_STATUSES,
     );
   });
 

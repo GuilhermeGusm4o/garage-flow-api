@@ -8,7 +8,7 @@ export class ListLowStockPartsUseCase {
   constructor(private readonly listStockLevels: ListStockLevelsUseCase) {}
 
   async execute(): Promise<StockLevel[]> {
-    const levels = await this.listStockLevels.execute();
-    return levels.filter((level) => level.isBelowMinimum());
+    const stockLevels = await this.listStockLevels.execute();
+    return stockLevels.filter((stockLevel) => stockLevel.isBelowMinimum());
   }
 }

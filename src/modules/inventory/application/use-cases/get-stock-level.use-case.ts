@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PartRepository } from '@inventory/domain/repositories/part.repository';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
-import { STOCK_RESERVING_STATUSES } from '@inventory/application/stock-reserving-statuses';
+import { OPEN_SERVICE_ORDER_STATUSES } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 /**
  * Posição de estoque (físico, reservado e lógico) de uma peça específica.
@@ -17,7 +17,7 @@ export class GetStockLevelUseCase {
 
     const reservedQuantity = await this.partRepository.findReservedQuantityForPart(
       partId,
-      STOCK_RESERVING_STATUSES,
+      OPEN_SERVICE_ORDER_STATUSES,
     );
 
     return new StockLevel(part, reservedQuantity);

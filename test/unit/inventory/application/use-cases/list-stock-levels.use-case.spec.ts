@@ -1,10 +1,12 @@
 import { ListStockLevelsUseCase } from '@inventory/application/use-cases/list-stock-levels.use-case';
-import { STOCK_RESERVING_STATUSES } from '@inventory/application/stock-reserving-statuses';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
-import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import {
+  OPEN_SERVICE_ORDER_STATUSES,
+  ServiceOrderStatus,
+} from '@service-orders/domain/value-objects/service-order-status.vo';
 
 const buildPart = (id: string, quantity: number, minQuantity = 0) =>
   new Part(
@@ -72,8 +74,8 @@ describe('ListStockLevelsUseCase', () => {
 
     await useCase.execute();
 
-    expect(repository.findReservedQuantities).toHaveBeenCalledWith(STOCK_RESERVING_STATUSES);
-    expect(STOCK_RESERVING_STATUSES).toEqual([
+    expect(repository.findReservedQuantities).toHaveBeenCalledWith(OPEN_SERVICE_ORDER_STATUSES);
+    expect(OPEN_SERVICE_ORDER_STATUSES).toEqual([
       ServiceOrderStatus.RECEIVED,
       ServiceOrderStatus.IN_DIAGNOSIS,
       ServiceOrderStatus.AWAITING_APPROVAL,
@@ -82,9 +84,9 @@ describe('ListStockLevelsUseCase', () => {
   });
 
   it('não considera OS finalizada, entregue ou cancelada como reserva', () => {
-    expect(STOCK_RESERVING_STATUSES).not.toContain(ServiceOrderStatus.FINISHED);
-    expect(STOCK_RESERVING_STATUSES).not.toContain(ServiceOrderStatus.DELIVERED);
-    expect(STOCK_RESERVING_STATUSES).not.toContain(ServiceOrderStatus.CANCELED);
+    expect(OPEN_SERVICE_ORDER_STATUSES).not.toContain(ServiceOrderStatus.FINISHED);
+    expect(OPEN_SERVICE_ORDER_STATUSES).not.toContain(ServiceOrderStatus.DELIVERED);
+    expect(OPEN_SERVICE_ORDER_STATUSES).not.toContain(ServiceOrderStatus.CANCELED);
   });
 
   it('devolve lista vazia quando não há peças', async () => {

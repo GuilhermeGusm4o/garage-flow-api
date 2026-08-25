@@ -12,7 +12,7 @@ export class LowStockPartResponseDto {
   unitOfMeasure!: string;
 
   @ApiProperty({ example: 20, description: 'Quantidade física em estoque' })
-  quantity!: number;
+  physicalQuantity!: number;
 
   @ApiProperty({ example: 8, description: 'Quantidade comprometida com OS em aberto' })
   reservedQuantity!: number;
@@ -28,7 +28,7 @@ export class LowStockPartResponseDto {
     response.id = level.part.id;
     response.name = level.part.name;
     response.unitOfMeasure = level.part.unitOfMeasure.value;
-    response.quantity = level.part.quantity.value;
+    response.physicalQuantity = level.part.quantity.value;
     response.reservedQuantity = level.reservedQuantity;
     response.availableQuantity = level.availableQuantity;
     response.minQuantity = level.part.minQuantity.value;
