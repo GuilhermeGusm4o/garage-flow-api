@@ -53,6 +53,28 @@ describe('ServiceOrder', () => {
     expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
   });
 
+  it('deve aprovar o orçamento e registrar a data de aprovação', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    const approvedAt = new Date('2026-08-26T10:00:00.000Z');
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+
+    os.approveBudget(approvedAt);
+
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_EXECUTION);
+    expect(os.approvedAt).toBe(approvedAt);
+  });
+
+  it('deve reprovar o orçamento e cancelar a OS', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+    os.approvedAt = new Date();
+
+    os.rejectBudget();
+
+    expect(os.status).toBe(ServiceOrderStatus.CANCELED);
+    expect(os.approvedAt).toBeNull();
+  });
+
   it('deve gerar um id único', () => {
     const os1 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     const os2 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);

@@ -95,6 +95,16 @@ export class ServiceOrder {
     this.serviceFinishedAt = finishedAt;
   }
 
+  approveBudget(approvedAt = new Date()): void {
+    this.updateStatus(ServiceOrderStatus.AWAITING_EXECUTION);
+    this.approvedAt = approvedAt;
+  }
+
+  rejectBudget(): void {
+    this.updateStatus(ServiceOrderStatus.CANCELED);
+    this.approvedAt = null;
+  }
+
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
     if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;

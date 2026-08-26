@@ -37,7 +37,7 @@ export class AddServicesAndPartsUseCase {
               ),
             )
         : Promise.resolve([]);
-    // TODO: Use the new endpoint to findPartsByIdList    
+    // TODO: Use the new endpoint to findPartsByIdList
     const partItemsPromise = Promise.all(
       dto.parts.map(async (item) => {
         const [part, availableQuantity] = await Promise.all([

@@ -73,7 +73,7 @@ export class AuthController {
 
     return UserResponseDto.fromDomain(user);
   }
-  
+
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

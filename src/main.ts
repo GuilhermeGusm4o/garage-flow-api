@@ -4,6 +4,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
+type SwaggerOperation = {
+  get(key: string): string;
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new GlobalExceptionFilter());
@@ -36,29 +40,29 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document, {
-  swaggerOptions: {
-    operationsSorter: (a: any, b: any) => {
-      const methodOrder: Record<string, number> = {
-        post: 1,
-        get: 2,
-        put: 3,
-        patch: 4,
-        delete: 5,
-      };
+    swaggerOptions: {
+      operationsSorter: (a: SwaggerOperation, b: SwaggerOperation) => {
+        const methodOrder: Record<string, number> = {
+          post: 1,
+          get: 2,
+          put: 3,
+          patch: 4,
+          delete: 5,
+        };
 
-      const methodA = a.get('method');
-      const methodB = b.get('method');
+        const methodA = a.get('method');
+        const methodB = b.get('method');
 
-      const methodDiff = methodOrder[methodA] - methodOrder[methodB];
+        const methodDiff = methodOrder[methodA] - methodOrder[methodB];
 
-      if (methodDiff !== 0) {
-        return methodDiff;
-      }
+        if (methodDiff !== 0) {
+          return methodDiff;
+        }
 
-      return a.get('path').localeCompare(b.get('path'));
+        return a.get('path').localeCompare(b.get('path'));
+      },
     },
-  },
-});
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

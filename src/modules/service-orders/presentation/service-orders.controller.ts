@@ -35,6 +35,8 @@ import { AddServicesAndPartsUseCase } from '@service-orders/application/use-case
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
+import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
+import { RejectServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/reject-service-order-budget.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { buildTrackingLink } from '@service-orders/infrastructure/security/tracking-token.util';
@@ -61,6 +63,8 @@ export class ServiceOrdersController {
     private readonly startDiagnosis: StartDiagnosisUseCase,
     private readonly finishService: FinishServiceUseCase,
     private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
+    private readonly approveServiceOrderBudget: ApproveServiceOrderBudgetUseCase,
+    private readonly rejectServiceOrderBudget: RejectServiceOrderBudgetUseCase,
     private readonly findServiceOrderByTrackingToken: FindServiceOrderByTrackingTokenUseCase,
     private readonly getServiceOrderTrackingLink: GetServiceOrderTrackingLinkUseCase,
   ) {}
@@ -219,6 +223,30 @@ export class ServiceOrdersController {
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.addServicesAndParts.execute(id, dto, request.user.id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Patch(':id/approve-budget')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Approves the budget for a service order' })
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async approveBudget(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.approveServiceOrderBudget.execute(id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Patch(':id/reject-budget')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Rejects the budget for a service order' })
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async rejectBudget(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.rejectServiceOrderBudget.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
