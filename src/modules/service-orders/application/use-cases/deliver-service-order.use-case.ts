@@ -3,15 +3,14 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 
 @Injectable()
-export class FinishServiceUseCase {
+export class DeliverServiceOrderUseCase {
   constructor(private readonly serviceOrderRepository: ServiceOrderRepository) {}
 
-  async execute(serviceOrderId: string, mechanicId: string): Promise<ServiceOrder> {
-    const serviceOrder = await this.serviceOrderRepository.findById(serviceOrderId);
+  async execute(id: string): Promise<ServiceOrder> {
+    const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
-    // ##TODO: relacionar com a baixa do estoque
 
-    serviceOrder.finishService(mechanicId);
+    serviceOrder.deliver();
     await this.serviceOrderRepository.save(serviceOrder);
     return serviceOrder;
   }

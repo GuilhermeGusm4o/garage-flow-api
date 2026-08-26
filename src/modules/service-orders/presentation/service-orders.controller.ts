@@ -34,6 +34,7 @@ import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-c
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { DeliverServiceOrderUseCase } from '@service-orders/application/use-cases/deliver-service-order.use-case';
 import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
@@ -63,6 +64,7 @@ export class ServiceOrdersController {
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
     private readonly startDiagnosis: StartDiagnosisUseCase,
     private readonly finishService: FinishServiceUseCase,
+    private readonly deliverServiceOrder: DeliverServiceOrderUseCase,
     private readonly startService: StartServiceUseCase,
     private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
     private readonly approveServiceOrderBudget: ApproveServiceOrderBudgetUseCase,
@@ -293,6 +295,21 @@ export class ServiceOrdersController {
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.finishService.execute(id, request.user.id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Patch(':id/deliver')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Delivers a service order by ID',
+    description: 'The service order must have FINISHED status.',
+  })
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async deliver(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.deliverServiceOrder.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 

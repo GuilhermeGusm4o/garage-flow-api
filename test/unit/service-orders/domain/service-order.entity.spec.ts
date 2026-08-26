@@ -128,6 +128,22 @@ describe('ServiceOrder', () => {
     expect(os.serviceStartedAt).toBe(startedAt);
   });
 
+  it('deve entregar a OS após finalizar o serviço', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.FINISHED;
+
+    os.deliver();
+
+    expect(os.status).toBe(ServiceOrderStatus.DELIVERED);
+  });
+
+  it('deve rejeitar a entrega antes de finalizar o serviço', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    expect(() => os.deliver()).toThrow(DomainError);
+    expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
+  });
+
   it('deve gerar um id único', () => {
     const os1 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     const os2 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);

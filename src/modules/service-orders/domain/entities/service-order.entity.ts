@@ -144,6 +144,10 @@ export class ServiceOrder {
     this.serviceFinishedAt = finishedAt;
   }
 
+  deliver(): void {
+    this.updateStatus(ServiceOrderStatus.DELIVERED);
+  }
+
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
     if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;
