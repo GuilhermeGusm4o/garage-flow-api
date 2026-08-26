@@ -255,7 +255,7 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ status: 'AWAITING_APPROVAL' });
 
     expect(response.status).toBe(200);
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
   it('PATCH /service-orders/:id/status deve retornar 404 se a OS não existir', async () => {
@@ -328,7 +328,7 @@ describe('ServiceOrdersController (integration)', () => {
       .set('Authorization', adminAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
-    // adicionar itens move a OS para AWAITING_APPROVAL, então é preciso
+    // adicionar itens move a OS para FINISHED_DIAGNOSIS, então é preciso
     // voltar para IN_DIAGNOSIS antes de uma nova chamada
     await putServiceOrderInDiagnosis(created.body.id);
 
@@ -340,7 +340,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(200);
     expect(response.body.serviceItems).toHaveLength(1);
     expect(response.body.partItems).toHaveLength(1);
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
   it('PATCH /service-orders/:id/services-and-parts deve retornar 400 ao tentar adicionar itens novamente sem voltar para IN_DIAGNOSIS', async () => {
@@ -419,7 +419,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(200);
     expect(response.headers['content-type']).toContain('application/json');
     expect(response.body.serviceOrderId).toBe(created.body.id);
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
     expect(response.body.client).toMatchObject({ name: 'Cliente Teste', address: 'Rua X' });
     expect(response.body.vehicle).toMatchObject({
       brand: 'Fiat',

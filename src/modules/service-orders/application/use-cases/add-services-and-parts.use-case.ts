@@ -69,7 +69,7 @@ export class AddServicesAndPartsUseCase {
     );
 
     serviceOrder.addServicesAndParts(newServiceItems, newPartItems, totalAmount);
-    serviceOrder.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
+    serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
 
     return this.serviceOrderRepository.save(serviceOrder);
   }

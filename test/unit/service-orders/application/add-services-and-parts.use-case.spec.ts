@@ -66,10 +66,10 @@ describe('AddServicesAndPartsUseCase', () => {
     expect(repository.save).toHaveBeenCalledWith(os);
   });
 
-  it('deve mover a OS para AWAITING_APPROVAL após adicionar serviços e peças', async () => {
+  it('deve mover a OS para FINISHED_DIAGNOSIS após adicionar serviços e peças', async () => {
     const os = await useCase.execute('os-1', buildDto());
 
-    expect(os.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   });
 
   it('deve preservar os itens já existentes na OS ao adicionar novos', async () => {
