@@ -121,7 +121,7 @@ export class ServiceOrder {
     this.approvedAt = approvedAt;
   }
 
-  rejectBudget(): void {
+  cancelService(): void {
     this.updateStatus(ServiceOrderStatus.CANCELED);
     this.approvedAt = null;
   }

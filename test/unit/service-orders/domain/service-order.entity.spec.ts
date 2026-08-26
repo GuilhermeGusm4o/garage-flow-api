@@ -89,12 +89,12 @@ describe('ServiceOrder', () => {
     expect(os.approvedAt).toBe(approvedAt);
   });
 
-  it('deve reprovar o orçamento e cancelar a OS', () => {
+  it('deve cancelar a OS e limpar a aprovação do orçamento', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     os.status = ServiceOrderStatus.AWAITING_APPROVAL;
     os.approvedAt = new Date();
 
-    os.rejectBudget();
+    os.cancelService();
 
     expect(os.status).toBe(ServiceOrderStatus.CANCELED);
     expect(os.approvedAt).toBeNull();

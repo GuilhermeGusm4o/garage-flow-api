@@ -13,7 +13,7 @@ import { DeliverServiceOrderUseCase } from '@service-orders/application/use-case
 import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
-import { RejectServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/reject-service-order-budget.use-case';
+import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
@@ -40,7 +40,7 @@ import { InventoryModule } from '@inventory/inventory.module';
     StartServiceUseCase,
     GenerateServiceOrderBudgetUseCase,
     ApproveServiceOrderBudgetUseCase,
-    RejectServiceOrderBudgetUseCase,
+    CancelServiceOrderUseCase,
     FindServiceOrderByTrackingTokenUseCase,
     GetServiceOrderTrackingLinkUseCase,
     { provide: ServiceOrderRepository, useClass: PrismaServiceOrderRepository },

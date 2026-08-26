@@ -38,7 +38,7 @@ import { DeliverServiceOrderUseCase } from '@service-orders/application/use-case
 import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
-import { RejectServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/reject-service-order-budget.use-case';
+import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { buildTrackingLink } from '@service-orders/infrastructure/security/tracking-token.util';
@@ -68,7 +68,7 @@ export class ServiceOrdersController {
     private readonly startService: StartServiceUseCase,
     private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
     private readonly approveServiceOrderBudget: ApproveServiceOrderBudgetUseCase,
-    private readonly rejectServiceOrderBudget: RejectServiceOrderBudgetUseCase,
+    private readonly cancelServiceOrder: CancelServiceOrderUseCase,
     private readonly findServiceOrderByTrackingToken: FindServiceOrderByTrackingTokenUseCase,
     private readonly getServiceOrderTrackingLink: GetServiceOrderTrackingLinkUseCase,
   ) {}
@@ -248,15 +248,18 @@ export class ServiceOrdersController {
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
-  @Patch(':id/reject-budget')
+  @Patch(':id/cancel-service')
   @ApiBearerAuth('access-token')
   @Roles('ADMIN', 'SERVICE_ADVISOR')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiOperation({ summary: 'Rejects the budget for a service order' })
+  @ApiOperation({
+    summary: 'Cancels a service order',
+    description: 'The service order can be canceled in any status except FINISHED or DELIVERED.',
+  })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async rejectBudget(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
-    const serviceOrder = await this.rejectServiceOrderBudget.execute(id);
+  async cancelService(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.cancelServiceOrder.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 

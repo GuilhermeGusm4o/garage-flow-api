@@ -17,7 +17,7 @@ import { DeliverServiceOrderUseCase } from '@service-orders/application/use-case
 import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
-import { RejectServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/reject-service-order-budget.use-case';
+import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
@@ -119,6 +119,13 @@ const endpoints: Endpoint[] = [
     description: 'PATCH /service-orders/:id/deliver',
     method: 'patch',
     path: `/service-orders/${mockId}/deliver`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
+    description: 'PATCH /service-orders/:id/cancel-service',
+    method: 'patch',
+    path: `/service-orders/${mockId}/cancel-service`,
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 200,
   },
@@ -239,7 +246,7 @@ describe('ServiceOrdersController (security)', () => {
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         {
-          provide: RejectServiceOrderBudgetUseCase,
+          provide: CancelServiceOrderUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         JwtStrategy,
