@@ -24,11 +24,7 @@ export class AddServicesAndPartsUseCase {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
-    if (serviceOrder.status !== ServiceOrderStatus.IN_DIAGNOSIS) {
-      throw new BadRequestException(
-        'Cannot add services and parts to a service order that is not in IN_DIAGNOSIS status',
-      );
-    }
+    serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
 
     const serviceItemsPromise =
       dto.services.length > 0
@@ -69,7 +65,6 @@ export class AddServicesAndPartsUseCase {
     );
 
     serviceOrder.addServicesAndParts(newServiceItems, newPartItems, totalAmount);
-    serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
 
     return this.serviceOrderRepository.save(serviceOrder);
   }

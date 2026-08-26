@@ -30,7 +30,6 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
-import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
@@ -41,7 +40,6 @@ import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/
 import { buildTrackingLink } from '@service-orders/infrastructure/security/tracking-token.util';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
-import { UpdateServiceOrderStatusDto } from '@service-orders/presentation/dtos/update-service-order-status.dto';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -58,7 +56,6 @@ export class ServiceOrdersController {
     private readonly findServiceOrderById: FindServiceOrderByIdUseCase,
     private readonly findAllServiceOrders: FindAllServiceOrdersUseCase,
     private readonly updateServiceOrder: UpdateServiceOrderUseCase,
-    private readonly updateServiceOrderStatus: UpdateServiceOrderStatusUseCase,
     private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
     private readonly startDiagnosis: StartDiagnosisUseCase,
@@ -108,7 +105,7 @@ export class ServiceOrdersController {
     @Query('mechanicId') mechanicId?: string,
   ): Promise<ServiceOrderResponseDto[]> {
     const serviceOrders = await this.findAllServiceOrders.execute(status, mechanicId);
-    return serviceOrders.map(ServiceOrderResponseDto.fromListItem);
+    return serviceOrders.map((serviceOrder) => ServiceOrderResponseDto.fromListItem(serviceOrder));
   }
 
   @Get('track/:token')
@@ -183,23 +180,6 @@ export class ServiceOrdersController {
     @Body() dto: UpdateServiceOrderDto,
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.updateServiceOrder.execute(id, dto);
-    return ServiceOrderResponseDto.fromEntity(serviceOrder);
-  }
-
-  @Patch(':id/status')
-  @ApiBearerAuth('access-token')
-  @Roles('ADMIN', 'MECHANIC', 'SERVICE_ADVISOR')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiOperation({
-    summary: 'Updates the status of a service order by ID',
-  })
-  @ApiOkResponse({ type: ServiceOrderResponseDto })
-  @ApiNotFoundResponse({ description: 'Service order not found' })
-  async updateStatus(
-    @Param('id') id: string,
-    @Body() dto: UpdateServiceOrderStatusDto,
-  ): Promise<ServiceOrderResponseDto> {
-    const serviceOrder = await this.updateServiceOrderStatus.execute(id, dto);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 

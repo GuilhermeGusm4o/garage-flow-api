@@ -2,6 +2,7 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { DomainError } from '@common/errors/domain.error';
 
 describe('ServiceOrder', () => {
   it('deve criar uma OS com status RECEIVED e a descrição informada', () => {
@@ -32,6 +33,13 @@ describe('ServiceOrder', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
     expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
+  });
+
+  it('deve rejeitar transições de status inválidas', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    expect(() => os.updateStatus(ServiceOrderStatus.IN_EXECUTION)).toThrow(DomainError);
+    expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
   });
 
   it('deve gerar um id único', () => {
@@ -76,6 +84,7 @@ describe('ServiceOrder', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     os.update({ mechanicId: 'mechanic-1' });
 
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
     os.update({ status: ServiceOrderStatus.IN_EXECUTION });
 
     expect(os.vehicleId).toBe('vehicle-1');

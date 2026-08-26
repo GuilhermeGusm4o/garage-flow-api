@@ -1,8 +1,9 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { DomainError } from '@common/errors/domain.error';
 
 describe('FinishServiceUseCase', () => {
   const repository = {
@@ -32,7 +33,7 @@ describe('FinishServiceUseCase', () => {
     const order = makeOrder(ServiceOrderStatus.IN_EXECUTION, 'mechanic-1');
     repository.findById.mockResolvedValue(order);
 
-    await expect(useCase.execute(order.id, 'mechanic-2')).rejects.toThrow(ForbiddenException);
+    await expect(useCase.execute(order.id, 'mechanic-2')).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
@@ -40,7 +41,7 @@ describe('FinishServiceUseCase', () => {
     const order = makeOrder(ServiceOrderStatus.IN_DIAGNOSIS, 'mechanic-1');
     repository.findById.mockResolvedValue(order);
 
-    await expect(useCase.execute(order.id, 'mechanic-1')).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(order.id, 'mechanic-1')).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 

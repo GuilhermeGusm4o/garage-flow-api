@@ -113,7 +113,7 @@ describe('ServiceOrdersController (integration)', () => {
 
   const putServiceOrderInDiagnosis = async (id: string) => {
     await request(app.getHttpServer())
-      .patch(`/service-orders/${id}/status`)
+      .patch(`/service-orders/${id}`)
       .set('Authorization', adminAuthHeader())
       .send({ status: 'IN_DIAGNOSIS' });
   };
@@ -243,38 +243,38 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id/status deve atualizar exclusivamente o status', async () => {
+  it('PATCH /service-orders/:id deve atualizar o status', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/status`)
+      .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'AWAITING_APPROVAL' });
+      .send({ status: 'IN_DIAGNOSIS' });
 
     expect(response.status).toBe(200);
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('IN_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/status deve retornar 404 se a OS não existir', async () => {
+  it('PATCH /service-orders/:id deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
-      .patch('/service-orders/00000000-0000-0000-0000-000000000000/status')
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000')
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'AWAITING_APPROVAL' });
+      .send({ status: 'FINISHED_DIAGNOSIS' });
 
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id/status deve retornar 400 para um status inválido', async () => {
+  it('PATCH /service-orders/:id deve retornar 400 para um status inválido', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/status`)
+      .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
       .send({ status: 'NOT_A_REAL_STATUS' });
 
@@ -316,26 +316,17 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve acumular itens em chamadas sucessivas', async () => {
+  it('PATCH /service-orders/:id/services-and-parts deve adicionar serviço e peça na mesma chamada', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
 
-    await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
-      .send({ services: [{ serviceId }], parts: [] });
-
-    // adicionar itens move a OS para FINISHED_DIAGNOSIS, então é preciso
-    // voltar para IN_DIAGNOSIS antes de uma nova chamada
-    await putServiceOrderInDiagnosis(created.body.id);
-
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
       .set('Authorization', adminAuthHeader())
-      .send({ services: [], parts: [{ inventoryId: partId, quantity: 1 }] });
+      .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 1 }] });
 
     expect(response.status).toBe(200);
     expect(response.body.serviceItems).toHaveLength(1);
@@ -464,9 +455,9 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
     await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/status`)
+      .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'AWAITING_APPROVAL' });
+      .send({ status: 'FINISHED_DIAGNOSIS' });
 
     const response = await request(app.getHttpServer())
       .get(`/service-orders/${created.body.id}/budget`)

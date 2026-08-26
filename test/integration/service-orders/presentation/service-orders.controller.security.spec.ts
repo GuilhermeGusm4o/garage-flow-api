@@ -9,7 +9,6 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
-import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
@@ -99,14 +98,6 @@ const endpoints: Endpoint[] = [
     successStatus: 200,
   },
   {
-    description: 'PATCH /service-orders/:id/status',
-    method: 'patch',
-    path: `/service-orders/${mockId}/status`,
-    body: { status: ServiceOrderStatus.IN_DIAGNOSIS },
-    allowedRoles: ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR'],
-    successStatus: 200,
-  },
-  {
     description: 'PATCH /service-orders/:id/start-diagnosis',
     method: 'patch',
     path: `/service-orders/${mockId}/start-diagnosis`,
@@ -163,10 +154,6 @@ describe('ServiceOrdersController (security)', () => {
         },
         {
           provide: UpdateServiceOrderUseCase,
-          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
-        },
-        {
-          provide: UpdateServiceOrderStatusUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         {

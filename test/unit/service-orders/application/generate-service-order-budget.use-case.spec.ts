@@ -170,15 +170,12 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     ServiceOrderStatus.RECEIVED,
     ServiceOrderStatus.IN_DIAGNOSIS,
     ServiceOrderStatus.AWAITING_APPROVAL,
-  ])(
-    'deve lançar BadRequestException se a OS estiver com status %s',
-    async (status) => {
-      const serviceOrder = buildServiceOrder({ status });
-      repository.findById.mockResolvedValue(serviceOrder);
+  ])('deve lançar BadRequestException se a OS estiver com status %s', async (status) => {
+    const serviceOrder = buildServiceOrder({ status });
+    repository.findById.mockResolvedValue(serviceOrder);
 
-      await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(BadRequestException);
-    },
-  );
+    await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(BadRequestException);
+  });
 
   it('deve lançar BadRequestException se a OS não possuir serviços nem peças', async () => {
     const serviceOrder = buildServiceOrder({ serviceItems: [], partItems: [] });

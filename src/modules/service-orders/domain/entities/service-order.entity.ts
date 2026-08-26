@@ -1,6 +1,7 @@
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { type PartItem } from '@service-orders/domain/entities/part-item.entity';
+import { DomainError } from '@common/errors/domain.error';
 
 export interface UpdateServiceOrderProps {
   vehicleId?: string;
@@ -47,22 +48,43 @@ export class ServiceOrder {
   }
 
   updateStatus(newStatus: ServiceOrderStatus): void {
-    // TODO: add validation for status transitions
+    const allowedTransitions: Record<ServiceOrderStatus, ServiceOrderStatus[]> = {
+      [ServiceOrderStatus.RECEIVED]: [ServiceOrderStatus.IN_DIAGNOSIS, ServiceOrderStatus.CANCELED],
+      [ServiceOrderStatus.IN_DIAGNOSIS]: [
+        ServiceOrderStatus.FINISHED_DIAGNOSIS,
+        ServiceOrderStatus.CANCELED,
+      ],
+      [ServiceOrderStatus.FINISHED_DIAGNOSIS]: [
+        ServiceOrderStatus.AWAITING_APPROVAL,
+        ServiceOrderStatus.CANCELED,
+      ],
+      [ServiceOrderStatus.AWAITING_APPROVAL]: [
+        ServiceOrderStatus.IN_EXECUTION,
+        ServiceOrderStatus.CANCELED,
+      ],
+      [ServiceOrderStatus.IN_EXECUTION]: [ServiceOrderStatus.FINISHED, ServiceOrderStatus.CANCELED],
+      [ServiceOrderStatus.FINISHED]: [ServiceOrderStatus.DELIVERED],
+      [ServiceOrderStatus.DELIVERED]: [],
+      [ServiceOrderStatus.CANCELED]: [],
+    };
+
+    if (!allowedTransitions[this.status].includes(newStatus)) {
+      throw new DomainError(
+        `Invalid service order status transition: ${this.status} -> ${newStatus}`,
+      );
+    }
+
     this.status = newStatus;
   }
 
   startDiagnosis(mechanicId: string): void {
-    this.mechanicId = mechanicId;
     this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
+    this.mechanicId = mechanicId;
   }
 
   finishService(mechanicId: string, finishedAt = new Date()): void {
     if (this.mechanicId !== mechanicId) {
-      throw new Error('Only the mechanic assigned to the service order can finish it');
-    }
-
-    if (this.status !== ServiceOrderStatus.IN_EXECUTION) {
-      throw new Error('Service order is not in execution');
+      throw new DomainError('Only the mechanic assigned to the service order can finish it');
     }
 
     this.updateStatus(ServiceOrderStatus.FINISHED);

@@ -9,6 +9,7 @@ import { type CalculateAvailabilityUseCase } from '@inventory/application/use-ca
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { type CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { DomainError } from '@common/errors/domain.error';
 
 describe('AddServicesAndPartsUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
@@ -99,7 +100,7 @@ describe('AddServicesAndPartsUseCase', () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     repository.findById.mockResolvedValue(serviceOrder);
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(DomainError);
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
     expect(findPartById.execute).not.toHaveBeenCalled();
     expect(calculateAvailability.execute).not.toHaveBeenCalled();
@@ -112,7 +113,7 @@ describe('AddServicesAndPartsUseCase', () => {
     serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
     repository.findById.mockResolvedValue(serviceOrder);
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
