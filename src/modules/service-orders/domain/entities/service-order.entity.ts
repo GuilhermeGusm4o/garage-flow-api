@@ -45,7 +45,7 @@ export class ServiceOrder {
   }
 
   updateStatus(newStatus: ServiceOrderStatus): void {
-    // TODO: add validation for status transitions
+    // TODO: validar transições permitidas quando a máquina de estados dos status estiver definida (ex: RECEIVED só pode ir pra IN_DIAGNOSIS, não direto pra FINISHED)
     this.status = newStatus;
   }
 

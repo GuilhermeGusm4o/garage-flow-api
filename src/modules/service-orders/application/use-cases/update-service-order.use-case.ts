@@ -14,12 +14,10 @@ export class UpdateServiceOrderUseCase {
     serviceOrder.update({
       vehicleId: dto.vehicleId,
       mechanicId: dto.mechanicId,
-      status: dto.status,
       approvedAt: dto.approvedAt !== undefined ? this.toDate(dto.approvedAt) : undefined,
     });
 
-    await this.serviceOrderRepository.save(serviceOrder);
-    return serviceOrder;
+    return this.serviceOrderRepository.save(serviceOrder);
   }
 
   private toDate(value: string | null): Date | null {

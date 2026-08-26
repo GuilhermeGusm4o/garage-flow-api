@@ -203,21 +203,6 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body[0].id).toBe(created.body.id);
   });
 
-  it('PATCH /service-orders/:id deve atualizar o status', async () => {
-    const created = await request(app.getHttpServer())
-      .post('/service-orders')
-      .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
-
-    const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}`)
-      .set('Authorization', adminAuthHeader())
-      .send({ status: 'IN_DIAGNOSIS' });
-
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe('IN_DIAGNOSIS');
-  });
-
   it('PATCH /service-orders/:id deve atualizar mechanicId e approvedAt', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
@@ -238,7 +223,7 @@ describe('ServiceOrdersController (integration)', () => {
     const response = await request(app.getHttpServer())
       .patch('/service-orders/00000000-0000-0000-0000-000000000000')
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'IN_DIAGNOSIS' });
+      .send({ mechanicId });
 
     expect(response.status).toBe(404);
   });
