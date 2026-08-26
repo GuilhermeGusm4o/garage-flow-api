@@ -255,7 +255,7 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ status: 'AWAITING_APPROVAL' });
 
     expect(response.status).toBe(200);
-    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
+    expect(response.body.status).toBe('AWAITING_APPROVAL');
   });
 
   it('PATCH /service-orders/:id/status deve retornar 404 se a OS não existir', async () => {
@@ -313,7 +313,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.serviceItems).toHaveLength(1);
     expect(response.body.partItems).toHaveLength(1);
     expect(response.body.totalAmount).toBe(160); // 100 (serviço) + 2*30 (peça)
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
   it('PATCH /service-orders/:id/services-and-parts deve acumular itens em chamadas sucessivas', async () => {

@@ -8,11 +8,6 @@ import { type ServiceEntity } from '@service/domain/entities/service.entity';
 import { FindPartsByIdListUseCase } from '@inventory/application/use-cases/find-parts-by-id-list.use-case';
 import { type Part } from '@inventory/domain/entities/part.entity';
 
-const NON_BUDGETABLE_STATUSES = new Set([
-  ServiceOrderStatus.RECEIVED,
-  ServiceOrderStatus.IN_DIAGNOSIS,
-]);
-
 export interface ServiceOrderBudgetLineItem {
   name: string;
   quantity: number;
@@ -58,9 +53,9 @@ export class GenerateServiceOrderBudgetUseCase {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
-    if (NON_BUDGETABLE_STATUSES.has(serviceOrder.status)) {
+    if (serviceOrder.status !== ServiceOrderStatus.FINISHED_DIAGNOSIS) {
       throw new BadRequestException(
-        'Cannot generate a budget for a service order in RECEIVED or IN_DIAGNOSIS status',
+        'Only service orders with FINISHED_DIAGNOSIS status can have budgets generated',
       );
     }
     if (serviceOrder.serviceItems.length === 0 && serviceOrder.partItems.length === 0) {

@@ -50,7 +50,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
   const buildServiceOrder = (overrides: Parameters<typeof makeServiceOrder>[0] = {}) =>
     makeServiceOrder({
       vehicleId: vehicle.id,
-      status: ServiceOrderStatus.AWAITING_APPROVAL,
+      status: ServiceOrderStatus.FINISHED_DIAGNOSIS,
       totalAmount: 130,
       serviceItems: [makeServiceItem({ serviceId: service.id, price: 100 })],
       partItems: [makePartItem({ inventoryId: part.id, quantity: 1, unitPrice: 30 })],
@@ -85,7 +85,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     expect(findPartsByIdList.execute).toHaveBeenCalledWith([part.id]);
 
     expect(budget.serviceOrderId).toBe(serviceOrder.id);
-    expect(budget.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(budget.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
     expect(budget.totalAmount).toBe(130);
     expect(budget.client).toEqual({
       name: 'João da Silva',
@@ -166,7 +166,11 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     await expect(useCase.execute('inexistente')).rejects.toThrow(NotFoundException);
   });
 
-  it.each([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS])(
+  it.each([
+    ServiceOrderStatus.RECEIVED,
+    ServiceOrderStatus.IN_DIAGNOSIS,
+    ServiceOrderStatus.AWAITING_APPROVAL,
+  ])(
     'deve lançar BadRequestException se a OS estiver com status %s',
     async (status) => {
       const serviceOrder = buildServiceOrder({ status });

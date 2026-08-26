@@ -107,9 +107,9 @@ describe('AddServicesAndPartsUseCase', () => {
     expect(repository.save).not.toHaveBeenCalled();
   });
 
-  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em AWAITING_APPROVAL', async () => {
+  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em FINISHED_DIAGNOSIS', async () => {
     const serviceOrder = buildServiceOrder();
-    serviceOrder.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
+    serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
     repository.findById.mockResolvedValue(serviceOrder);
 
     await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
