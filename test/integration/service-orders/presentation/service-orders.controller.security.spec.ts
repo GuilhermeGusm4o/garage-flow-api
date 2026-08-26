@@ -94,7 +94,7 @@ const endpoints: Endpoint[] = [
     method: 'patch',
     path: `/service-orders/${mockId}/services-and-parts`,
     body: { services: [], parts: [] },
-    allowedRoles: ['ADMIN', 'MECHANIC'],
+    allowedRoles: ['MECHANIC'],
     successStatus: 200,
   },
   {

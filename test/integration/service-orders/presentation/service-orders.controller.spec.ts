@@ -32,6 +32,8 @@ describe('ServiceOrdersController (integration)', () => {
   let mechanicId: string;
 
   const adminAuthHeader = () => `Bearer ${jwtService.sign({ sub: 'admin-id', role: 'ADMIN' })}`;
+  const mechanicAuthHeader = () =>
+    `Bearer ${jwtService.sign({ sub: mechanicId, role: 'MECHANIC' })}`;
 
   beforeAll(async () => {
     originalDatabaseUrl = process.env.DATABASE_URL;
@@ -113,9 +115,8 @@ describe('ServiceOrdersController (integration)', () => {
 
   const putServiceOrderInDiagnosis = async (id: string) => {
     await request(app.getHttpServer())
-      .patch(`/service-orders/${id}`)
-      .set('Authorization', adminAuthHeader())
-      .send({ status: 'IN_DIAGNOSIS' });
+      .patch(`/service-orders/${id}/start-diagnosis`)
+      .set('Authorization', mechanicAuthHeader());
   };
 
   it('POST /service-orders deve criar uma OS sem itens e com valor total zerado', async () => {
@@ -303,7 +304,7 @@ describe('ServiceOrdersController (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({
         services: [{ serviceId }],
         parts: [{ inventoryId: partId, quantity: 2 }],
@@ -325,7 +326,7 @@ describe('ServiceOrdersController (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 1 }] });
 
     expect(response.status).toBe(200);
@@ -343,12 +344,12 @@ describe('ServiceOrdersController (integration)', () => {
 
     await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [], parts: [{ inventoryId: partId, quantity: 1 }] });
 
     expect(response.status).toBe(400);
@@ -357,7 +358,7 @@ describe('ServiceOrdersController (integration)', () => {
   it('PATCH /service-orders/:id/services-and-parts deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
       .patch('/service-orders/00000000-0000-0000-0000-000000000000/services-and-parts')
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     expect(response.status).toBe(404);
@@ -372,7 +373,7 @@ describe('ServiceOrdersController (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [], parts: [{ inventoryId: partId, quantity: 999 }] });
 
     expect(response.status).toBe(400);
@@ -386,7 +387,7 @@ describe('ServiceOrdersController (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     expect(response.status).toBe(400);
@@ -400,7 +401,7 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
     await request(app.getHttpServer())
       .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 2 }] });
 
     const response = await request(app.getHttpServer())

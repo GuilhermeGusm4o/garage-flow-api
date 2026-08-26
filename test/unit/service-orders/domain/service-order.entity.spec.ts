@@ -108,8 +108,11 @@ describe('ServiceOrder', () => {
       [new PartItem(null, 'part-1', 1, 30)],
       130,
     );
+    os.update({ mechanicId: 'mechanic-1' });
+    os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
 
     os.addServicesAndParts(
+      'mechanic-1',
       [new ServiceItem(null, 'service-2', 50)],
       [new PartItem(null, 'part-2', 2, 20)],
       220,

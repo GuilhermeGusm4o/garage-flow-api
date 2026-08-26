@@ -82,6 +82,17 @@ export class ServiceOrdersController {
     return ServiceOrderCreatedResponseDto.fromEntityWithLink(serviceOrder, trackingLink);
   }
 
+  @Get('track/:token')
+  @ApiOperation({
+    summary: 'Publicly retrieves the current status and last update date of a service order',
+  })
+  @ApiOkResponse({ type: ServiceOrderTrackingResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async trackByToken(@Param('token') token: string): Promise<ServiceOrderTrackingResponseDto> {
+    const serviceOrder = await this.findServiceOrderByTrackingToken.execute(token);
+    return ServiceOrderTrackingResponseDto.fromEntity(serviceOrder);
+  }
+
   @Get()
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
@@ -108,17 +119,6 @@ export class ServiceOrdersController {
     return serviceOrders.map((serviceOrder) => ServiceOrderResponseDto.fromListItem(serviceOrder));
   }
 
-  @Get('track/:token')
-  @ApiOperation({
-    summary: 'Publicly retrieves the current status and last update date of a service order',
-  })
-  @ApiOkResponse({ type: ServiceOrderTrackingResponseDto })
-  @ApiNotFoundResponse({ description: 'Service order not found' })
-  async trackByToken(@Param('token') token: string): Promise<ServiceOrderTrackingResponseDto> {
-    const serviceOrder = await this.findServiceOrderByTrackingToken.execute(token);
-    return ServiceOrderTrackingResponseDto.fromEntity(serviceOrder);
-  }
-
   @Get(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
@@ -130,20 +130,6 @@ export class ServiceOrdersController {
   async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.findServiceOrderById.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
-  }
-
-  @Get(':id/budget')
-  @ApiBearerAuth('access-token')
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiOperation({
-    summary: 'Generates and returns the budget data for a service order',
-  })
-  @ApiOkResponse({ type: ServiceOrderBudgetResponseDto })
-  @ApiNotFoundResponse({ description: 'Service order not found' })
-  async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
-    const budget = await this.generateServiceOrderBudget.execute(id);
-    return ServiceOrderBudgetResponseDto.fromViewModel(budget);
   }
 
   @Get(':id/tracking-link')
@@ -166,6 +152,20 @@ export class ServiceOrdersController {
     return new ServiceOrderTrackingLinkResponseDto(trackingLink);
   }
 
+  @Get(':id/budget')
+  @ApiBearerAuth('access-token')
+  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Generates and returns the budget data for a service order',
+  })
+  @ApiOkResponse({ type: ServiceOrderBudgetResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
+    const budget = await this.generateServiceOrderBudget.execute(id);
+    return ServiceOrderBudgetResponseDto.fromViewModel(budget);
+  }
+
   @Patch(':id')
   @ApiBearerAuth('access-token')
   @Roles('ADMIN')
@@ -180,23 +180,6 @@ export class ServiceOrdersController {
     @Body() dto: UpdateServiceOrderDto,
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.updateServiceOrder.execute(id, dto);
-    return ServiceOrderResponseDto.fromEntity(serviceOrder);
-  }
-
-  @Patch(':id/services-and-parts')
-  @ApiBearerAuth('access-token')
-  @Roles('ADMIN', 'MECHANIC')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiOperation({
-    summary: 'Adds services and parts to a service order',
-  })
-  @ApiOkResponse({ type: ServiceOrderResponseDto })
-  @ApiNotFoundResponse({ description: 'Service order not found' })
-  async addServicesAndPartsToServiceOrder(
-    @Param('id') id: string,
-    @Body() dto: AddServicesAndPartsDto,
-  ): Promise<ServiceOrderResponseDto> {
-    const serviceOrder = await this.addServicesAndParts.execute(id, dto);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
@@ -216,6 +199,26 @@ export class ServiceOrdersController {
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.startDiagnosis.execute(id, request.user.id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
+  @Patch(':id/services-and-parts')
+  @ApiBearerAuth('access-token')
+  @Roles('MECHANIC')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Adds services and parts to a service order and finishes the diagnosis by ID',
+    description:
+      'The service order must have IN_DIAGNOSIS status and be assigned to the authenticated mechanic.',
+  })
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async addServicesAndPartsToServiceOrder(
+    @Param('id') id: string,
+    @Body() dto: AddServicesAndPartsDto,
+    @Req() request: { user: { id: string } },
+  ): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.addServicesAndParts.execute(id, dto, request.user.id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 

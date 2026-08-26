@@ -99,10 +99,21 @@ export class ServiceOrder {
   }
 
   addServicesAndParts(
+    mechanicId: string,
     serviceItems: ServiceItem[],
     partItems: PartItem[],
     totalAmount: number,
   ): void {
+    if (this.mechanicId !== mechanicId) {
+      throw new DomainError('Only the mechanic assigned to the service order can finish it');
+    }
+
+    if (this.status !== ServiceOrderStatus.IN_DIAGNOSIS) {
+      throw new DomainError('Service order must be in diagnosis to finish diagnosis');
+    }
+
+    this.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
+
     this.serviceItems = [...this.serviceItems, ...serviceItems];
     this.partItems = [...this.partItems, ...partItems];
     this.totalAmount = totalAmount;
