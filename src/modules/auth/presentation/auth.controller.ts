@@ -55,6 +55,45 @@ export class AuthController {
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
   ) {}
 
+  @Post('users')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Create a user',
+  })
+  @ApiCreatedResponse({
+    type: UserResponseDto,
+  })
+  @ApiConflictResponse({
+    description: 'User already exists',
+  })
+  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+    const user = await this.createUserUseCase.execute(dto);
+
+    return UserResponseDto.fromDomain(user);
+  }
+  
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login user and generate JWT token',
+  })
+  @ApiOkResponse({
+    type: LoginResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
+    const { access_token, user } = await this.loginUseCase.execute({
+      email: dto.email,
+      password: dto.password,
+    });
+
+    return LoginResponseDto.create(access_token, user);
+  }
+
   @Get('users')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
@@ -94,45 +133,6 @@ export class AuthController {
     const user = await this.getUserByEmailUseCase.execute(email);
 
     return UserResponseDto.fromDomain(user);
-  }
-
-  @Post('users')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
-  @ApiOperation({
-    summary: 'Create a user',
-  })
-  @ApiCreatedResponse({
-    type: UserResponseDto,
-  })
-  @ApiConflictResponse({
-    description: 'User already exists',
-  })
-  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
-    const user = await this.createUserUseCase.execute(dto);
-
-    return UserResponseDto.fromDomain(user);
-  }
-
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Login user and generate JWT token',
-  })
-  @ApiOkResponse({
-    type: LoginResponseDto,
-  })
-  @ApiNotFoundResponse({
-    description: 'User not found',
-  })
-  async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
-    const { access_token, user } = await this.loginUseCase.execute({
-      email: dto.email,
-      password: dto.password,
-    });
-
-    return LoginResponseDto.create(access_token, user);
   }
 
   @Patch('users/:id')

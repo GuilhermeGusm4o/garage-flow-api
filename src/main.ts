@@ -35,7 +35,30 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {
+  swaggerOptions: {
+    operationsSorter: (a: any, b: any) => {
+      const methodOrder: Record<string, number> = {
+        post: 1,
+        get: 2,
+        put: 3,
+        patch: 4,
+        delete: 5,
+      };
+
+      const methodA = a.get('method');
+      const methodB = b.get('method');
+
+      const methodDiff = methodOrder[methodA] - methodOrder[methodB];
+
+      if (methodDiff !== 0) {
+        return methodDiff;
+      }
+
+      return a.get('path').localeCompare(b.get('path'));
+    },
+  },
+});
 
   await app.listen(process.env.PORT ?? 3000);
 }
