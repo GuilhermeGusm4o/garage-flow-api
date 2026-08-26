@@ -13,6 +13,7 @@ import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-c
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { DeliverServiceOrderUseCase } from '@service-orders/application/use-cases/deliver-service-order.use-case';
 import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
@@ -115,6 +116,13 @@ const endpoints: Endpoint[] = [
     successStatus: 200,
   },
   {
+    description: 'PATCH /service-orders/:id/deliver',
+    method: 'patch',
+    path: `/service-orders/${mockId}/deliver`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
     description: 'GET /service-orders/:id/tracking-link',
     method: 'get',
     path: `/service-orders/${mockId}/tracking-link`,
@@ -173,6 +181,10 @@ describe('ServiceOrdersController (security)', () => {
         },
         {
           provide: FinishServiceUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: DeliverServiceOrderUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         {
