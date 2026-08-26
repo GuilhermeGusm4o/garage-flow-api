@@ -19,6 +19,7 @@ export interface MakeServiceOrderOverrides {
   serviceItems?: ServiceItem[];
   partItems?: PartItem[];
   updatedAt?: Date;
+  deletedAt?: Date | null;
 }
 
 export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): ServiceOrder {
@@ -33,6 +34,7 @@ export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): Ser
     overrides.serviceItems ?? [],
     overrides.partItems ?? [],
     overrides.updatedAt ?? FIXED_DATE,
+    overrides.deletedAt ?? null,
   );
 }
 

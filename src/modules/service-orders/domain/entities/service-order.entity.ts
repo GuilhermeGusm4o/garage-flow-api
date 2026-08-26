@@ -24,6 +24,7 @@ export class ServiceOrder {
     public serviceStartedAt: Date | null = null,
     public serviceFinishedAt: Date | null = null,
     public readonly updatedAt: Date = new Date(),
+    public deletedAt: Date | null = null,
   ) {}
 
   static create(
@@ -83,6 +84,10 @@ export class ServiceOrder {
 
   canAccessBudget(): boolean {
     return ![ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS].includes(this.status);
+  }
+
+  softDelete(): void {
+    this.deletedAt = new Date();
   }
 
   startDiagnosis(mechanicId: string): void {

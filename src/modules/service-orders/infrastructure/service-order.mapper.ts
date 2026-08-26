@@ -43,6 +43,7 @@ export class ServiceOrderMapper {
       raw.serviceStartedAt,
       raw.serviceFinishedAt,
       raw.updated_at,
+      raw.deleted_at,
     );
   }
 

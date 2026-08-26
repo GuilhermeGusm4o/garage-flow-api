@@ -93,9 +93,9 @@ const endpoints: Endpoint[] = [
     successStatus: 204,
   },
   {
-    description: 'PATCH /service-orders/:id/services-and-parts',
+    description: 'PATCH /service-orders/:id/add-services-and-parts',
     method: 'patch',
-    path: `/service-orders/${mockId}/services-and-parts`,
+    path: `/service-orders/${mockId}/add-services-and-parts`,
     body: { services: [], parts: [] },
     allowedRoles: ['MECHANIC'],
     successStatus: 200,

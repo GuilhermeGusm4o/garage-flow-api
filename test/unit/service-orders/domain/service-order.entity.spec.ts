@@ -35,6 +35,14 @@ describe('ServiceOrder', () => {
     expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
   });
 
+  it('deve marcar a OS como deletada', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    os.softDelete();
+
+    expect(os.deletedAt).toBeInstanceOf(Date);
+  });
+
   it.each([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS])(
     'não deve permitir acesso ao orçamento no status %s',
     (status) => {

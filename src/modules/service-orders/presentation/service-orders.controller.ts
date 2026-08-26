@@ -214,7 +214,7 @@ export class ServiceOrdersController {
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
-  @Patch(':id/services-and-parts')
+  @Patch(':id/add-services-and-parts')
   @ApiBearerAuth('access-token')
   @Roles('MECHANIC')
   @UseGuards(JwtAuthGuard, RolesGuard)

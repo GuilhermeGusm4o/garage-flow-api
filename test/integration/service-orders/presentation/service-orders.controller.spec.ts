@@ -295,7 +295,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(204);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve adicionar serviços e peças e recalcular o total', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve adicionar serviços e peças e recalcular o total', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -303,7 +303,7 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({
         services: [{ serviceId }],
@@ -317,7 +317,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve adicionar serviço e peça na mesma chamada', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve adicionar serviço e peça na mesma chamada', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -325,7 +325,7 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 1 }] });
 
@@ -335,7 +335,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 ao tentar adicionar itens novamente sem voltar para IN_DIAGNOSIS', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 400 ao tentar adicionar itens novamente sem voltar para IN_DIAGNOSIS', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -343,28 +343,28 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [], parts: [{ inventoryId: partId, quantity: 1 }] });
 
     expect(response.status).toBe(400);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 404 se a OS não existir', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
-      .patch('/service-orders/00000000-0000-0000-0000-000000000000/services-and-parts')
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/add-services-and-parts')
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 se a quantidade solicitada exceder a disponível', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 400 se a quantidade solicitada exceder a disponível', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -372,21 +372,21 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [], parts: [{ inventoryId: partId, quantity: 999 }] });
 
     expect(response.status).toBe(400);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 se a OS não estiver em diagnóstico', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 400 se a OS não estiver em diagnóstico', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
@@ -400,7 +400,7 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
     await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
       .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 2 }] });
 
