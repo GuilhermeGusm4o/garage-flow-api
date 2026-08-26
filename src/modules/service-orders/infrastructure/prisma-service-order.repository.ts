@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@generated/prisma/client';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
@@ -56,7 +57,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   }
 
   private async deleteAndCreateServiceItems(
-    tx: any,
+    tx: Prisma.TransactionClient,
     serviceOrderId: string,
     serviceItems: ServiceItem[],
   ): Promise<void> {
@@ -73,7 +74,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   }
 
   private async deleteAndCreatePartItems(
-    tx: any,
+    tx: Prisma.TransactionClient,
     serviceOrderId: string,
     partItems: PartItem[],
   ): Promise<void> {
