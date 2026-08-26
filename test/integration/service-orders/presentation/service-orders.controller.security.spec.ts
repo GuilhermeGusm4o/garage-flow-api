@@ -122,8 +122,8 @@ const endpoints: Endpoint[] = [
     successStatus: 200,
   },
   {
-    description: 'GET /service-orders/:id/budget',
-    method: 'get',
+    description: 'PATCH /service-orders/:id/budget',
+    method: 'patch',
     path: `/service-orders/${mockId}/budget`,
     allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 200,

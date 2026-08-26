@@ -65,7 +65,8 @@ export class AddServicesAndPartsUseCase {
       [...serviceOrder.partItems, ...newPartItems],
     );
 
-    serviceOrder.addServicesAndParts(mechanicId, newServiceItems, newPartItems, totalAmount);
+    serviceOrder.finishDiagnosis(mechanicId);
+    serviceOrder.addServicesAndParts(newServiceItems, newPartItems, totalAmount);
 
     return this.serviceOrderRepository.save(serviceOrder);
   }

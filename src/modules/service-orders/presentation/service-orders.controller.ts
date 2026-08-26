@@ -158,14 +158,20 @@ export class ServiceOrdersController {
     return new ServiceOrderTrackingLinkResponseDto(trackingLink);
   }
 
-  @Get(':id/budget')
+  @Patch(':id/budget')
   @ApiBearerAuth('access-token')
   @Roles('ADMIN', 'SERVICE_ADVISOR')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
-    summary: 'Generates and returns the budget data for a service order',
+    summary: 'Generates or retrieves the service order budget',
+    description:
+      'Use this PATCH to generate the budget when the service order is in FINISHED_DIAGNOSIS, which changes its status to AWAITING_APPROVAL. For any later status, the endpoint retrieves the budget without changing the status. Service orders in RECEIVED or IN_DIAGNOSIS cannot access a budget because items have not been added yet.',
   })
-  @ApiOkResponse({ type: ServiceOrderBudgetResponseDto })
+  @ApiOkResponse({
+    type: ServiceOrderBudgetResponseDto,
+    description:
+      'Returns the service order budget. In FINISHED_DIAGNOSIS, it generates the budget and changes the status to AWAITING_APPROVAL. In any later status, it retrieves the budget without changing the status.',
+  })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
     const budget = await this.generateServiceOrderBudget.execute(id);

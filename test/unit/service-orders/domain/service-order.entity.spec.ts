@@ -35,6 +35,23 @@ describe('ServiceOrder', () => {
     expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
   });
 
+  it.each([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS])(
+    'não deve permitir acesso ao orçamento no status %s',
+    (status) => {
+      const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+      os.status = status;
+
+      expect(os.canAccessBudget()).toBe(false);
+    },
+  );
+
+  it('deve permitir acesso ao orçamento após o diagnóstico', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.FINISHED_DIAGNOSIS;
+
+    expect(os.canAccessBudget()).toBe(true);
+  });
+
   it('deve rejeitar transições de status inválidas', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
 
@@ -73,6 +90,22 @@ describe('ServiceOrder', () => {
 
     expect(os.status).toBe(ServiceOrderStatus.CANCELED);
     expect(os.approvedAt).toBeNull();
+  });
+
+  it('deve enviar o orçamento para aprovação após finalizar o diagnóstico', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.FINISHED_DIAGNOSIS;
+
+    os.submitBudgetForApproval();
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+  });
+
+  it('deve rejeitar o envio do orçamento quando o diagnóstico não foi finalizado', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.IN_EXECUTION;
+
+    expect(() => os.submitBudgetForApproval()).toThrow(DomainError);
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
   });
 
   it('deve iniciar o serviço e registrar a data de início', () => {
@@ -157,7 +190,6 @@ describe('ServiceOrder', () => {
     os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
 
     os.addServicesAndParts(
-      'mechanic-1',
       [new ServiceItem(null, 'service-2', 50)],
       [new PartItem(null, 'part-2', 2, 20)],
       220,
@@ -166,5 +198,10 @@ describe('ServiceOrder', () => {
     expect(os.serviceItems.map((item) => item.serviceId)).toEqual(['service-1', 'service-2']);
     expect(os.partItems.map((item) => item.inventoryId)).toEqual(['part-1', 'part-2']);
     expect(os.totalAmount).toBe(220);
+    expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
+
+    os.finishDiagnosis('mechanic-1');
+
+    expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   });
 });

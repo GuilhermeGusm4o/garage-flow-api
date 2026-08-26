@@ -81,27 +81,34 @@ export class ServiceOrder {
     this.status = newStatus;
   }
 
+  canAccessBudget(): boolean {
+    return ![ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS].includes(this.status);
+  }
+
   startDiagnosis(mechanicId: string): void {
     this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
     this.mechanicId = mechanicId;
   }
 
-  finishService(mechanicId: string, finishedAt = new Date()): void {
+  addServicesAndParts(
+    serviceItems: ServiceItem[],
+    partItems: PartItem[],
+    totalAmount: number,
+  ): void {
+    this.serviceItems = [...this.serviceItems, ...serviceItems];
+    this.partItems = [...this.partItems, ...partItems];
+    this.totalAmount = totalAmount;
+  }
+
+  finishDiagnosis(mechanicId: string): void {
     if (this.mechanicId !== mechanicId) {
       throw new DomainError('Only the mechanic assigned to the service order can finish it');
     }
-
-    this.updateStatus(ServiceOrderStatus.FINISHED);
-    this.serviceFinishedAt = finishedAt;
+    this.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   }
 
-  startService(mechanicId: string, startedAt = new Date()): void {
-    if (this.mechanicId !== mechanicId) {
-      throw new DomainError('Only the mechanic assigned to the service order can start it');
-    }
-
-    this.updateStatus(ServiceOrderStatus.IN_EXECUTION);
-    this.serviceStartedAt = startedAt;
+  submitBudgetForApproval(): void {
+    this.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
   }
 
   approveBudget(approvedAt = new Date()): void {
@@ -114,31 +121,28 @@ export class ServiceOrder {
     this.approvedAt = null;
   }
 
+  startService(mechanicId: string, startedAt = new Date()): void {
+    if (this.mechanicId !== mechanicId) {
+      throw new DomainError('Only the mechanic assigned to the service order can start it');
+    }
+
+    this.updateStatus(ServiceOrderStatus.IN_EXECUTION);
+    this.serviceStartedAt = startedAt;
+  }
+
+  finishService(mechanicId: string, finishedAt = new Date()): void {
+    if (this.mechanicId !== mechanicId) {
+      throw new DomainError('Only the mechanic assigned to the service order can finish it');
+    }
+
+    this.updateStatus(ServiceOrderStatus.FINISHED);
+    this.serviceFinishedAt = finishedAt;
+  }
+
   update(props: UpdateServiceOrderProps): void {
     if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
     if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;
     if (props.approvedAt !== undefined) this.approvedAt = props.approvedAt;
     if (props.status !== undefined) this.updateStatus(props.status);
-  }
-
-  addServicesAndParts(
-    mechanicId: string,
-    serviceItems: ServiceItem[],
-    partItems: PartItem[],
-    totalAmount: number,
-  ): void {
-    if (this.mechanicId !== mechanicId) {
-      throw new DomainError('Only the mechanic assigned to the service order can finish it');
-    }
-
-    if (this.status !== ServiceOrderStatus.IN_DIAGNOSIS) {
-      throw new DomainError('Service order must be in diagnosis to finish diagnosis');
-    }
-
-    this.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
-
-    this.serviceItems = [...this.serviceItems, ...serviceItems];
-    this.partItems = [...this.partItems, ...partItems];
-    this.totalAmount = totalAmount;
   }
 }

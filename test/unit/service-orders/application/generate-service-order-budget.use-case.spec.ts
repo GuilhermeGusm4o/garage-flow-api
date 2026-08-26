@@ -85,7 +85,9 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     expect(findPartsByIdList.execute).toHaveBeenCalledWith([part.id]);
 
     expect(budget.serviceOrderId).toBe(serviceOrder.id);
-    expect(budget.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
+    expect(budget.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(serviceOrder.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(repository.save).toHaveBeenCalledWith(serviceOrder);
     expect(budget.totalAmount).toBe(130);
     expect(budget.client).toEqual({
       name: 'João da Silva',
@@ -117,6 +119,27 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
 
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
     expect(budget.services).toEqual([]);
+  });
+
+  it('deve apenas recuperar o orçamento quando a OS já está aguardando aprovação', async () => {
+    const serviceOrder = buildServiceOrder({ status: ServiceOrderStatus.AWAITING_APPROVAL });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    const budget = await useCase.execute(serviceOrder.id);
+
+    expect(budget.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('deve recuperar o orçamento sem alterar o status após a aprovação', async () => {
+    const serviceOrder = buildServiceOrder({ status: ServiceOrderStatus.IN_EXECUTION });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    const budget = await useCase.execute(serviceOrder.id);
+
+    expect(budget.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+    expect(serviceOrder.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+    expect(repository.save).not.toHaveBeenCalled();
   });
 
   it('não deve buscar peças quando a OS não possui itens de peça', async () => {
@@ -166,16 +189,15 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     await expect(useCase.execute('inexistente')).rejects.toThrow(NotFoundException);
   });
 
-  it.each([
-    ServiceOrderStatus.RECEIVED,
-    ServiceOrderStatus.IN_DIAGNOSIS,
-    ServiceOrderStatus.AWAITING_APPROVAL,
-  ])('deve lançar BadRequestException se a OS estiver com status %s', async (status) => {
-    const serviceOrder = buildServiceOrder({ status });
-    repository.findById.mockResolvedValue(serviceOrder);
+  it.each([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS])(
+    'deve lançar BadRequestException se a OS estiver com status %s',
+    async (status) => {
+      const serviceOrder = buildServiceOrder({ status });
+      repository.findById.mockResolvedValue(serviceOrder);
 
-    await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(BadRequestException);
-  });
+      await expect(useCase.execute(serviceOrder.id)).rejects.toThrow(BadRequestException);
+    },
+  );
 
   it('deve lançar BadRequestException se a OS não possuir serviços nem peças', async () => {
     const serviceOrder = buildServiceOrder({ serviceItems: [], partItems: [] });

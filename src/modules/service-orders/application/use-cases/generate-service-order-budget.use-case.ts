@@ -53,9 +53,9 @@ export class GenerateServiceOrderBudgetUseCase {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
-    if (serviceOrder.status !== ServiceOrderStatus.FINISHED_DIAGNOSIS) {
+    if (!serviceOrder.canAccessBudget()) {
       throw new BadRequestException(
-        'Only service orders with FINISHED_DIAGNOSIS status can have budgets generated',
+        'Service orders with RECEIVED or IN_DIAGNOSIS status cannot access a budget',
       );
     }
     if (serviceOrder.serviceItems.length === 0 && serviceOrder.partItems.length === 0) {
@@ -107,6 +107,11 @@ export class GenerateServiceOrderBudgetUseCase {
         subtotal: item.quantity * item.unitPrice,
       };
     });
+
+    if (serviceOrder.status === ServiceOrderStatus.FINISHED_DIAGNOSIS) {
+      serviceOrder.submitBudgetForApproval();
+      await this.serviceOrderRepository.save(serviceOrder);
+    }
 
     return {
       serviceOrderId: serviceOrder.id,

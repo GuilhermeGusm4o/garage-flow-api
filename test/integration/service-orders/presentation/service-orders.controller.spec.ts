@@ -393,7 +393,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(400);
   });
 
-  it('GET /service-orders/:id/budget deve retornar os dados do orçamento quando a OS possui itens', async () => {
+  it('PATCH /service-orders/:id/budget deve gerar o orçamento quando a OS possui itens', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -405,13 +405,13 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 2 }] });
 
     const response = await request(app.getHttpServer())
-      .get(`/service-orders/${created.body.id}/budget`)
+      .patch(`/service-orders/${created.body.id}/budget`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(200);
     expect(response.headers['content-type']).toContain('application/json');
     expect(response.body.serviceOrderId).toBe(created.body.id);
-    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
+    expect(response.body.status).toBe('AWAITING_APPROVAL');
     expect(response.body.client).toMatchObject({ name: 'Cliente Teste', address: 'Rua X' });
     expect(response.body.vehicle).toMatchObject({
       brand: 'Fiat',
@@ -426,30 +426,41 @@ describe('ServiceOrdersController (integration)', () => {
     ]);
     expect(response.body.totalAmount).toBe(160);
     expect(response.body.generatedAt).toBeDefined();
+
+    const retrievedResponse = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/budget`)
+      .set('Authorization', adminAuthHeader());
+
+    expect(retrievedResponse.status).toBe(200);
+    expect(retrievedResponse.body.status).toBe('AWAITING_APPROVAL');
+    expect(retrievedResponse.body).toMatchObject({
+      serviceOrderId: created.body.id,
+      totalAmount: 160,
+    });
   });
 
-  it('GET /service-orders/:id/budget deve retornar 404 se a OS não existir', async () => {
+  it('PATCH /service-orders/:id/budget deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
-      .get('/service-orders/00000000-0000-0000-0000-000000000000/budget')
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/budget')
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(404);
   });
 
-  it('GET /service-orders/:id/budget deve retornar 400 se a OS estiver em RECEIVED', async () => {
+  it('PATCH /service-orders/:id/budget deve retornar 400 se a OS estiver em RECEIVED', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .get(`/service-orders/${created.body.id}/budget`)
+      .patch(`/service-orders/${created.body.id}/budget`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(400);
   });
 
-  it('GET /service-orders/:id/budget deve retornar 400 se a OS não possuir serviços nem peças', async () => {
+  it('PATCH /service-orders/:id/budget deve retornar 400 se a OS não possuir serviços nem peças', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -461,7 +472,7 @@ describe('ServiceOrdersController (integration)', () => {
       .send({ status: 'FINISHED_DIAGNOSIS' });
 
     const response = await request(app.getHttpServer())
-      .get(`/service-orders/${created.body.id}/budget`)
+      .patch(`/service-orders/${created.body.id}/budget`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(400);
