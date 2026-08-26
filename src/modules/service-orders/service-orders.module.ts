@@ -9,6 +9,7 @@ import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cas
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
 import { RejectServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/reject-service-order-budget.use-case';
@@ -34,6 +35,7 @@ import { InventoryModule } from '@inventory/inventory.module';
     AddServicesAndPartsUseCase,
     StartDiagnosisUseCase,
     FinishServiceUseCase,
+    StartServiceUseCase,
     GenerateServiceOrderBudgetUseCase,
     ApproveServiceOrderBudgetUseCase,
     RejectServiceOrderBudgetUseCase,

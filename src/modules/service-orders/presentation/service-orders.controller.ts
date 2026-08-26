@@ -34,6 +34,7 @@ import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-c
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
 import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
 import { RejectServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/reject-service-order-budget.use-case';
@@ -62,6 +63,7 @@ export class ServiceOrdersController {
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
     private readonly startDiagnosis: StartDiagnosisUseCase,
     private readonly finishService: FinishServiceUseCase,
+    private readonly startService: StartServiceUseCase,
     private readonly generateServiceOrderBudget: GenerateServiceOrderBudgetUseCase,
     private readonly approveServiceOrderBudget: ApproveServiceOrderBudgetUseCase,
     private readonly rejectServiceOrderBudget: RejectServiceOrderBudgetUseCase,
@@ -250,6 +252,25 @@ export class ServiceOrdersController {
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
 
+  @Patch(':id/start-service')
+  @ApiBearerAuth('access-token')
+  @Roles('MECHANIC')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Starts service execution by ID',
+    description:
+      'The service order must be AWAITING_EXECUTION and assigned to the authenticated mechanic.',
+  })
+  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiNotFoundResponse({ description: 'Service order not found' })
+  async startServiceExecution(
+    @Param('id') id: string,
+    @Req() request: { user: { id: string } },
+  ): Promise<ServiceOrderResponseDto> {
+    const serviceOrder = await this.startService.execute(id, request.user.id);
+    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  }
+
   @Patch(':id/finish-service')
   @ApiBearerAuth('access-token')
   @Roles('MECHANIC')
@@ -257,7 +278,7 @@ export class ServiceOrdersController {
   @ApiOperation({
     summary: 'Finishes service execution by ID',
     description:
-      'The service order must be in execution and assigned to the authenticated mechanic.',
+      'The service order must be IN EXECUTION and assigned to the authenticated mechanic.',
   })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })

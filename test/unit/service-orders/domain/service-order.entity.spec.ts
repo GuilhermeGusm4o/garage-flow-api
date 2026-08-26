@@ -75,6 +75,18 @@ describe('ServiceOrder', () => {
     expect(os.approvedAt).toBeNull();
   });
 
+  it('deve iniciar o serviço e registrar a data de início', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    const startedAt = new Date('2026-08-26T11:00:00.000Z');
+    os.mechanicId = 'mechanic-1';
+    os.status = ServiceOrderStatus.AWAITING_EXECUTION;
+
+    os.startService('mechanic-1', startedAt);
+
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+    expect(os.serviceStartedAt).toBe(startedAt);
+  });
+
   it('deve gerar um id único', () => {
     const os1 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     const os2 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);

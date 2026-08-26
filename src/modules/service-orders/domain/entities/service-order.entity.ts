@@ -95,6 +95,15 @@ export class ServiceOrder {
     this.serviceFinishedAt = finishedAt;
   }
 
+  startService(mechanicId: string, startedAt = new Date()): void {
+    if (this.mechanicId !== mechanicId) {
+      throw new DomainError('Only the mechanic assigned to the service order can start it');
+    }
+
+    this.updateStatus(ServiceOrderStatus.IN_EXECUTION);
+    this.serviceStartedAt = startedAt;
+  }
+
   approveBudget(approvedAt = new Date()): void {
     this.updateStatus(ServiceOrderStatus.AWAITING_EXECUTION);
     this.approvedAt = approvedAt;
