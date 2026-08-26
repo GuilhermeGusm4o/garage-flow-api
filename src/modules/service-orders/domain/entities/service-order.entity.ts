@@ -59,6 +59,10 @@ export class ServiceOrder {
         ServiceOrderStatus.CANCELED,
       ],
       [ServiceOrderStatus.AWAITING_APPROVAL]: [
+        ServiceOrderStatus.AWAITING_EXECUTION,
+        ServiceOrderStatus.CANCELED,
+      ],
+      [ServiceOrderStatus.AWAITING_EXECUTION]: [
         ServiceOrderStatus.IN_EXECUTION,
         ServiceOrderStatus.CANCELED,
       ],

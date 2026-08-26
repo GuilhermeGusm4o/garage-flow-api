@@ -42,6 +42,17 @@ describe('ServiceOrder', () => {
     expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
   });
 
+  it('deve exigir AWAITING_EXECUTION antes de iniciar a execução', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+
+    os.updateStatus(ServiceOrderStatus.AWAITING_EXECUTION);
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_EXECUTION);
+
+    os.updateStatus(ServiceOrderStatus.IN_EXECUTION);
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+  });
+
   it('deve gerar um id único', () => {
     const os1 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     const os2 = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
@@ -84,7 +95,7 @@ describe('ServiceOrder', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     os.update({ mechanicId: 'mechanic-1' });
 
-    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+    os.status = ServiceOrderStatus.AWAITING_EXECUTION;
     os.update({ status: ServiceOrderStatus.IN_EXECUTION });
 
     expect(os.vehicleId).toBe('vehicle-1');
