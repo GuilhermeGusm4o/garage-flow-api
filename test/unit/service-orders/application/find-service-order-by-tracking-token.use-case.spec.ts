@@ -14,6 +14,7 @@ describe('FindServiceOrderByTrackingTokenUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAverageExecutionTime: jest.fn(),
       softDelete: jest.fn(),
     };
     useCase = new FindServiceOrderByTrackingTokenUseCase(repository);

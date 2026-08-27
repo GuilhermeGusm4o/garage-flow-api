@@ -21,6 +21,11 @@ export interface ServiceOrderListItem {
   vehicleModel: string;
 }
 
+export interface AverageExecutionTimeMetrics {
+  averageExecutionTimeMinutes: number | null;
+  completedServiceOrders: number;
+}
+
 export abstract class ServiceOrderRepository {
   abstract save(serviceOrder: ServiceOrder): Promise<ServiceOrder>;
   abstract findById(id: string): Promise<ServiceOrder | null>;
@@ -28,5 +33,6 @@ export abstract class ServiceOrderRepository {
     status?: ServiceOrderStatus,
     mechanicId?: string,
   ): Promise<ServiceOrderListItem[]>;
+  abstract findAverageExecutionTime(from?: Date, to?: Date): Promise<AverageExecutionTimeMetrics>;
   abstract softDelete(id: string): Promise<void>;
 }

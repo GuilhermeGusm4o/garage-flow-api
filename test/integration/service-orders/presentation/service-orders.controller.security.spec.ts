@@ -20,6 +20,7 @@ import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/us
 import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
+import { GetAverageExecutionTimeUseCase } from '@service-orders/application/use-cases/get-average-execution-time.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -205,6 +206,10 @@ describe('ServiceOrdersController (security)', () => {
         {
           provide: GetServiceOrderTrackingLinkUseCase,
           useValue: { execute: jest.fn().mockResolvedValue('mock-token') },
+        },
+        {
+          provide: GetAverageExecutionTimeUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue({}) },
         },
         {
           provide: GenerateServiceOrderBudgetUseCase,

@@ -20,6 +20,7 @@ describe('CreateServiceOrderUseCase', () => {
       save: jest.fn((serviceOrder) => Promise.resolve(serviceOrder)),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAverageExecutionTime: jest.fn(),
       softDelete: jest.fn(),
     };
     findClientByCpfCnpj = { execute: jest.fn().mockResolvedValue(client) };
