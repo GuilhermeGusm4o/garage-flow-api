@@ -16,6 +16,7 @@ import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/us
 import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
+import { GetAverageExecutionTimeUseCase } from '@service-orders/application/use-cases/get-average-execution-time.use-case';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { PrismaServiceOrderRepository } from '@service-orders/infrastructure/prisma-service-order.repository';
 import { ClientModule } from '@client/client.module';
@@ -43,6 +44,7 @@ import { InventoryModule } from '@inventory/inventory.module';
     CancelServiceOrderUseCase,
     FindServiceOrderByTrackingTokenUseCase,
     GetServiceOrderTrackingLinkUseCase,
+    GetAverageExecutionTimeUseCase,
     { provide: ServiceOrderRepository, useClass: PrismaServiceOrderRepository },
   ],
 })

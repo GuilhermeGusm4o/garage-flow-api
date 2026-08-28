@@ -34,6 +34,7 @@ describe('AddServicesAndPartsUseCase', () => {
       save: jest.fn((serviceOrder) => Promise.resolve(serviceOrder)),
       findById: jest.fn().mockResolvedValue(buildServiceOrder()),
       findAll: jest.fn(),
+      findAverageExecutionTime: jest.fn(),
       softDelete: jest.fn(),
     };
     findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };

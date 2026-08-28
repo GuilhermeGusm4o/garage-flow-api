@@ -42,6 +42,7 @@ import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/us
 import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
 import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
 import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
+import { GetAverageExecutionTimeUseCase } from '@service-orders/application/use-cases/get-average-execution-time.use-case';
 import { buildTrackingLink } from '@service-orders/infrastructure/security/tracking-token.util';
 import { CreateServiceOrderDto } from '@service-orders/presentation/dtos/create-service-order.dto';
 import { UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
@@ -52,6 +53,8 @@ import { ServiceOrderBudgetResponseDto } from '@service-orders/presentation/dtos
 import { ServiceOrderCreatedResponseDto } from '@service-orders/presentation/dtos/service-order-created-response.dto';
 import { ServiceOrderTrackingResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-response.dto';
 import { ServiceOrderTrackingLinkResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-link-response.dto';
+import { AverageExecutionTimeResponseDto } from '@service-orders/presentation/dtos/average-execution-time-response.dto';
+import { AverageExecutionTimeQueryDto } from '@service-orders/presentation/dtos/average-execution-time-query.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -72,7 +75,25 @@ export class ServiceOrdersController {
     private readonly cancelServiceOrder: CancelServiceOrderUseCase,
     private readonly findServiceOrderByTrackingToken: FindServiceOrderByTrackingTokenUseCase,
     private readonly getServiceOrderTrackingLink: GetServiceOrderTrackingLinkUseCase,
+    private readonly getAverageExecutionTime: GetAverageExecutionTimeUseCase,
   ) {}
+
+  @Get('metrics/average-execution-time')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Returns the average execution time of completed service orders',
+    description:
+      'Returns the average execution time of completed service orders. The FROM and TO date filters are optional; when omitted, all FINISHED and DELIVERED service orders are considered.',
+  })
+  @ApiQuery({ name: 'from', required: false, example: '2026-08-01' })
+  @ApiQuery({ name: 'to', required: false, example: '2026-08-31' })
+  @ApiOkResponse({ type: AverageExecutionTimeResponseDto })
+  async getAverageExecutionTimeMetric(
+    @Query() query: AverageExecutionTimeQueryDto,
+  ): Promise<AverageExecutionTimeResponseDto> {
+    return this.getAverageExecutionTime.execute(query);
+  }
 
   @Post()
   @ApiBearerAuth('access-token')

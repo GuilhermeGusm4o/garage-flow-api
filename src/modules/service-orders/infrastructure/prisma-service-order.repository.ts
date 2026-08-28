@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
+import { Prisma } from '@generated/prisma/client';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import {
+  type AverageExecutionTimeMetrics,
   ServiceOrderListItem,
   ServiceOrderRepository,
 } from '@service-orders/domain/repositories/service-order.repository';
@@ -66,6 +68,27 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
       vehicleBrand: raw.vehicle.brand,
       vehicleModel: raw.vehicle.model,
     }));
+  }
+
+  async findAverageExecutionTime(from?: Date, to?: Date): Promise<AverageExecutionTimeMetrics> {
+    const filters = [
+      Prisma.sql`"deleted_at" IS NULL`,
+      Prisma.sql`"status" IN ('FINISHED', 'DELIVERED')`,
+      Prisma.sql`"service_started_at" IS NOT NULL`,
+      Prisma.sql`"service_finished_at" IS NOT NULL`,
+    ];
+    if (from) filters.push(Prisma.sql`"service_finished_at" >= ${from}`);
+    if (to) filters.push(Prisma.sql`"service_finished_at" < ${to}`);
+
+    const [metrics] = await this.prisma.$queryRaw<Array<AverageExecutionTimeMetrics>>(Prisma.sql`
+      SELECT
+        AVG(EXTRACT(EPOCH FROM ("service_finished_at" - "service_started_at")) / 60)::float8 AS "averageExecutionTimeMinutes",
+        COUNT(*)::int AS "completedServiceOrders"
+      FROM "service_orders"
+      WHERE ${Prisma.join(filters, ' AND ')}
+    `);
+
+    return metrics;
   }
 
   async softDelete(id: string): Promise<void> {
