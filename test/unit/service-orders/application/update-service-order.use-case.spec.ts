@@ -90,7 +90,7 @@ describe('UpdateServiceOrderUseCase', () => {
         [new PartItem(null, 'part-1', 2, 30)],
         60,
       );
-      serviceOrder.updateStatus(ServiceOrderStatus.IN_EXECUTION);
+      serviceOrder.status = ServiceOrderStatus.IN_EXECUTION;
       repository.findById.mockResolvedValue(serviceOrder);
 
       await useCase.execute('os-1', { status: ServiceOrderStatus.FINISHED });
@@ -109,10 +109,10 @@ describe('UpdateServiceOrderUseCase', () => {
 
     it('não baixa de novo quando a OS já estava finalizada', async () => {
       const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído', [], [], 0);
-      serviceOrder.updateStatus(ServiceOrderStatus.FINISHED);
+      serviceOrder.status = ServiceOrderStatus.FINISHED;
       repository.findById.mockResolvedValue(serviceOrder);
 
-      await useCase.execute('os-1', { status: ServiceOrderStatus.FINISHED });
+      await useCase.execute('os-1', {});
 
       expect(writeOffParts.execute).not.toHaveBeenCalled();
     });

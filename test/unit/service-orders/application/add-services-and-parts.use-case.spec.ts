@@ -240,13 +240,17 @@ describe('AddServicesAndPartsUseCase', () => {
     });
 
     it('consulta o estoque em lote: uma chamada para validar, outra para o alerta', async () => {
-      await useCase.execute('os-1', {
-        services: [],
-        parts: [
-          { inventoryId: 'part-1', quantity: 1 },
-          { inventoryId: 'part-1', quantity: 2 },
-        ],
-      }, 'mechanic-1');
+      await useCase.execute(
+        'os-1',
+        {
+          services: [],
+          parts: [
+            { inventoryId: 'part-1', quantity: 1 },
+            { inventoryId: 'part-1', quantity: 2 },
+          ],
+        },
+        'mechanic-1',
+      );
 
       expect(checkPartsAvailability.execute).toHaveBeenCalledTimes(2);
     });
