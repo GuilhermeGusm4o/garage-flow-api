@@ -1,7 +1,7 @@
-import { type User } from '../entities/user.entity';
+import { type User, type UserRole } from '../entities/user.entity';
 
 export abstract class UserRepository {
-  abstract findAll(): Promise<User[]>;
+  abstract findAll(role?: UserRole): Promise<User[]>;
 
   abstract findByEmail(email: string): Promise<User | null>;
 

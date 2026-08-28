@@ -8,7 +8,6 @@ import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
 import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
-import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 @Injectable()
 export class AddServicesAndPartsUseCase {
@@ -20,15 +19,13 @@ export class AddServicesAndPartsUseCase {
     private readonly calculateTotalAmount: CalculateTotalAmountUseCase,
   ) {}
 
-  async execute(id: string, dto: AddServicesAndPartsDto): Promise<ServiceOrder> {
+  async execute(
+    id: string,
+    dto: AddServicesAndPartsDto,
+    mechanicId: string,
+  ): Promise<ServiceOrder> {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
-
-    if (serviceOrder.status !== ServiceOrderStatus.IN_DIAGNOSIS) {
-      throw new BadRequestException(
-        'Cannot add services and parts to a service order that is not in IN_DIAGNOSIS status',
-      );
-    }
 
     const serviceItemsPromise =
       dto.services.length > 0
@@ -40,7 +37,7 @@ export class AddServicesAndPartsUseCase {
               ),
             )
         : Promise.resolve([]);
-
+    // TODO: Use the new endpoint to findPartsByIdList
     const partItemsPromise = Promise.all(
       dto.parts.map(async (item) => {
         const [part, availableQuantity] = await Promise.all([
@@ -68,8 +65,8 @@ export class AddServicesAndPartsUseCase {
       [...serviceOrder.partItems, ...newPartItems],
     );
 
+    serviceOrder.finishDiagnosis(mechanicId);
     serviceOrder.addServicesAndParts(newServiceItems, newPartItems, totalAmount);
-    serviceOrder.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
 
     return this.serviceOrderRepository.save(serviceOrder);
   }

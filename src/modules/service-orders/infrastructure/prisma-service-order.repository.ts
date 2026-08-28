@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
-import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
+import {
+  ServiceOrderListItem,
+  ServiceOrderRepository,
+} from '@service-orders/domain/repositories/service-order.repository';
 import { ServiceOrderMapper } from '@service-orders/infrastructure/service-order.mapper';
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
+import { type ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 @Injectable()
 export class PrismaServiceOrderRepository implements ServiceOrderRepository {
@@ -40,12 +44,28 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
     return ServiceOrderMapper.toDomain(raw);
   }
 
-  async findAll(): Promise<ServiceOrder[]> {
+  async findAll(status?: ServiceOrderStatus, mechanicId?: string): Promise<ServiceOrderListItem[]> {
     const raws = await this.prisma.serviceOrder.findMany({
-      where: { deleted_at: null },
-      include: { services: true, inventory: { include: { inventory: true } } },
+      where: {
+        deleted_at: null,
+        ...(status ? { status } : {}),
+        ...(mechanicId ? { mechanicId } : {}),
+      },
+      include: {
+        services: true,
+        inventory: { include: { inventory: true } },
+        vehicle: { include: { client: true } },
+      },
+      orderBy: { created_at: 'desc' },
     });
-    return raws.map(ServiceOrderMapper.toDomain);
+
+    return raws.map((raw) => ({
+      ...ServiceOrderMapper.toDomain(raw),
+      vehicleLicensePlate: raw.vehicle.licensePlate,
+      clientName: raw.vehicle.client.name,
+      vehicleBrand: raw.vehicle.brand,
+      vehicleModel: raw.vehicle.model,
+    }));
   }
 
   async softDelete(id: string): Promise<void> {

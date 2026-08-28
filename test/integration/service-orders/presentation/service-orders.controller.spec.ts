@@ -32,6 +32,8 @@ describe('ServiceOrdersController (integration)', () => {
   let mechanicId: string;
 
   const adminAuthHeader = () => `Bearer ${jwtService.sign({ sub: 'admin-id', role: 'ADMIN' })}`;
+  const mechanicAuthHeader = () =>
+    `Bearer ${jwtService.sign({ sub: mechanicId, role: 'MECHANIC' })}`;
 
   beforeAll(async () => {
     originalDatabaseUrl = process.env.DATABASE_URL;
@@ -63,8 +65,8 @@ describe('ServiceOrdersController (integration)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
-    await stopTestDatabase(testDatabase);
+    await app?.close();
+    if (testDatabase) await stopTestDatabase(testDatabase);
     process.env.DATABASE_URL = originalDatabaseUrl;
   });
 
@@ -113,9 +115,8 @@ describe('ServiceOrdersController (integration)', () => {
 
   const putServiceOrderInDiagnosis = async (id: string) => {
     await request(app.getHttpServer())
-      .patch(`/service-orders/${id}/status`)
-      .set('Authorization', adminAuthHeader())
-      .send({ status: 'IN_DIAGNOSIS' });
+      .patch(`/service-orders/${id}/start-diagnosis`)
+      .set('Authorization', mechanicAuthHeader());
   };
 
   it('POST /service-orders deve criar uma OS sem itens e com valor total zerado', async () => {
@@ -131,6 +132,15 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.partItems).toEqual([]);
     expect(response.body.totalAmount).toBe(0);
     expect(response.body.trackingLink).toMatch(/^http:\/\/[^/]+\/service-orders\/track\/.+/);
+  });
+
+  it('GET /service-orders deve retornar 400 para um status inválido', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .query({ status: 'NOT_A_REAL_STATUS' });
+
+    expect(response.status).toBe(400);
   });
 
   it('POST /service-orders deve retornar um trackingLink que resolve para a mesma OS criada', async () => {
@@ -243,38 +253,38 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id/status deve atualizar exclusivamente o status', async () => {
+  it('PATCH /service-orders/:id deve atualizar o status', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/status`)
+      .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'AWAITING_APPROVAL' });
+      .send({ status: 'IN_DIAGNOSIS' });
 
     expect(response.status).toBe(200);
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('IN_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/status deve retornar 404 se a OS não existir', async () => {
+  it('PATCH /service-orders/:id deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
-      .patch('/service-orders/00000000-0000-0000-0000-000000000000/status')
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000')
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'AWAITING_APPROVAL' });
+      .send({ status: 'FINISHED_DIAGNOSIS' });
 
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id/status deve retornar 400 para um status inválido', async () => {
+  it('PATCH /service-orders/:id deve retornar 400 para um status inválido', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/status`)
+      .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
       .send({ status: 'NOT_A_REAL_STATUS' });
 
@@ -294,7 +304,7 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(204);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve adicionar serviços e peças e recalcular o total', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve adicionar serviços e peças e recalcular o total', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -302,8 +312,8 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
       .send({
         services: [{ serviceId }],
         parts: [{ inventoryId: partId, quantity: 2 }],
@@ -313,37 +323,28 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.serviceItems).toHaveLength(1);
     expect(response.body.partItems).toHaveLength(1);
     expect(response.body.totalAmount).toBe(160); // 100 (serviço) + 2*30 (peça)
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve acumular itens em chamadas sucessivas', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve adicionar serviço e peça na mesma chamada', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
 
-    await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
-      .send({ services: [{ serviceId }], parts: [] });
-
-    // adicionar itens move a OS para AWAITING_APPROVAL, então é preciso
-    // voltar para IN_DIAGNOSIS antes de uma nova chamada
-    await putServiceOrderInDiagnosis(created.body.id);
-
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
-      .send({ services: [], parts: [{ inventoryId: partId, quantity: 1 }] });
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
+      .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 1 }] });
 
     expect(response.status).toBe(200);
     expect(response.body.serviceItems).toHaveLength(1);
     expect(response.body.partItems).toHaveLength(1);
-    expect(response.body.status).toBe('AWAITING_APPROVAL');
+    expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 ao tentar adicionar itens novamente sem voltar para IN_DIAGNOSIS', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 400 ao tentar adicionar itens novamente sem voltar para IN_DIAGNOSIS', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -351,28 +352,28 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [], parts: [{ inventoryId: partId, quantity: 1 }] });
 
     expect(response.status).toBe(400);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 404 se a OS não existir', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
-      .patch('/service-orders/00000000-0000-0000-0000-000000000000/services-and-parts')
-      .set('Authorization', adminAuthHeader())
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/add-services-and-parts')
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 se a quantidade solicitada exceder a disponível', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 400 se a quantidade solicitada exceder a disponível', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -380,40 +381,40 @@ describe('ServiceOrdersController (integration)', () => {
     await putServiceOrderInDiagnosis(created.body.id);
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [], parts: [{ inventoryId: partId, quantity: 999 }] });
 
     expect(response.status).toBe(400);
   });
 
-  it('PATCH /service-orders/:id/services-and-parts deve retornar 400 se a OS não estiver em diagnóstico', async () => {
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar 400 se a OS não estiver em diagnóstico', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [] });
 
     expect(response.status).toBe(400);
   });
 
-  it('GET /service-orders/:id/budget deve retornar os dados do orçamento quando a OS possui itens', async () => {
+  it('PATCH /service-orders/:id/budget deve gerar o orçamento quando a OS possui itens', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
     await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/services-and-parts`)
-      .set('Authorization', adminAuthHeader())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
       .send({ services: [{ serviceId }], parts: [{ inventoryId: partId, quantity: 2 }] });
 
     const response = await request(app.getHttpServer())
-      .get(`/service-orders/${created.body.id}/budget`)
+      .patch(`/service-orders/${created.body.id}/budget`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(200);
@@ -434,42 +435,53 @@ describe('ServiceOrdersController (integration)', () => {
     ]);
     expect(response.body.totalAmount).toBe(160);
     expect(response.body.generatedAt).toBeDefined();
+
+    const retrievedResponse = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/budget`)
+      .set('Authorization', adminAuthHeader());
+
+    expect(retrievedResponse.status).toBe(200);
+    expect(retrievedResponse.body.status).toBe('AWAITING_APPROVAL');
+    expect(retrievedResponse.body).toMatchObject({
+      serviceOrderId: created.body.id,
+      totalAmount: 160,
+    });
   });
 
-  it('GET /service-orders/:id/budget deve retornar 404 se a OS não existir', async () => {
+  it('PATCH /service-orders/:id/budget deve retornar 404 se a OS não existir', async () => {
     const response = await request(app.getHttpServer())
-      .get('/service-orders/00000000-0000-0000-0000-000000000000/budget')
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/budget')
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(404);
   });
 
-  it('GET /service-orders/:id/budget deve retornar 400 se a OS estiver em RECEIVED', async () => {
+  it('PATCH /service-orders/:id/budget deve retornar 400 se a OS estiver em RECEIVED', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
 
     const response = await request(app.getHttpServer())
-      .get(`/service-orders/${created.body.id}/budget`)
+      .patch(`/service-orders/${created.body.id}/budget`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(400);
   });
 
-  it('GET /service-orders/:id/budget deve retornar 400 se a OS não possuir serviços nem peças', async () => {
+  it('PATCH /service-orders/:id/budget deve retornar 400 se a OS não possuir serviços nem peças', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
       .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
     await putServiceOrderInDiagnosis(created.body.id);
     await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}/status`)
+      .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
-      .send({ status: 'AWAITING_APPROVAL' });
+      .send({ status: 'FINISHED_DIAGNOSIS' });
 
     const response = await request(app.getHttpServer())
-      .get(`/service-orders/${created.body.id}/budget`)
+      .patch(`/service-orders/${created.body.id}/budget`)
       .set('Authorization', adminAuthHeader());
 
     expect(response.status).toBe(400);

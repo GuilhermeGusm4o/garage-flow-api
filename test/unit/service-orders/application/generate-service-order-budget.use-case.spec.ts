@@ -50,7 +50,7 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
   const buildServiceOrder = (overrides: Parameters<typeof makeServiceOrder>[0] = {}) =>
     makeServiceOrder({
       vehicleId: vehicle.id,
-      status: ServiceOrderStatus.AWAITING_APPROVAL,
+      status: ServiceOrderStatus.FINISHED_DIAGNOSIS,
       totalAmount: 130,
       serviceItems: [makeServiceItem({ serviceId: service.id, price: 100 })],
       partItems: [makePartItem({ inventoryId: part.id, quantity: 1, unitPrice: 30 })],
@@ -86,6 +86,8 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
 
     expect(budget.serviceOrderId).toBe(serviceOrder.id);
     expect(budget.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(serviceOrder.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(repository.save).toHaveBeenCalledWith(serviceOrder);
     expect(budget.totalAmount).toBe(130);
     expect(budget.client).toEqual({
       name: 'João da Silva',
@@ -117,6 +119,27 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
 
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
     expect(budget.services).toEqual([]);
+  });
+
+  it('deve apenas recuperar o orçamento quando a OS já está aguardando aprovação', async () => {
+    const serviceOrder = buildServiceOrder({ status: ServiceOrderStatus.AWAITING_APPROVAL });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    const budget = await useCase.execute(serviceOrder.id);
+
+    expect(budget.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('deve recuperar o orçamento sem alterar o status após a aprovação', async () => {
+    const serviceOrder = buildServiceOrder({ status: ServiceOrderStatus.IN_EXECUTION });
+    repository.findById.mockResolvedValue(serviceOrder);
+
+    const budget = await useCase.execute(serviceOrder.id);
+
+    expect(budget.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+    expect(serviceOrder.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+    expect(repository.save).not.toHaveBeenCalled();
   });
 
   it('não deve buscar peças quando a OS não possui itens de peça', async () => {

@@ -17,7 +17,9 @@ enum UserRole {
 enum ServiceOrderStatus {
   RECEIVED
   IN_DIAGNOSIS
+  FINISHED_DIAGNOSIS
   AWAITING_APPROVAL
+  AWAITING_EXECUTION
   IN_EXECUTION
   FINISHED
   DELIVERED
@@ -90,6 +92,8 @@ model ServiceOrder {
   status      ServiceOrderStatus @default(RECEIVED)
   approvedAt  DateTime? @map("approved_at")
   totalAmount Decimal  @db.Decimal(10, 2) @map("total_amount")
+  serviceStartedAt DateTime? @map("service_started_at")
+  serviceFinishedAt DateTime? @map("service_finished_at")
 
   created_at DateTime @default(now()) @map("created_at")
   updated_at DateTime @updatedAt @map("updated_at")

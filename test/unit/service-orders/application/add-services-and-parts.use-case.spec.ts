@@ -9,6 +9,7 @@ import { type CalculateAvailabilityUseCase } from '@inventory/application/use-ca
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { type CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { DomainError } from '@common/errors/domain.error';
 
 describe('AddServicesAndPartsUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
@@ -23,6 +24,7 @@ describe('AddServicesAndPartsUseCase', () => {
 
   const buildServiceOrder = () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    serviceOrder.update({ mechanicId: 'mechanic-1' });
     serviceOrder.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
     return serviceOrder;
   };
@@ -54,7 +56,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve adicionar serviços e peças à OS e recalcular o valor total', async () => {
-    const os = await useCase.execute('os-1', buildDto());
+    const os = await useCase.execute('os-1', buildDto(), 'mechanic-1');
 
     expect(repository.findById).toHaveBeenCalledWith('os-1');
     expect(os.serviceItems).toHaveLength(1);
@@ -66,22 +68,19 @@ describe('AddServicesAndPartsUseCase', () => {
     expect(repository.save).toHaveBeenCalledWith(os);
   });
 
-  it('deve mover a OS para AWAITING_APPROVAL após adicionar serviços e peças', async () => {
-    const os = await useCase.execute('os-1', buildDto());
+  it('deve mover a OS para FINISHED_DIAGNOSIS após adicionar serviços e peças', async () => {
+    const os = await useCase.execute('os-1', buildDto(), 'mechanic-1');
 
-    expect(os.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+    expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   });
 
   it('deve preservar os itens já existentes na OS ao adicionar novos', async () => {
     const existingServiceOrder = buildServiceOrder();
-    existingServiceOrder.addServicesAndParts(
-      [new ServiceItem(null, 'service-existing', 50)],
-      [],
-      50,
-    );
+    existingServiceOrder.serviceItems = [new ServiceItem(null, 'service-existing', 50)];
+    existingServiceOrder.totalAmount = 50;
     repository.findById.mockResolvedValue(existingServiceOrder);
 
-    const os = await useCase.execute('os-1', buildDto());
+    const os = await useCase.execute('os-1', buildDto(), 'mechanic-1');
 
     expect(os.serviceItems.map((item) => item.serviceId)).toEqual([
       'service-existing',
@@ -92,50 +91,54 @@ describe('AddServicesAndPartsUseCase', () => {
   it('deve lançar NotFoundException se a OS não existir', async () => {
     repository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('os-inexistente', buildDto())).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('os-inexistente', buildDto(), 'mechanic-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('deve lançar BadRequestException se a OS não estiver em diagnóstico', async () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     repository.findById.mockResolvedValue(serviceOrder);
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
-    expect(findServicesByIdList.execute).not.toHaveBeenCalled();
-    expect(findPartById.execute).not.toHaveBeenCalled();
-    expect(calculateAvailability.execute).not.toHaveBeenCalled();
-    expect(calculateTotalAmount.execute).not.toHaveBeenCalled();
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
-  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em AWAITING_APPROVAL', async () => {
+  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em FINISHED_DIAGNOSIS', async () => {
     const serviceOrder = buildServiceOrder();
-    serviceOrder.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
+    serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
     repository.findById.mockResolvedValue(serviceOrder);
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
   it('deve lançar BadRequestException se a quantidade de peça for maior que a disponível', async () => {
     calculateAvailability.execute.mockResolvedValue(1); // pediu 2, só tem 1
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('deve propagar NotFoundException se o serviço não existir', async () => {
     findServicesByIdList.execute.mockRejectedValue(new NotFoundException('Serviço não encontrado'));
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('deve propagar NotFoundException se a peça não existir', async () => {
     findPartById.execute.mockRejectedValue(new NotFoundException('Peça não encontrada'));
 
-    await expect(useCase.execute('os-1', buildDto())).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('não deve chamar dependências de serviço quando não há serviços informados', async () => {
-    await useCase.execute('os-1', { services: [], parts: [] });
+    await useCase.execute('os-1', { services: [], parts: [] }, 'mechanic-1');
 
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
   });

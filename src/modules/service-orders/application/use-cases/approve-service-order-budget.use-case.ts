@@ -1,15 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 
 @Injectable()
-export class SoftDeleteServiceOrderUseCase {
+export class ApproveServiceOrderBudgetUseCase {
   constructor(private readonly serviceOrderRepository: ServiceOrderRepository) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string): Promise<ServiceOrder> {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
-    serviceOrder.softDelete();
-    await this.serviceOrderRepository.softDelete(id);
+    serviceOrder.approveBudget();
+    await this.serviceOrderRepository.save(serviceOrder);
+    return serviceOrder;
   }
 }
