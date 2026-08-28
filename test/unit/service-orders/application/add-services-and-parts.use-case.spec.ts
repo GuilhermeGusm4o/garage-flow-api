@@ -117,13 +117,11 @@ describe('AddServicesAndPartsUseCase', () => {
     serviceOrder.update({ mechanicId: 'mechanic-1' });
     repository.findById.mockResolvedValue(serviceOrder);
 
-    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
-      DomainError,
-    );
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
-  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em FINISHED_DIAGNOSIS', async () => {
+  it('deve lançar DomainError ao tentar adicionar itens novamente após a OS já estar em FINISHED_DIAGNOSIS', async () => {
     const serviceOrder = buildServiceOrder();
     serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
     repository.findById.mockResolvedValue(serviceOrder);

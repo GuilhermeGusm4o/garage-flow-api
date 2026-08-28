@@ -57,7 +57,7 @@ export class PrismaPartRepository extends PartRepository {
 
     return new Map(rows.map((row) => [row.inventoryId, Number(row._sum.quantity ?? 0)]));
   }
-  
+
   async findByIdList(idList: string[]): Promise<Part[]> {
     const rows = await this.prisma.inventory.findMany({
       where: { id: { in: idList }, deleted_at: null },
