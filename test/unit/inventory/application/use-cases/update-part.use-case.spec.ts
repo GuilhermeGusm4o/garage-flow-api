@@ -13,7 +13,9 @@ describe('UpdatePartUseCase', () => {
     repository = {
       save: jest.fn(),
       findById: jest.fn(),
+      findByIds: jest.fn(),
       findAll: jest.fn(),
+      findReservedQuantities: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
       softDelete: jest.fn(),

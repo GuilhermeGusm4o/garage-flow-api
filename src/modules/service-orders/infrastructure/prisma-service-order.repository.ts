@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@generated/prisma/client';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
+import { Prisma } from '@generated/prisma/client';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
-import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
+import {
+  type AverageExecutionTimeMetrics,
+  ServiceOrderListItem,
+  ServiceOrderRepository,
+} from '@service-orders/domain/repositories/service-order.repository';
 import { ServiceOrderMapper } from '@service-orders/infrastructure/service-order.mapper';
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
+import { type ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 @Injectable()
 export class PrismaServiceOrderRepository implements ServiceOrderRepository {
@@ -41,12 +47,49 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
     return ServiceOrderMapper.toDomain(raw);
   }
 
-  async findAll(): Promise<ServiceOrder[]> {
+  async findAll(status?: ServiceOrderStatus, mechanicId?: string): Promise<ServiceOrderListItem[]> {
     const raws = await this.prisma.serviceOrder.findMany({
-      where: { deleted_at: null },
-      include: { services: true, inventory: { include: { inventory: true } } },
+      where: {
+        deleted_at: null,
+        ...(status ? { status } : {}),
+        ...(mechanicId ? { mechanicId } : {}),
+      },
+      include: {
+        services: true,
+        inventory: { include: { inventory: true } },
+        vehicle: { include: { client: true } },
+      },
+      orderBy: { created_at: 'desc' },
     });
-    return raws.map(ServiceOrderMapper.toDomain);
+
+    return raws.map((raw) => ({
+      ...ServiceOrderMapper.toDomain(raw),
+      vehicleLicensePlate: raw.vehicle.licensePlate,
+      clientName: raw.vehicle.client.name,
+      vehicleBrand: raw.vehicle.brand,
+      vehicleModel: raw.vehicle.model,
+    }));
+  }
+
+  async findAverageExecutionTime(from?: Date, to?: Date): Promise<AverageExecutionTimeMetrics> {
+    const filters = [
+      Prisma.sql`"deleted_at" IS NULL`,
+      Prisma.sql`"status" IN ('FINISHED', 'DELIVERED')`,
+      Prisma.sql`"service_started_at" IS NOT NULL`,
+      Prisma.sql`"service_finished_at" IS NOT NULL`,
+    ];
+    if (from) filters.push(Prisma.sql`"service_finished_at" >= ${from}`);
+    if (to) filters.push(Prisma.sql`"service_finished_at" < ${to}`);
+
+    const [metrics] = await this.prisma.$queryRaw<Array<AverageExecutionTimeMetrics>>(Prisma.sql`
+      SELECT
+        AVG(EXTRACT(EPOCH FROM ("service_finished_at" - "service_started_at")) / 60)::float8 AS "averageExecutionTimeMinutes",
+        COUNT(*)::int AS "completedServiceOrders"
+      FROM "service_orders"
+      WHERE ${Prisma.join(filters, ' AND ')}
+    `);
+
+    return metrics;
   }
 
   async softDelete(id: string): Promise<void> {

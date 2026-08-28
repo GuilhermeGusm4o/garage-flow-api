@@ -2,6 +2,7 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { DomainError } from '@common/errors/domain.error';
 
 describe('ServiceOrder', () => {
   it('deve criar uma OS com status RECEIVED e a descrição informada', () => {
@@ -32,6 +33,115 @@ describe('ServiceOrder', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
     expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
+  });
+
+  it('deve marcar a OS como deletada', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    os.softDelete();
+
+    expect(os.deletedAt).toBeInstanceOf(Date);
+  });
+
+  it.each([ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS])(
+    'não deve permitir acesso ao orçamento no status %s',
+    (status) => {
+      const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+      os.status = status;
+
+      expect(os.canAccessBudget()).toBe(false);
+    },
+  );
+
+  it('deve permitir acesso ao orçamento após o diagnóstico', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.FINISHED_DIAGNOSIS;
+
+    expect(os.canAccessBudget()).toBe(true);
+  });
+
+  it('deve rejeitar transições de status inválidas', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    expect(() => os.updateStatus(ServiceOrderStatus.IN_EXECUTION)).toThrow(DomainError);
+    expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
+  });
+
+  it('deve exigir AWAITING_EXECUTION antes de iniciar a execução', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+
+    os.updateStatus(ServiceOrderStatus.AWAITING_EXECUTION);
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_EXECUTION);
+
+    os.updateStatus(ServiceOrderStatus.IN_EXECUTION);
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+  });
+
+  it('deve aprovar o orçamento e registrar a data de aprovação', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    const approvedAt = new Date('2026-08-26T10:00:00.000Z');
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+
+    os.approveBudget(approvedAt);
+
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_EXECUTION);
+    expect(os.approvedAt).toBe(approvedAt);
+  });
+
+  it('deve cancelar a OS e limpar a aprovação do orçamento', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.AWAITING_APPROVAL;
+    os.approvedAt = new Date();
+
+    os.cancelService();
+
+    expect(os.status).toBe(ServiceOrderStatus.CANCELED);
+    expect(os.approvedAt).toBeNull();
+  });
+
+  it('deve enviar o orçamento para aprovação após finalizar o diagnóstico', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.FINISHED_DIAGNOSIS;
+
+    os.submitBudgetForApproval();
+    expect(os.status).toBe(ServiceOrderStatus.AWAITING_APPROVAL);
+  });
+
+  it('deve rejeitar o envio do orçamento quando o diagnóstico não foi finalizado', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.IN_EXECUTION;
+
+    expect(() => os.submitBudgetForApproval()).toThrow(DomainError);
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+  });
+
+  it('deve iniciar o serviço e registrar a data de início', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    const startedAt = new Date('2026-08-26T11:00:00.000Z');
+    os.mechanicId = 'mechanic-1';
+    os.status = ServiceOrderStatus.AWAITING_EXECUTION;
+
+    os.startService('mechanic-1', startedAt);
+
+    expect(os.status).toBe(ServiceOrderStatus.IN_EXECUTION);
+    expect(os.serviceStartedAt).toBe(startedAt);
+  });
+
+  it('deve entregar a OS após finalizar o serviço', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    os.status = ServiceOrderStatus.FINISHED;
+
+    os.deliver();
+
+    expect(os.status).toBe(ServiceOrderStatus.DELIVERED);
+  });
+
+  it('deve rejeitar a entrega antes de finalizar o serviço', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    expect(() => os.deliver()).toThrow(DomainError);
+    expect(os.status).toBe(ServiceOrderStatus.RECEIVED);
   });
 
   it('deve gerar um id único', () => {
@@ -76,6 +186,7 @@ describe('ServiceOrder', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     os.update({ mechanicId: 'mechanic-1' });
 
+    os.status = ServiceOrderStatus.AWAITING_EXECUTION;
     os.update({ status: ServiceOrderStatus.IN_EXECUTION });
 
     expect(os.vehicleId).toBe('vehicle-1');
@@ -99,6 +210,8 @@ describe('ServiceOrder', () => {
       [new PartItem(null, 'part-1', 1, 30)],
       130,
     );
+    os.update({ mechanicId: 'mechanic-1' });
+    os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
 
     os.addServicesAndParts(
       [new ServiceItem(null, 'service-2', 50)],
@@ -109,5 +222,10 @@ describe('ServiceOrder', () => {
     expect(os.serviceItems.map((item) => item.serviceId)).toEqual(['service-1', 'service-2']);
     expect(os.partItems.map((item) => item.inventoryId)).toEqual(['part-1', 'part-2']);
     expect(os.totalAmount).toBe(220);
+    expect(os.status).toBe(ServiceOrderStatus.IN_DIAGNOSIS);
+
+    os.finishDiagnosis('mechanic-1');
+
+    expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   });
 });

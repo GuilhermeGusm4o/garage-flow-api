@@ -3,11 +3,13 @@ import { type CreatePartUseCase } from '@inventory/application/use-cases/create-
 import { type RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
 import { type ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
 import { type ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
+import { type ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { type SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 
 const makePart = (overrides: Partial<Part> = {}): Part =>
   Object.assign(
@@ -27,6 +29,7 @@ describe('InventoryController', () => {
   let restockPart: jest.Mocked<RestockPartUseCase>;
   let consumePart: jest.Mocked<ConsumePartUseCase>;
   let listParts: jest.Mocked<ListPartsUseCase>;
+  let listLowStockParts: jest.Mocked<ListLowStockPartsUseCase>;
   let updatePart: jest.Mocked<UpdatePartUseCase>;
   let softDeletePart: jest.Mocked<SoftDeletePartUseCase>;
 
@@ -35,6 +38,9 @@ describe('InventoryController', () => {
     restockPart = { execute: jest.fn() } as unknown as jest.Mocked<RestockPartUseCase>;
     consumePart = { execute: jest.fn() } as unknown as jest.Mocked<ConsumePartUseCase>;
     listParts = { execute: jest.fn() } as unknown as jest.Mocked<ListPartsUseCase>;
+    listLowStockParts = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<ListLowStockPartsUseCase>;
     updatePart = { execute: jest.fn() } as unknown as jest.Mocked<UpdatePartUseCase>;
     softDeletePart = { execute: jest.fn() } as unknown as jest.Mocked<SoftDeletePartUseCase>;
 
@@ -43,6 +49,7 @@ describe('InventoryController', () => {
       restockPart,
       consumePart,
       listParts,
+      listLowStockParts,
       updatePart,
       softDeletePart,
     );
@@ -73,6 +80,38 @@ describe('InventoryController', () => {
     listParts.execute.mockResolvedValue(parts);
 
     await expect(controller.findAll()).resolves.toBe(parts);
+  });
+
+  it('lista o estoque abaixo do mínimo já mapeado para o DTO de resposta', async () => {
+    const part = new Part(
+      'part-1',
+      'Óleo de motor 5W30',
+      new UnitOfMeasure('ML'),
+      45.9,
+      new Quantity(20),
+      new Quantity(15),
+    );
+    listLowStockParts.execute.mockResolvedValue([new StockLevel(part, 8)]);
+
+    const result = await controller.findLowStock();
+
+    expect(result).toEqual([
+      {
+        id: 'part-1',
+        name: 'Óleo de motor 5W30',
+        unitOfMeasure: 'ML',
+        physicalQuantity: 20,
+        reservedQuantity: 8,
+        availableQuantity: 12,
+        minQuantity: 15,
+      },
+    ]);
+  });
+
+  it('devolve lista vazia quando nada está abaixo do mínimo', async () => {
+    listLowStockParts.execute.mockResolvedValue([]);
+
+    await expect(controller.findLowStock()).resolves.toEqual([]);
   });
 
   it('atualiza nome e preço', async () => {

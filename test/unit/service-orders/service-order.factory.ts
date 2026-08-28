@@ -19,6 +19,7 @@ export interface MakeServiceOrderOverrides {
   serviceItems?: ServiceItem[];
   partItems?: PartItem[];
   updatedAt?: Date;
+  deletedAt?: Date | null;
 }
 
 export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): ServiceOrder {
@@ -32,7 +33,10 @@ export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): Ser
     overrides.totalAmount ?? 0,
     overrides.serviceItems ?? [],
     overrides.partItems ?? [],
+    null,
+    null,
     overrides.updatedAt ?? FIXED_DATE,
+    overrides.deletedAt ?? null,
   );
 }
 
@@ -59,6 +63,7 @@ export function makeServiceOrderRepositoryMock(): jest.Mocked<ServiceOrderReposi
     save: jest.fn(),
     findById: jest.fn(),
     findAll: jest.fn(),
+    findAverageExecutionTime: jest.fn(),
     softDelete: jest.fn(),
   };
 }

@@ -17,4 +17,9 @@ export class CreatePartDto {
   @Min(0)
   @IsOptional()
   quantity?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  minQuantity?: number;
 }
