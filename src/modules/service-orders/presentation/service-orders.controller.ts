@@ -53,7 +53,7 @@ import { ServiceOrderCreatedResponseDto } from '@service-orders/presentation/dto
 import { ServiceOrderTrackingResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-response.dto';
 import { ServiceOrderTrackingLinkResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-link-response.dto';
 import { AverageExecutionTimeResponseDto } from '@service-orders/presentation/dtos/average-execution-time-response.dto';
-import { type AverageExecutionTimeQueryDto } from '@service-orders/presentation/dtos/average-execution-time-query.dto';
+import { AverageExecutionTimeQueryDto } from '@service-orders/presentation/dtos/average-execution-time-query.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
