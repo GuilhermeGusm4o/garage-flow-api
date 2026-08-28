@@ -97,6 +97,44 @@ describe('InventoryController (integration)', () => {
     });
   });
 
+  describe('GET /inventory/low-stock', () => {
+    it('lists parts whose stock is below the configured minimum', async () => {
+      const lowStockPart = await prisma.inventory.create({
+        data: { name: 'Óleo', unitOfMeasure: 'ML', unitPrice: 30, quantity: 2, minQuantity: 5 },
+      });
+      await prisma.inventory.create({
+        data: { name: 'Filtro', unitOfMeasure: 'UNIT', unitPrice: 20, quantity: 10, minQuantity: 5 },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/inventory/low-stock')
+        .set('Authorization', adminAuthHeader())
+        .expect(200);
+
+      expect(response.body).toHaveLength(1);
+      expect(response.body[0]).toMatchObject({
+        id: lowStockPart.id,
+        physicalQuantity: 2,
+        reservedQuantity: 0,
+        availableQuantity: 2,
+        minQuantity: 5,
+      });
+    });
+
+    it('returns an empty list when no part is below the minimum', async () => {
+      await prisma.inventory.create({
+        data: { name: 'Óleo', unitOfMeasure: 'ML', unitPrice: 30, quantity: 10, minQuantity: 5 },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/inventory/low-stock')
+        .set('Authorization', adminAuthHeader())
+        .expect(200);
+
+      expect(response.body).toEqual([]);
+    });
+  });
+
   describe('PATCH /inventory/:id', () => {
     it('updates name and unit price', async () => {
       const part = await prisma.inventory.create({

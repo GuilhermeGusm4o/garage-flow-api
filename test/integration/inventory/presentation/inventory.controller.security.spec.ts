@@ -9,8 +9,13 @@ import { CreatePartUseCase } from '@inventory/application/use-cases/create-part.
 import { RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
 import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
 import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
+import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 import { type UserRole } from '@auth/domain/entities/user.entity';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -28,6 +33,12 @@ const makePart = () => ({
   unitPrice: 30,
   quantity: 10,
 });
+
+const makeStockLevel = (): StockLevel =>
+  new StockLevel(
+    new Part(mockId, 'Óleo', new UnitOfMeasure('ML'), 30, new Quantity(2), new Quantity(5)),
+    0,
+  );
 
 type Endpoint = {
   description: string;
@@ -52,6 +63,13 @@ const endpoints: Endpoint[] = [
     method: 'get',
     path: '/inventory',
     allowedRoles: ALL_ROLES,
+    successStatus: 200,
+  },
+  {
+    description: 'GET /inventory/low-stock',
+    method: 'get',
+    path: '/inventory/low-stock',
+    allowedRoles: ['ADMIN', 'STOCK_CLERK'],
     successStatus: 200,
   },
   {
@@ -115,6 +133,10 @@ describe('InventoryController (security)', () => {
         {
           provide: ListPartsUseCase,
           useValue: { execute: jest.fn().mockResolvedValue([makePart()]) },
+        },
+        {
+          provide: ListLowStockPartsUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue([makeStockLevel()]) },
         },
         {
           provide: UpdatePartUseCase,
