@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../../infra/database/prisma/prisma.service';
 
-import { User } from '@auth/domain/entities/user.entity';
+import { User, UserRole } from '@auth/domain/entities/user.entity';
 import { UserRepository } from '@auth/domain/repositories/user.repository';
+import { UserRole as PrismaUserRole } from '@generated/prisma/client';
 
 import { UserMapper } from './user.mapper';
 
@@ -11,10 +12,11 @@ import { UserMapper } from './user.mapper';
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<User[]> {
+  async findAll(role?: UserRole): Promise<User[]> {
     const users = await this.prisma.user.findMany({
       where: {
         deleted_at: null,
+        ...(role ? { role: role as PrismaUserRole } : {}),
       },
     });
 

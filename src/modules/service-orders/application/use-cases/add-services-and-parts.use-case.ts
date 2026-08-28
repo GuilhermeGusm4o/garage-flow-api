@@ -8,7 +8,6 @@ import { CheckPartsAvailabilityUseCase } from '@inventory/application/use-cases/
 import { type StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
-import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 /**
  * Além da OS atualizada, devolve as peças recém-adicionadas cujo estoque lógico
@@ -28,15 +27,13 @@ export class AddServicesAndPartsUseCase {
     private readonly calculateTotalAmount: CalculateTotalAmountUseCase,
   ) {}
 
-  async execute(id: string, dto: AddServicesAndPartsDto): Promise<AddServicesAndPartsResult> {
+  async execute(
+    id: string,
+    dto: AddServicesAndPartsDto,
+    mechanicId: string,
+  ): Promise<AddServicesAndPartsResult> {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
-
-    if (serviceOrder.status !== ServiceOrderStatus.IN_DIAGNOSIS) {
-      throw new BadRequestException(
-        'Cannot add services and parts to a service order that is not in IN_DIAGNOSIS status',
-      );
-    }
 
     const serviceItemsPromise =
       dto.services.length > 0
@@ -94,8 +91,8 @@ export class AddServicesAndPartsUseCase {
       [...serviceOrder.partItems, ...newPartItems],
     );
 
+    serviceOrder.finishDiagnosis(mechanicId);
     serviceOrder.addServicesAndParts(newServiceItems, newPartItems, totalAmount);
-    serviceOrder.updateStatus(ServiceOrderStatus.AWAITING_APPROVAL);
 
     const savedServiceOrder = await this.serviceOrderRepository.save(serviceOrder);
 

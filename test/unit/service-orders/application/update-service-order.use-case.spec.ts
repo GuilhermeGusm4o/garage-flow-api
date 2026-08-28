@@ -19,6 +19,7 @@ describe('UpdateServiceOrderUseCase', () => {
       save: jest.fn((serviceOrder) => Promise.resolve(serviceOrder)),
       findById: jest.fn().mockResolvedValue(buildServiceOrder()),
       findAll: jest.fn(),
+      findAverageExecutionTime: jest.fn(),
       softDelete: jest.fn(),
     };
 
@@ -62,6 +63,7 @@ describe('UpdateServiceOrderUseCase', () => {
   it('não deve alterar campos não informados no DTO', async () => {
     const existing = buildServiceOrder();
     existing.update({ mechanicId: 'mechanic-1' });
+    existing.status = ServiceOrderStatus.AWAITING_EXECUTION;
     repository.findById.mockResolvedValue(existing);
 
     const os = await useCase.execute('os-1', { status: ServiceOrderStatus.IN_EXECUTION });

@@ -19,6 +19,8 @@ describe('CheckPartsAvailabilityUseCase', () => {
       findById: jest.fn(),
       findByIds: jest.fn(),
       findAll: jest.fn(),
+      findByIdList: jest.fn(),
+      findBelowMinimum: jest.fn(),
       softDelete: jest.fn(),
       findReservedQuantities: jest.fn(),
     };

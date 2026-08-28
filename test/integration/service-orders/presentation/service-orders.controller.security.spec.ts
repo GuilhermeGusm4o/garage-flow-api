@@ -9,9 +9,18 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
-import { UpdateServiceOrderStatusUseCase } from '@service-orders/application/use-cases/update-service-order-status.use-case';
 import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
+import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
+import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
+import { DeliverServiceOrderUseCase } from '@service-orders/application/use-cases/deliver-service-order.use-case';
+import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
+import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
+import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
+import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
+import { FindServiceOrderByTrackingTokenUseCase } from '@service-orders/application/use-cases/find-service-order-by-tracking-token.use-case';
+import { GetServiceOrderTrackingLinkUseCase } from '@service-orders/application/use-cases/get-service-order-tracking-link.use-case';
+import { GetAverageExecutionTimeUseCase } from '@service-orders/application/use-cases/get-average-execution-time.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -60,14 +69,14 @@ const endpoints: Endpoint[] = [
     description: 'GET /service-orders',
     method: 'get',
     path: '/service-orders',
-    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    allowedRoles: ALL_ROLES,
     successStatus: 200,
   },
   {
     description: 'GET /service-orders/:id',
     method: 'get',
     path: `/service-orders/${mockId}`,
-    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    allowedRoles: ALL_ROLES,
     successStatus: 200,
   },
   {
@@ -86,19 +95,53 @@ const endpoints: Endpoint[] = [
     successStatus: 204,
   },
   {
-    description: 'PATCH /service-orders/:id/services-and-parts',
+    description: 'PATCH /service-orders/:id/add-services-and-parts',
     method: 'patch',
-    path: `/service-orders/${mockId}/services-and-parts`,
+    path: `/service-orders/${mockId}/add-services-and-parts`,
     body: { services: [], parts: [] },
-    allowedRoles: ['ADMIN', 'MECHANIC'],
+    allowedRoles: ['MECHANIC'],
     successStatus: 200,
   },
   {
-    description: 'PATCH /service-orders/:id/status',
+    description: 'PATCH /service-orders/:id/start-diagnosis',
     method: 'patch',
-    path: `/service-orders/${mockId}/status`,
-    body: { status: ServiceOrderStatus.IN_DIAGNOSIS },
-    allowedRoles: ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR'],
+    path: `/service-orders/${mockId}/start-diagnosis`,
+    allowedRoles: ['MECHANIC'],
+    successStatus: 200,
+  },
+  {
+    description: 'PATCH /service-orders/:id/finish-service',
+    method: 'patch',
+    path: `/service-orders/${mockId}/finish-service`,
+    allowedRoles: ['MECHANIC'],
+    successStatus: 200,
+  },
+  {
+    description: 'PATCH /service-orders/:id/deliver',
+    method: 'patch',
+    path: `/service-orders/${mockId}/deliver`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
+    description: 'PATCH /service-orders/:id/cancel-service',
+    method: 'patch',
+    path: `/service-orders/${mockId}/cancel-service`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
+    description: 'GET /service-orders/:id/tracking-link',
+    method: 'get',
+    path: `/service-orders/${mockId}/tracking-link`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
+    successStatus: 200,
+  },
+  {
+    description: 'PATCH /service-orders/:id/budget',
+    method: 'patch',
+    path: `/service-orders/${mockId}/budget`,
+    allowedRoles: ['ADMIN', 'SERVICE_ADVISOR'],
     successStatus: 200,
   },
 ];
@@ -133,10 +176,6 @@ describe('ServiceOrdersController (security)', () => {
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         {
-          provide: UpdateServiceOrderStatusUseCase,
-          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
-        },
-        {
           provide: SoftDeleteServiceOrderUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(undefined) },
         },
@@ -147,6 +186,77 @@ describe('ServiceOrdersController (security)', () => {
               .fn()
               .mockResolvedValue({ serviceOrder: makeServiceOrder(), stockAlerts: [] }),
           },
+        },
+        {
+          provide: StartDiagnosisUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: FinishServiceUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: DeliverServiceOrderUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: StartServiceUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: FindServiceOrderByTrackingTokenUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: GetServiceOrderTrackingLinkUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue('mock-token') },
+        },
+        {
+          provide: GetAverageExecutionTimeUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue({}) },
+        },
+        {
+          provide: GenerateServiceOrderBudgetUseCase,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({
+              serviceOrderId: mockId,
+              description: 'Ruído no motor',
+              status: ServiceOrderStatus.AWAITING_APPROVAL,
+              client: {
+                name: 'João da Silva',
+                cpfCnpj: '52998224725',
+                phone: '11999998888',
+                address: 'Rua das Flores, 123',
+                email: 'joao@email.com',
+              },
+              vehicle: {
+                brand: 'Volkswagen',
+                model: 'Gol',
+                licensePlate: 'ABC1D23',
+                year: 2020,
+              },
+              services: [
+                {
+                  name: 'Troca de óleo',
+                  quantity: 1,
+                  unitOfMeasure: null,
+                  unitPrice: 100,
+                  subtotal: 100,
+                },
+              ],
+              parts: [],
+              totalAmount: 100,
+              generatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            }),
+          },
+        },
+        {
+          provide: ApproveServiceOrderBudgetUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
+        },
+        {
+          provide: CancelServiceOrderUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         JwtStrategy,
         JwtAuthGuard,
@@ -195,4 +305,10 @@ describe('ServiceOrdersController (security)', () => {
       });
     },
   );
+
+  describe('GET /service-orders/track/:token', () => {
+    it('should return 200 with no Authorization header (public endpoint)', async () => {
+      await request(app.getHttpServer()).get('/service-orders/track/some-token').expect(200);
+    });
+  });
 });
