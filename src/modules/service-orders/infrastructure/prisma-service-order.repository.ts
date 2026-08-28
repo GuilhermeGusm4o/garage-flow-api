@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@generated/prisma/client';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { Prisma } from '@generated/prisma/client';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
@@ -26,8 +27,8 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
         update: data,
       });
 
-      await this.deleteAndCreateServiceItems(serviceOrder.id, serviceOrder.serviceItems);
-      await this.deleteAndCreatePartItems(serviceOrder.id, serviceOrder.partItems);
+      await this.deleteAndCreateServiceItems(tx, serviceOrder.id, serviceOrder.serviceItems);
+      await this.deleteAndCreatePartItems(tx, serviceOrder.id, serviceOrder.partItems);
 
       return tx.serviceOrder.findUniqueOrThrow({
         where: { id: serviceOrder.id, deleted_at: null },
@@ -99,12 +100,13 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   }
 
   private async deleteAndCreateServiceItems(
+    tx: Prisma.TransactionClient,
     serviceOrderId: string,
     serviceItems: ServiceItem[],
   ): Promise<void> {
-    await this.prisma.serviceOrderService.deleteMany({ where: { serviceOrderId } });
+    await tx.serviceOrderService.deleteMany({ where: { serviceOrderId } });
     if (serviceItems.length > 0) {
-      await this.prisma.serviceOrderService.createMany({
+      await tx.serviceOrderService.createMany({
         data: serviceItems.map((item) => ({
           serviceId: item.serviceId,
           serviceOrderId,
@@ -115,12 +117,13 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
   }
 
   private async deleteAndCreatePartItems(
+    tx: Prisma.TransactionClient,
     serviceOrderId: string,
     partItems: PartItem[],
   ): Promise<void> {
-    await this.prisma.serviceOrderInventory.deleteMany({ where: { serviceOrderId } });
+    await tx.serviceOrderInventory.deleteMany({ where: { serviceOrderId } });
     if (partItems.length > 0) {
-      await this.prisma.serviceOrderInventory.createMany({
+      await tx.serviceOrderInventory.createMany({
         data: partItems.map((item) => ({
           inventoryId: item.inventoryId,
           serviceOrderId,

@@ -20,7 +20,6 @@ export class UpdateServiceOrderUseCase {
     serviceOrder.update({
       vehicleId: dto.vehicleId,
       mechanicId: dto.mechanicId,
-      status: dto.status,
       approvedAt: dto.approvedAt !== undefined ? this.toDate(dto.approvedAt) : undefined,
     });
 

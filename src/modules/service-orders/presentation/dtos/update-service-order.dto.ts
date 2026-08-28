@@ -1,6 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateServiceOrderDto {
   @ApiPropertyOptional({ example: 'uuid-do-veiculo' })
@@ -14,11 +13,6 @@ export class UpdateServiceOrderDto {
   @IsString()
   @IsNotEmpty()
   mechanicId?: string | null;
-
-  @ApiPropertyOptional({ enum: ServiceOrderStatus })
-  @IsOptional()
-  @IsEnum(ServiceOrderStatus)
-  status?: ServiceOrderStatus;
 
   @ApiPropertyOptional({ example: '2026-08-22T10:00:00.000Z', nullable: true })
   @IsOptional()

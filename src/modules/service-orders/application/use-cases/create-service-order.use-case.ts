@@ -22,7 +22,7 @@ export class CreateServiceOrderUseCase {
     }
 
     const serviceOrder = ServiceOrder.create(vehicle.id, dto.description, [], [], 0);
-    const savedServiceOrder = await this.serviceOrderRepository.save(serviceOrder);
-    return savedServiceOrder;
+
+    return this.serviceOrderRepository.save(serviceOrder);
   }
 }
