@@ -19,6 +19,14 @@ export class Part {
     this.quantity = this.quantity.subtract(amountUsed);
   }
 
+  /**
+   * Baixa automática ao finalizar a OS. Diferente do `consume`, não bloqueia
+   * quando falta peça: o estoque fica negativo para expor a divergência.
+   */
+  writeOff(amountUsed: number): void {
+    this.quantity = this.quantity.subtractAllowingNegative(amountUsed);
+  }
+
   updateDetails(name: string, unitPrice: number, minQuantity?: Quantity): void {
     this.name = name;
     this.unitPrice = unitPrice;

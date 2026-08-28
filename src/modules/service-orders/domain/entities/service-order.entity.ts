@@ -50,6 +50,14 @@ export class ServiceOrder {
     );
   }
 
+  /**
+   * True quando a OS ainda não estava finalizada e o novo status é FINISHED.
+   * É o momento em que as peças saem definitivamente do estoque.
+   */
+  isFinishingWith(newStatus: ServiceOrderStatus | undefined): boolean {
+    return this.status !== ServiceOrderStatus.FINISHED && newStatus === ServiceOrderStatus.FINISHED;
+  }
+
   updateStatus(newStatus: ServiceOrderStatus): void {
     const allowedTransitions: Record<ServiceOrderStatus, ServiceOrderStatus[]> = {
       [ServiceOrderStatus.RECEIVED]: [ServiceOrderStatus.IN_DIAGNOSIS, ServiceOrderStatus.CANCELED],

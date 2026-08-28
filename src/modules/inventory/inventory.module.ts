@@ -6,6 +6,7 @@ import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-par
 import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
 import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { CheckPartsAvailabilityUseCase } from '@inventory/application/use-cases/check-parts-availability.use-case';
+import { WriteOffPartsUseCase } from '@inventory/application/use-cases/write-off-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
@@ -22,6 +23,7 @@ import { FindPartsByIdListUseCase } from '@inventory/application/use-cases/find-
     ConsumePartUseCase,
     ListPartsUseCase,
     CheckPartsAvailabilityUseCase,
+    WriteOffPartsUseCase,
     ListLowStockPartsUseCase,
     UpdatePartUseCase,
     SoftDeletePartUseCase,
@@ -35,6 +37,7 @@ import { FindPartsByIdListUseCase } from '@inventory/application/use-cases/find-
     ConsumePartUseCase,
     FindPartByIdUseCase,
     CheckPartsAvailabilityUseCase,
+    WriteOffPartsUseCase,
     FindPartsByIdListUseCase,
   ],
 })

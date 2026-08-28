@@ -55,6 +55,7 @@ import { ServiceOrderTrackingResponseDto } from '@service-orders/presentation/dt
 import { ServiceOrderTrackingLinkResponseDto } from '@service-orders/presentation/dtos/service-order-tracking-link-response.dto';
 import { AverageExecutionTimeResponseDto } from '@service-orders/presentation/dtos/average-execution-time-response.dto';
 import { AverageExecutionTimeQueryDto } from '@service-orders/presentation/dtos/average-execution-time-query.dto';
+import { AddServicesAndPartsResponseDto } from '@service-orders/presentation/dtos/add-services-and-parts-response.dto';
 
 @ApiTags('Service Orders')
 @Controller('service-orders')
@@ -248,15 +249,15 @@ export class ServiceOrdersController {
     description:
       'The service order must have IN_DIAGNOSIS status and be assigned to the authenticated mechanic.',
   })
-  @ApiOkResponse({ type: ServiceOrderResponseDto })
+  @ApiOkResponse({ type: AddServicesAndPartsResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async addServicesAndPartsToServiceOrder(
     @Param('id') id: string,
     @Body() dto: AddServicesAndPartsDto,
     @Req() request: { user: { id: string } },
-  ): Promise<ServiceOrderResponseDto> {
-    const serviceOrder = await this.addServicesAndParts.execute(id, dto, request.user.id);
-    return ServiceOrderResponseDto.fromEntity(serviceOrder);
+  ): Promise<AddServicesAndPartsResponseDto> {
+    const result = await this.addServicesAndParts.execute(id, dto, request.user.id);
+    return AddServicesAndPartsResponseDto.fromResult(result);
   }
 
   @Patch(':id/approve-budget')

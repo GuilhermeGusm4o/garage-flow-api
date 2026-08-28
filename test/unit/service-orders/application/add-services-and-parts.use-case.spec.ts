@@ -27,9 +27,21 @@ describe('AddServicesAndPartsUseCase', () => {
   const service = { id: 'service-1', price: { getValue: () => 100 } };
 
   /** Disponibilidade da peça: `physical` na prateleira, `reserved` já comprometido com OS em aberto. */
-  const buildAvailability = (physical: number, reserved = 0, requested = 2): PartAvailability => {
+  const buildAvailability = (
+    physical: number,
+    reserved = 0,
+    requested = 2,
+    minQuantity = 0,
+  ): PartAvailability => {
     const stockLevel = new StockLevel(
-      new Part('part-1', 'Óleo', new UnitOfMeasure('ML'), 30, new Quantity(physical)),
+      new Part(
+        'part-1',
+        'Óleo',
+        new UnitOfMeasure('ML'),
+        30,
+        new Quantity(physical),
+        new Quantity(minQuantity),
+      ),
       reserved,
     );
     return {
@@ -72,7 +84,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve adicionar serviços e peças à OS e recalcular o valor total', async () => {
-    const os = await useCase.execute('os-1', buildDto(), 'mechanic-1');
+    const { serviceOrder: os } = await useCase.execute('os-1', buildDto(), 'mechanic-1');
 
     expect(repository.findById).toHaveBeenCalledWith('os-1');
     expect(os.serviceItems).toHaveLength(1);
@@ -85,7 +97,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve mover a OS para FINISHED_DIAGNOSIS após adicionar serviços e peças', async () => {
-    const os = await useCase.execute('os-1', buildDto(), 'mechanic-1');
+    const { serviceOrder: os } = await useCase.execute('os-1', buildDto(), 'mechanic-1');
 
     expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   });
@@ -96,7 +108,7 @@ describe('AddServicesAndPartsUseCase', () => {
     existingServiceOrder.totalAmount = 50;
     repository.findById.mockResolvedValue(existingServiceOrder);
 
-    const os = await useCase.execute('os-1', buildDto(), 'mechanic-1');
+    const { serviceOrder: os } = await useCase.execute('os-1', buildDto(), 'mechanic-1');
 
     expect(os.serviceItems.map((item) => item.serviceId)).toEqual([
       'service-existing',
@@ -176,5 +188,71 @@ describe('AddServicesAndPartsUseCase', () => {
     await useCase.execute('os-1', { services: [], parts: [] }, 'mechanic-1');
 
     expect(findServicesByIdList.execute).not.toHaveBeenCalled();
+  });
+
+  describe('alerta de estoque mínimo', () => {
+    /** 1ª chamada valida a disponibilidade; a 2ª, depois do save, monta o alerta. */
+    const mockAvailability = (availability: PartAvailability) =>
+      checkPartsAvailability.execute.mockResolvedValue([availability]);
+
+    it('acusa a peça cujo estoque lógico ficou abaixo do mínimo', async () => {
+      mockAvailability(buildAvailability(20, 18, 2, 10));
+
+      const { stockAlerts } = await useCase.execute('os-1', buildDto(), 'mechanic-1');
+
+      expect(stockAlerts).toHaveLength(1);
+      expect(stockAlerts[0].part.id).toBe('part-1');
+      expect(stockAlerts[0].availableQuantity).toBe(2);
+      expect(stockAlerts[0].part.minQuantity.value).toBe(10);
+    });
+
+    it('não acusa nada quando o estoque lógico cobre o mínimo', async () => {
+      mockAvailability(buildAvailability(100, 0, 2, 5));
+
+      const { stockAlerts } = await useCase.execute('os-1', buildDto(), 'mechanic-1');
+
+      expect(stockAlerts).toEqual([]);
+    });
+
+    it('usa o estoque lógico, e não o físico, para decidir o alerta', async () => {
+      mockAvailability(buildAvailability(20, 18, 2, 10));
+
+      const { stockAlerts } = await useCase.execute('os-1', buildDto(), 'mechanic-1');
+
+      expect(stockAlerts[0].part.isBelowMinimum()).toBe(false);
+      expect(stockAlerts[0].isBelowMinimum()).toBe(true);
+    });
+
+    it('monta o alerta só depois de salvar a OS', async () => {
+      const order: string[] = [];
+      repository.save.mockImplementation((serviceOrder) => {
+        order.push('save');
+        return Promise.resolve(serviceOrder);
+      });
+      checkPartsAvailability.execute.mockImplementation(() => {
+        order.push('stock');
+        return Promise.resolve([buildAvailability(100, 0, 2, 5)]);
+      });
+
+      await useCase.execute('os-1', buildDto(), 'mechanic-1');
+
+      expect(order).toEqual(['stock', 'save', 'stock']);
+    });
+
+    it('consulta o estoque em lote: uma chamada para validar, outra para o alerta', async () => {
+      await useCase.execute(
+        'os-1',
+        {
+          services: [],
+          parts: [
+            { inventoryId: 'part-1', quantity: 1 },
+            { inventoryId: 'part-1', quantity: 2 },
+          ],
+        },
+        'mechanic-1',
+      );
+
+      expect(checkPartsAvailability.execute).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -5,8 +5,18 @@ import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
 import { CheckPartsAvailabilityUseCase } from '@inventory/application/use-cases/check-parts-availability.use-case';
+import { type StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
+
+/**
+ * Além da OS atualizada, devolve as peças recém-adicionadas cujo estoque lógico
+ * ficou abaixo do mínimo — o alerta que aparece no orçamento.
+ */
+export interface AddServicesAndPartsResult {
+  serviceOrder: ServiceOrder;
+  stockAlerts: StockLevel[];
+}
 
 @Injectable()
 export class AddServicesAndPartsUseCase {
@@ -21,7 +31,7 @@ export class AddServicesAndPartsUseCase {
     id: string,
     dto: AddServicesAndPartsDto,
     mechanicId: string,
-  ): Promise<ServiceOrder> {
+  ): Promise<AddServicesAndPartsResult> {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
@@ -84,6 +94,25 @@ export class AddServicesAndPartsUseCase {
     serviceOrder.finishDiagnosis(mechanicId);
     serviceOrder.addServicesAndParts(newServiceItems, newPartItems, totalAmount);
 
-    return this.serviceOrderRepository.save(serviceOrder);
+    const savedServiceOrder = await this.serviceOrderRepository.save(serviceOrder);
+
+    return {
+      serviceOrder: savedServiceOrder,
+      stockAlerts: await this.collectStockAlerts(newPartItems),
+    };
+  }
+
+  /**
+   * Calculado depois de salvar: a OS já está em AWAITING_APPROVAL, que reserva
+   * estoque, então o nível lógico aqui já considera as peças recém-adicionadas.
+   */
+  private async collectStockAlerts(partItems: PartItem[]): Promise<StockLevel[]> {
+    const availabilities = await this.checkPartsAvailability.execute(
+      partItems.map((item) => ({ inventoryId: item.inventoryId, quantity: item.quantity })),
+    );
+
+    return availabilities
+      .map((availability) => availability.stockLevel)
+      .filter((stockLevel) => stockLevel.isBelowMinimum());
   }
 }
