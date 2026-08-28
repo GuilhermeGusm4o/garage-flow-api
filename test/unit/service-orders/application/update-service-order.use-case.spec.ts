@@ -1,15 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
-import { type WriteOffPartsUseCase } from '@inventory/application/use-cases/write-off-parts.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
-import { PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { type UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
 
 describe('UpdateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
-  let writeOffParts: { execute: jest.Mock };
   let useCase: UpdateServiceOrderUseCase;
 
   const buildServiceOrder = () => ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
@@ -23,12 +20,7 @@ describe('UpdateServiceOrderUseCase', () => {
       softDelete: jest.fn(),
     };
 
-    writeOffParts = { execute: jest.fn().mockResolvedValue([]) };
-
-    useCase = new UpdateServiceOrderUseCase(
-      repository,
-      writeOffParts as unknown as WriteOffPartsUseCase,
-    );
+    useCase = new UpdateServiceOrderUseCase(repository);
   });
 
   it('deve atualizar vehicleId, mechanicId e approvedAt', async () => {
@@ -77,42 +69,5 @@ describe('UpdateServiceOrderUseCase', () => {
       NotFoundException,
     );
     expect(repository.save).not.toHaveBeenCalled();
-  });
-
-  describe('baixa automática de estoque', () => {
-    it('baixa as peças quando o PATCH genérico finaliza a OS', async () => {
-      const serviceOrder = ServiceOrder.create(
-        'vehicle-1',
-        'Ruído',
-        [],
-        [new PartItem(null, 'part-1', 2, 30)],
-        60,
-      );
-      serviceOrder.status = ServiceOrderStatus.IN_EXECUTION;
-      repository.findById.mockResolvedValue(serviceOrder);
-
-      await useCase.execute('os-1', { status: ServiceOrderStatus.FINISHED });
-
-      expect(writeOffParts.execute).toHaveBeenCalledWith([{ inventoryId: 'part-1', quantity: 2 }]);
-    });
-
-    it('não baixa quando o PATCH não mexe no status', async () => {
-      const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído', [], [], 0);
-      repository.findById.mockResolvedValue(serviceOrder);
-
-      await useCase.execute('os-1', { mechanicId: 'mech-1' });
-
-      expect(writeOffParts.execute).not.toHaveBeenCalled();
-    });
-
-    it('não baixa de novo quando a OS já estava finalizada', async () => {
-      const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído', [], [], 0);
-      serviceOrder.status = ServiceOrderStatus.FINISHED;
-      repository.findById.mockResolvedValue(serviceOrder);
-
-      await useCase.execute('os-1', {});
-
-      expect(writeOffParts.execute).not.toHaveBeenCalled();
-    });
   });
 });

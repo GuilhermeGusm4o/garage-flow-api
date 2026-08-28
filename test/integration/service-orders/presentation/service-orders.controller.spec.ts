@@ -238,7 +238,30 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.status).toBe(404);
   });
 
-  it('PATCH /service-orders/:id deve atualizar o status', async () => {
+  it('PATCH /service-orders/:id/start-diagnosis deve transicionar para IN_DIAGNOSIS e atribuir o mecânico', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/start-diagnosis`)
+      .set('Authorization', mechanicAuthHeader());
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('IN_DIAGNOSIS');
+    expect(response.body.mechanicId).toBe(mechanicId);
+  });
+
+  it('PATCH /service-orders/:id/start-diagnosis deve retornar 404 se a OS não existir', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/service-orders/00000000-0000-0000-0000-000000000000/start-diagnosis')
+      .set('Authorization', mechanicAuthHeader());
+
+    expect(response.status).toBe(404);
+  });
+
+  it('PATCH /service-orders/:id deve retornar 400 ao enviar status (campo não faz mais parte do DTO de atualização genérica)', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
       .set('Authorization', adminAuthHeader())
@@ -248,30 +271,6 @@ describe('ServiceOrdersController (integration)', () => {
       .patch(`/service-orders/${created.body.id}`)
       .set('Authorization', adminAuthHeader())
       .send({ status: 'IN_DIAGNOSIS' });
-
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe('IN_DIAGNOSIS');
-  });
-
-  it('PATCH /service-orders/:id deve retornar 404 se a OS não existir', async () => {
-    const response = await request(app.getHttpServer())
-      .patch('/service-orders/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', adminAuthHeader())
-      .send({ status: 'FINISHED_DIAGNOSIS' });
-
-    expect(response.status).toBe(404);
-  });
-
-  it('PATCH /service-orders/:id deve retornar 400 para um status inválido', async () => {
-    const created = await request(app.getHttpServer())
-      .post('/service-orders')
-      .set('Authorization', adminAuthHeader())
-      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
-
-    const response = await request(app.getHttpServer())
-      .patch(`/service-orders/${created.body.id}`)
-      .set('Authorization', adminAuthHeader())
-      .send({ status: 'NOT_A_REAL_STATUS' });
 
     expect(response.status).toBe(400);
   });
@@ -309,6 +308,41 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.partItems).toHaveLength(1);
     expect(response.body.totalAmount).toBe(160); // 100 (serviço) + 2*30 (peça)
     expect(response.body.status).toBe('FINISHED_DIAGNOSIS');
+  });
+
+  it('PATCH /service-orders/:id/add-services-and-parts deve retornar stockAlerts quando o estoque da peça ficar abaixo do mínimo', async () => {
+    await prisma.inventory.update({ where: { id: partId }, data: { minQuantity: 11 } });
+
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+    await putServiceOrderInDiagnosis(created.body.id);
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
+      .send({ services: [], parts: [{ inventoryId: partId, quantity: 2 }] });
+
+    expect(response.status).toBe(200);
+    expect(response.body.stockAlerts).toHaveLength(1);
+    expect(response.body.stockAlerts[0]).toMatchObject({ inventoryId: partId, minQuantity: 11 });
+  });
+
+  it('PATCH /service-orders/:id/add-services-and-parts não deve retornar stockAlerts quando o estoque está acima do mínimo', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .send({ clientCpfCnpj, licensePlate, description: 'Ruído no motor' });
+    await putServiceOrderInDiagnosis(created.body.id);
+
+    const response = await request(app.getHttpServer())
+      .patch(`/service-orders/${created.body.id}/add-services-and-parts`)
+      .set('Authorization', mechanicAuthHeader())
+      .send({ services: [], parts: [{ inventoryId: partId, quantity: 2 }] });
+
+    expect(response.status).toBe(200);
+    expect(response.body.stockAlerts).toEqual([]);
   });
 
   it('PATCH /service-orders/:id/add-services-and-parts deve adicionar serviço e peça na mesma chamada', async () => {
