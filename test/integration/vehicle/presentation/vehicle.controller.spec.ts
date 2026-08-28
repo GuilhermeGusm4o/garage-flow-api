@@ -9,19 +9,10 @@ import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 import { JwtStrategy } from '@auth/infrastructure/security/jwt.strategy';
-import {
-  startTestDatabase,
-  stopTestDatabase,
-  type TestDatabase,
-} from '../../../support/postgres-test-container';
 import { truncateAllTables } from '../../../support/truncate-database';
 import { signAuthToken } from '../../../support/auth-token.helper';
 
-jest.setTimeout(120_000);
-
 describe('VehicleController (integration)', () => {
-  let testDatabase: TestDatabase;
-  let originalDatabaseUrl: string | undefined;
   let app: INestApplication;
   let prisma: PrismaService;
   let jwtService: JwtService;
@@ -30,10 +21,6 @@ describe('VehicleController (integration)', () => {
   const adminAuthHeader = () => signAuthToken(jwtService, 'admin-id', 'ADMIN');
 
   beforeAll(async () => {
-    originalDatabaseUrl = process.env.DATABASE_URL;
-    testDatabase = await startTestDatabase();
-    process.env.DATABASE_URL = testDatabase.databaseUrl;
-
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [
         PrismaModule,
@@ -60,8 +47,6 @@ describe('VehicleController (integration)', () => {
 
   afterAll(async () => {
     await app?.close();
-    if (testDatabase) await stopTestDatabase(testDatabase);
-    process.env.DATABASE_URL = originalDatabaseUrl;
   });
 
   beforeEach(async () => {
