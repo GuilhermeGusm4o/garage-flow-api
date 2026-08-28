@@ -5,6 +5,8 @@ export abstract class PartRepository {
   abstract findById(id: string): Promise<Part | null>;
   abstract findByIds(ids: string[]): Promise<Part[]>;
   abstract findAll(): Promise<Part[]>;
+  abstract findByIdList(idList: string[]): Promise<Part[]>;
+  abstract findBelowMinimum(): Promise<Part[]>;
   abstract softDelete(id: string): Promise<void>;
 
   /**

@@ -33,14 +33,20 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/garage-flow?schema=public
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      TRACKING_TOKEN_SECRET: ${TRACKING_TOKEN_SECRET}
     volumes:
       - .:/app
       - /app/node_modules
+      # Testcontainers needs access to the host Docker daemon when tests run in this service.
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       postgres:
         condition: service_healthy
     command: >
-      sh -c "npx prisma generate &&
+      sh -c "rm -rf /app/dist /app/tsconfig.tsbuildinfo &&
+      npx prisma generate &&
       npm run db:migrate:deploy &&
       npx prisma db seed &&
       npm run start:debug"

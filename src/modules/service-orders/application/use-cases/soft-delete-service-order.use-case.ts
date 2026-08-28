@@ -9,6 +9,7 @@ export class SoftDeleteServiceOrderUseCase {
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
+    serviceOrder.softDelete();
     await this.serviceOrderRepository.softDelete(id);
   }
 }

@@ -57,6 +57,18 @@ export class PrismaPartRepository extends PartRepository {
 
     return new Map(rows.map((row) => [row.inventoryId, Number(row._sum.quantity ?? 0)]));
   }
+  
+  async findByIdList(idList: string[]): Promise<Part[]> {
+    const rows = await this.prisma.inventory.findMany({
+      where: { id: { in: idList }, deleted_at: null },
+    });
+    return rows.map(PartMapper.toDomain);
+  }
+
+  async findBelowMinimum(): Promise<Part[]> {
+    const rows = await this.prisma.inventory.findMany();
+    return rows.map(PartMapper.toDomain).filter((part: Part) => part.isBelowMinimum());
+  }
 
   async softDelete(id: string): Promise<void> {
     await this.prisma.inventory.update({

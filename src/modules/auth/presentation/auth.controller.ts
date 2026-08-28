@@ -6,9 +6,11 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseEnumPipe,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -20,6 +22,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -39,6 +42,8 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+import { type UserRole } from '@auth/domain/entities/user.entity';
+import { UserRole as PrismaUserRole } from '@generated/prisma/enums';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -51,39 +56,6 @@ export class AuthController {
     private readonly listUsersUseCase: ListUsersUseCase,
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
   ) {}
-
-  @Get('users')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({
-    summary: 'List all users',
-  })
-  @ApiOkResponse({
-    type: [UserResponseDto],
-  })
-  async listUsers(): Promise<UserResponseDto[]> {
-    const users = await this.listUsersUseCase.execute();
-
-    return users.map(UserResponseDto.fromDomain);
-  }
-
-  @Get('users/:email')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({
-    summary: 'Get a user by email',
-  })
-  @ApiOkResponse({
-    type: UserResponseDto,
-  })
-  @ApiNotFoundResponse({
-    description: 'User not found',
-  })
-  async getUserByEmail(@Param('email', ParseEmailPipe) email: string): Promise<UserResponseDto> {
-    const user = await this.getUserByEmailUseCase.execute(email);
-
-    return UserResponseDto.fromDomain(user);
-  }
 
   @Post('users')
   @ApiBearerAuth('access-token')
@@ -122,6 +94,49 @@ export class AuthController {
     });
 
     return LoginResponseDto.create(access_token, user);
+  }
+
+  @Get('users')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List all users',
+  })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR', 'STOCK_CLERK'],
+    description: 'Filter users by role. Use MECHANIC to populate mechanic selectors.',
+  })
+  @ApiOkResponse({
+    type: [UserResponseDto],
+  })
+  async listUsers(
+    @Query('role', new ParseEnumPipe(PrismaUserRole, { optional: true })) role?: UserRole,
+  ): Promise<UserResponseDto[]> {
+    const users = role
+      ? await this.listUsersUseCase.execute(role)
+      : await this.listUsersUseCase.execute();
+
+    return users.map(UserResponseDto.fromDomain);
+  }
+
+  @Get('users/:email')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get a user by email',
+  })
+  @ApiOkResponse({
+    type: UserResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async getUserByEmail(@Param('email', ParseEmailPipe) email: string): Promise<UserResponseDto> {
+    const user = await this.getUserByEmailUseCase.execute(email);
+
+    return UserResponseDto.fromDomain(user);
   }
 
   @Patch('users/:id')

@@ -3,6 +3,7 @@ import { type ServiceOrder } from '@service-orders/domain/entities/service-order
 import { type ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { type PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { type ServiceOrderListItem } from '@service-orders/domain/repositories/service-order.repository';
 
 export class ServiceItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
@@ -57,6 +58,21 @@ export class ServiceOrderResponseDto {
   @ApiProperty()
   vehicleId!: string;
 
+  @ApiPropertyOptional({ description: 'Placa do veículo' })
+  vehicleLicensePlate?: string;
+
+  @ApiPropertyOptional({ description: 'Nome do cliente' })
+  clientName?: string;
+
+  @ApiPropertyOptional({ description: 'Marca do veículo' })
+  vehicleBrand?: string;
+
+  @ApiPropertyOptional({ description: 'Modelo do veículo' })
+  vehicleModel?: string;
+
+  @ApiPropertyOptional({ description: 'Identificação amigável para seleção da OS' })
+  displayLabel?: string;
+
   @ApiProperty({ description: 'Reclamação do cliente relatada na abertura da OS' })
   description!: string;
 
@@ -89,6 +105,25 @@ export class ServiceOrderResponseDto {
     response.totalAmount = entity.totalAmount;
     response.serviceItems = entity.serviceItems.map(ServiceItemResponseDto.fromEntity);
     response.partItems = entity.partItems.map(PartItemResponseDto.fromEntity);
+    return response;
+  }
+
+  static fromListItem(item: ServiceOrderListItem): ServiceOrderResponseDto {
+    const response = new ServiceOrderResponseDto();
+    response.id = item.id;
+    response.vehicleId = item.vehicleId;
+    response.vehicleLicensePlate = item.vehicleLicensePlate;
+    response.clientName = item.clientName;
+    response.vehicleBrand = item.vehicleBrand;
+    response.vehicleModel = item.vehicleModel;
+    response.displayLabel = `${item.vehicleLicensePlate} - ${item.clientName}`;
+    response.description = item.description;
+    response.mechanicId = item.mechanicId;
+    response.status = item.status as ServiceOrderStatus;
+    response.approvedAt = item.approvedAt;
+    response.totalAmount = item.totalAmount;
+    response.serviceItems = item.serviceItems.map(ServiceItemResponseDto.fromEntity);
+    response.partItems = item.partItems.map(PartItemResponseDto.fromEntity);
     return response;
   }
 }

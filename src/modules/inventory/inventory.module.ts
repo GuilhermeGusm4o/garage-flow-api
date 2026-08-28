@@ -12,6 +12,7 @@ import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/c
 import { PartRepository } from '@inventory/domain/repositories/part.repository';
 import { PrismaPartRepository } from '@inventory/infrastructure/prisma-part.repository';
 import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
+import { FindPartsByIdListUseCase } from '@inventory/application/use-cases/find-parts-by-id-list.use-case';
 
 @Module({
   controllers: [InventoryController],
@@ -26,6 +27,7 @@ import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-
     SoftDeletePartUseCase,
     CalculateAvailabilityUseCase,
     FindPartByIdUseCase,
+    FindPartsByIdListUseCase,
     { provide: PartRepository, useClass: PrismaPartRepository },
   ],
   exports: [
@@ -33,6 +35,7 @@ import { FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-
     ConsumePartUseCase,
     FindPartByIdUseCase,
     CheckPartsAvailabilityUseCase,
+    FindPartsByIdListUseCase,
   ],
 })
 export class InventoryModule {}
