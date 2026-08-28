@@ -44,6 +44,8 @@ export class ServiceOrder {
       totalAmount,
       serviceItems,
       partItems,
+      null,
+      null,
       new Date(),
     );
   }

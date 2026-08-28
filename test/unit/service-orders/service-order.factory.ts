@@ -33,6 +33,8 @@ export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): Ser
     overrides.totalAmount ?? 0,
     overrides.serviceItems ?? [],
     overrides.partItems ?? [],
+    null,
+    null,
     overrides.updatedAt ?? FIXED_DATE,
     overrides.deletedAt ?? null,
   );

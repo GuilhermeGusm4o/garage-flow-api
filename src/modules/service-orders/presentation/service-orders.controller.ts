@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseEnumPipe,
   Patch,
   Post,
   Req,
@@ -120,7 +121,8 @@ export class ServiceOrdersController {
   })
   @ApiOkResponse({ type: [ServiceOrderResponseDto] })
   async findAll(
-    @Query('status') status?: ServiceOrderStatus,
+    @Query('status', new ParseEnumPipe(ServiceOrderStatus, { optional: true }))
+    status?: ServiceOrderStatus,
     @Query('mechanicId') mechanicId?: string,
   ): Promise<ServiceOrderResponseDto[]> {
     const serviceOrders = await this.findAllServiceOrders.execute(status, mechanicId);

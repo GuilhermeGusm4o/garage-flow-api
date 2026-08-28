@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseEnumPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -42,6 +43,7 @@ import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 import { type UserRole } from '@auth/domain/entities/user.entity';
+import { UserRole as PrismaUserRole } from '@generated/prisma/enums';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -109,7 +111,9 @@ export class AuthController {
   @ApiOkResponse({
     type: [UserResponseDto],
   })
-  async listUsers(@Query('role') role?: UserRole): Promise<UserResponseDto[]> {
+  async listUsers(
+    @Query('role', new ParseEnumPipe(PrismaUserRole, { optional: true })) role?: UserRole,
+  ): Promise<UserResponseDto[]> {
     const users = role
       ? await this.listUsersUseCase.execute(role)
       : await this.listUsersUseCase.execute();

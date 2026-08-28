@@ -134,6 +134,15 @@ describe('ServiceOrdersController (integration)', () => {
     expect(response.body.trackingLink).toMatch(/^http:\/\/[^/]+\/service-orders\/track\/.+/);
   });
 
+  it('GET /service-orders deve retornar 400 para um status inválido', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/service-orders')
+      .set('Authorization', adminAuthHeader())
+      .query({ status: 'NOT_A_REAL_STATUS' });
+
+    expect(response.status).toBe(400);
+  });
+
   it('POST /service-orders deve retornar um trackingLink que resolve para a mesma OS criada', async () => {
     const created = await request(app.getHttpServer())
       .post('/service-orders')
