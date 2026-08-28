@@ -24,12 +24,14 @@ import { CreatePartUseCase } from '@inventory/application/use-cases/create-part.
 import { RestockPartUseCase } from '@inventory/application/use-cases/restock-part.use-case';
 import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-part.use-case';
 import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
+import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
 import { CreatePartDto } from '@inventory/presentation/dtos/create-part.dto';
 import { RestockPartDto } from '@inventory/presentation/dtos/restock-part.dto';
 import { UpdatePartDto } from '@inventory/presentation/dtos/update-part.dto';
 import { ConsumePartDto } from '@inventory/presentation/dtos/consume-part.dto';
+import { LowStockPartResponseDto } from '@inventory/presentation/dtos/low-stock-part-response.dto';
 import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
 import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
@@ -42,6 +44,7 @@ export class InventoryController {
     private readonly restockPart: RestockPartUseCase,
     private readonly consumePart: ConsumePartUseCase,
     private readonly listParts: ListPartsUseCase,
+    private readonly listLowStockParts: ListLowStockPartsUseCase,
     private readonly updatePart: UpdatePartUseCase,
     private readonly softDeletePart: SoftDeletePartUseCase,
   ) {}
@@ -68,6 +71,22 @@ export class InventoryController {
   @ApiOkResponse({ description: 'Inventory items returned successfully' })
   findAll() {
     return this.listParts.execute();
+  }
+
+  @Get('low-stock')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STOCK_CLERK')
+  @ApiOperation({
+    summary: 'Lists inventory items whose logical stock is below the configured minimum',
+    description:
+      'Logical stock subtracts from the physical quantity everything already committed to ' +
+      'service orders that are still open (RECEIVED, IN_DIAGNOSIS, AWAITING_APPROVAL, IN_EXECUTION).',
+  })
+  @ApiOkResponse({ type: [LowStockPartResponseDto] })
+  async findLowStock(): Promise<LowStockPartResponseDto[]> {
+    const lowStockParts = await this.listLowStockParts.execute();
+    return lowStockParts.map(LowStockPartResponseDto.fromStockLevel);
   }
 
   @Patch(':id')

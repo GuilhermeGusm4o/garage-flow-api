@@ -3,6 +3,7 @@ import { PrismaService } from '@infra/database/prisma/prisma.service';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { PartRepository } from '@inventory/domain/repositories/part.repository';
 import { PartMapper } from '@inventory/infrastructure/part.mapper';
+import { type ServiceOrderStatus as PrismaServiceOrderStatus } from '@generated/prisma/client';
 
 @Injectable()
 export class PrismaPartRepository extends PartRepository {
@@ -24,11 +25,37 @@ export class PrismaPartRepository extends PartRepository {
     return row ? PartMapper.toDomain(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<Part[]> {
+    if (ids.length === 0) return [];
+
+    const rows = await this.prisma.inventory.findMany({ where: { id: { in: ids } } });
+    return rows.map(PartMapper.toDomain);
+  }
+
   async findAll(): Promise<Part[]> {
     const rows = await this.prisma.inventory.findMany({
       where: { deleted_at: null },
     });
     return rows.map(PartMapper.toDomain);
+  }
+
+  async findReservedQuantities(
+    serviceOrderStatuses: string[],
+    partIds?: string[],
+  ): Promise<Map<string, number>> {
+    const rows = await this.prisma.serviceOrderInventory.groupBy({
+      by: ['inventoryId'],
+      where: {
+        ...(partIds ? { inventoryId: { in: partIds } } : {}),
+        serviceOrder: {
+          deleted_at: null,
+          status: { in: serviceOrderStatuses as PrismaServiceOrderStatus[] },
+        },
+      },
+      _sum: { quantity: true },
+    });
+
+    return new Map(rows.map((row) => [row.inventoryId, Number(row._sum.quantity ?? 0)]));
   }
 
   async findByIdList(idList: string[]): Promise<Part[]> {

@@ -14,6 +14,7 @@ export class PartMapper {
       new UnitOfMeasureVO(row.unitOfMeasure),
       Number(row.unitPrice),
       new Quantity(Number(row.quantity)),
+      new Quantity(Number(row.minQuantity)),
     );
   }
 
@@ -24,6 +25,7 @@ export class PartMapper {
       unitOfMeasure: part.unitOfMeasure.value as PrismaUnitOfMeasure,
       unitPrice: part.unitPrice,
       quantity: part.quantity.value,
+      minQuantity: part.minQuantity.value,
     };
   }
 }

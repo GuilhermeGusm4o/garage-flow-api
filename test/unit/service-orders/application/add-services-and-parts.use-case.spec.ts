@@ -4,8 +4,14 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { type AddServicesAndPartsDto } from '@service-orders/presentation/dtos/add-services-and-parts.dto';
-import { type FindPartByIdUseCase } from '@inventory/application/use-cases/find-part-by-id.use-case';
-import { type CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
+import {
+  type CheckPartsAvailabilityUseCase,
+  type PartAvailability,
+} from '@inventory/application/use-cases/check-parts-availability.use-case';
+import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
+import { Part } from '@inventory/domain/entities/part.entity';
+import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { type CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -13,14 +19,25 @@ import { DomainError } from '@common/errors/domain.error';
 
 describe('AddServicesAndPartsUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
-  let findPartById: { execute: jest.Mock };
-  let calculateAvailability: { execute: jest.Mock };
+  let checkPartsAvailability: { execute: jest.Mock };
   let findServicesByIdList: { execute: jest.Mock };
   let calculateTotalAmount: { execute: jest.Mock };
   let useCase: AddServicesAndPartsUseCase;
 
   const service = { id: 'service-1', price: { getValue: () => 100 } };
-  const part = { id: 'part-1', name: 'Óleo', unitPrice: 30, unitOfMeasure: { value: 'ML' } };
+
+  /** Disponibilidade da peça: `physical` na prateleira, `reserved` já comprometido com OS em aberto. */
+  const buildAvailability = (physical: number, reserved = 0, requested = 2): PartAvailability => {
+    const stockLevel = new StockLevel(
+      new Part('part-1', 'Óleo', new UnitOfMeasure('ML'), 30, new Quantity(physical)),
+      reserved,
+    );
+    return {
+      stockLevel,
+      requestedQuantity: requested,
+      isAvailable: requested <= stockLevel.availableQuantity,
+    };
+  };
 
   const buildServiceOrder = () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
@@ -38,14 +55,12 @@ describe('AddServicesAndPartsUseCase', () => {
       softDelete: jest.fn(),
     };
     findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };
-    findPartById = { execute: jest.fn().mockResolvedValue(part) };
-    calculateAvailability = { execute: jest.fn().mockResolvedValue(10) };
+    checkPartsAvailability = { execute: jest.fn().mockResolvedValue([buildAvailability(10)]) };
     calculateTotalAmount = { execute: jest.fn().mockResolvedValue(160) };
 
     useCase = new AddServicesAndPartsUseCase(
       repository,
-      findPartById as unknown as FindPartByIdUseCase,
-      calculateAvailability as unknown as CalculateAvailabilityUseCase,
+      checkPartsAvailability as unknown as CheckPartsAvailabilityUseCase,
       findServicesByIdList as unknown as FindServicesByIdListUseCase,
       calculateTotalAmount as unknown as CalculateTotalAmountUseCase,
     );
@@ -97,15 +112,16 @@ describe('AddServicesAndPartsUseCase', () => {
     );
   });
 
-  it('deve lançar BadRequestException se a OS não estiver em diagnóstico', async () => {
+  it('deve lançar DomainError se a OS não estiver em diagnóstico', async () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    serviceOrder.update({ mechanicId: 'mechanic-1' });
     repository.findById.mockResolvedValue(serviceOrder);
 
     await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(DomainError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
-  it('deve lançar BadRequestException ao tentar adicionar itens novamente após a OS já estar em FINISHED_DIAGNOSIS', async () => {
+  it('deve lançar DomainError ao tentar adicionar itens novamente após a OS já estar em FINISHED_DIAGNOSIS', async () => {
     const serviceOrder = buildServiceOrder();
     serviceOrder.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
     repository.findById.mockResolvedValue(serviceOrder);
@@ -115,11 +131,29 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve lançar BadRequestException se a quantidade de peça for maior que a disponível', async () => {
-    calculateAvailability.execute.mockResolvedValue(1); // pediu 2, só tem 1
+    checkPartsAvailability.execute.mockResolvedValue([buildAvailability(1)]); // pediu 2, só tem 1
 
     await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
       BadRequestException,
     );
+  });
+
+  it('deve barrar quando o estoque físico cobre mas outra OS já reservou a peça', async () => {
+    // 10 na prateleira, 9 comprometidos com OS em aberto -> só 1 realmente livre
+    checkPartsAvailability.execute.mockResolvedValue([buildAvailability(10, 9)]);
+
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('deve aceitar quando o estoque lógico ainda cobre o pedido', async () => {
+    // 10 na prateleira, 5 reservados -> 5 livres, pedido de 2 passa
+    checkPartsAvailability.execute.mockResolvedValue([buildAvailability(10, 5)]);
+
+    await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).resolves.toBeDefined();
+    expect(repository.save).toHaveBeenCalled();
   });
 
   it('deve propagar NotFoundException se o serviço não existir', async () => {
@@ -131,7 +165,7 @@ describe('AddServicesAndPartsUseCase', () => {
   });
 
   it('deve propagar NotFoundException se a peça não existir', async () => {
-    findPartById.execute.mockRejectedValue(new NotFoundException('Peça não encontrada'));
+    checkPartsAvailability.execute.mockRejectedValue(new NotFoundException('Peça não encontrada'));
 
     await expect(useCase.execute('os-1', buildDto(), 'mechanic-1')).rejects.toThrow(
       NotFoundException,

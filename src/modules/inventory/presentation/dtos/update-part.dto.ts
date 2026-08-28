@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdatePartDto {
   @ApiProperty({ example: 'Óleo sintético 5W40' })
@@ -11,4 +11,10 @@ export class UpdatePartDto {
   @IsNumber()
   @Min(0)
   unitPrice!: number;
+
+  @ApiPropertyOptional({ example: 15, description: 'Mínimo recomendado em estoque' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  minQuantity?: number;
 }
