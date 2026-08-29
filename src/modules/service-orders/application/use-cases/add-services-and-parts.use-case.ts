@@ -10,7 +10,7 @@ import { FindServicesByIdListUseCase } from '@service/application/use-cases/find
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 
 /**
- * Além da OS atualizada, devolve as peças recém-adicionadas cujo estoque lógico
+ * Além da OS atualizada, mostra as peças recém-adicionadas cujo estoque lógico
  * ficou abaixo do mínimo — o alerta que aparece no orçamento.
  */
 export interface AddServicesAndPartsResult {
@@ -32,6 +32,8 @@ export class AddServicesAndPartsUseCase {
     dto: AddServicesAndPartsDto,
     mechanicId: string,
   ): Promise<AddServicesAndPartsResult> {
+    this.validatePartItems(dto);
+
     const serviceOrder = await this.serviceOrderRepository.findById(id);
     if (!serviceOrder) throw new NotFoundException('Service order not found');
 
@@ -103,8 +105,8 @@ export class AddServicesAndPartsUseCase {
   }
 
   /**
-   * Calculado depois de salvar: a OS já está em AWAITING_APPROVAL, que reserva
-   * estoque, então o nível lógico aqui já considera as peças recém-adicionadas.
+   * Calcula, depois de salvar a OS, quais peças recém-adicionadas
+   * deixaram o estoque lógico abaixo do mínimo recomendado.
    */
   private async collectStockAlerts(partItems: PartItem[]): Promise<StockLevel[]> {
     const availabilities = await this.checkPartsAvailability.execute(
@@ -114,5 +116,18 @@ export class AddServicesAndPartsUseCase {
     return availabilities
       .map((availability) => availability.stockLevel)
       .filter((stockLevel) => stockLevel.isBelowMinimum());
+  }
+
+  private validatePartItems(dto: AddServicesAndPartsDto): void {
+    const inventoryIds = new Set<string>();
+
+    for (const item of dto.parts) {
+      if (inventoryIds.has(item.inventoryId)) {
+        throw new BadRequestException(
+          `A peça ${item.inventoryId} não pode ser adicionada mais de uma vez na mesma operação`,
+        );
+      }
+      inventoryIds.add(item.inventoryId);
+    }
   }
 }
