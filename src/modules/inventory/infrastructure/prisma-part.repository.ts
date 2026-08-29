@@ -21,14 +21,18 @@ export class PrismaPartRepository extends PartRepository {
   }
 
   async findById(id: string): Promise<Part | null> {
-    const row = await this.prisma.inventory.findUnique({ where: { id } });
+    const row = await this.prisma.inventory.findFirst({
+      where: { id, deleted_at: null },
+    });
     return row ? PartMapper.toDomain(row) : null;
   }
 
   async findByIds(ids: string[]): Promise<Part[]> {
     if (ids.length === 0) return [];
 
-    const rows = await this.prisma.inventory.findMany({ where: { id: { in: ids } } });
+    const rows = await this.prisma.inventory.findMany({
+      where: { id: { in: ids }, deleted_at: null },
+    });
     return rows.map(PartMapper.toDomain);
   }
 
@@ -66,13 +70,15 @@ export class PrismaPartRepository extends PartRepository {
   }
 
   async findBelowMinimum(): Promise<Part[]> {
-    const rows = await this.prisma.inventory.findMany();
+    const rows = await this.prisma.inventory.findMany({
+      where: { deleted_at: null },
+    });
     return rows.map(PartMapper.toDomain).filter((part: Part) => part.isBelowMinimum());
   }
 
   async softDelete(id: string): Promise<void> {
     await this.prisma.inventory.update({
-      where: { id },
+      where: { id, deleted_at: null },
       data: { deleted_at: new Date() },
     });
   }
