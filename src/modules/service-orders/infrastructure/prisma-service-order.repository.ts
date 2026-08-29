@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@generated/prisma/client';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
-import { Prisma } from '@generated/prisma/client';
 import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import {
   type AverageExecutionTimeMetrics,

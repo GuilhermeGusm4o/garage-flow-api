@@ -83,7 +83,7 @@ const endpoints: Endpoint[] = [
     description: 'PATCH /service-orders/:id',
     method: 'patch',
     path: `/service-orders/${mockId}`,
-    body: { status: ServiceOrderStatus.IN_DIAGNOSIS },
+    body: { mechanicId: mockId },
     allowedRoles: ['ADMIN'],
     successStatus: 200,
   },
