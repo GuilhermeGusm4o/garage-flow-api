@@ -18,6 +18,8 @@ export enum ServiceOrderStatus {
 export const OPEN_SERVICE_ORDER_STATUSES: ServiceOrderStatus[] = [
   ServiceOrderStatus.RECEIVED,
   ServiceOrderStatus.IN_DIAGNOSIS,
+  ServiceOrderStatus.FINISHED_DIAGNOSIS,
   ServiceOrderStatus.AWAITING_APPROVAL,
+  ServiceOrderStatus.AWAITING_EXECUTION,
   ServiceOrderStatus.IN_EXECUTION,
 ];

@@ -83,7 +83,9 @@ describe('ListLowStockPartsUseCase', () => {
     expect(OPEN_SERVICE_ORDER_STATUSES).toEqual([
       ServiceOrderStatus.RECEIVED,
       ServiceOrderStatus.IN_DIAGNOSIS,
+      ServiceOrderStatus.FINISHED_DIAGNOSIS,
       ServiceOrderStatus.AWAITING_APPROVAL,
+      ServiceOrderStatus.AWAITING_EXECUTION,
       ServiceOrderStatus.IN_EXECUTION,
     ]);
   });

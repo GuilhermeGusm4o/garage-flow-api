@@ -22,9 +22,10 @@ export class Quantity {
   }
 
   /**
-   * Baixa que aceita resultado negativo. Usada apenas na baixa automática da OS:
-   * o negativo registra divergência entre o estoque contábil e o físico, em vez
-   * de impedir o fechamento do serviço.
+   * Baixa que aceita resultado negativo. Usada apenas na baixa automática da OS.
+   * Diferente do consumo manual, não bloqueia a finalização quando há
+   * divergência de estoque; nesse caso, o saldo pode ficar negativo
+   * para que a inconsistência seja identificada e tratada posteriormente.
    */
   subtractAllowingNegative(amount: number): Quantity {
     return new Quantity(this.value - amount, true);
