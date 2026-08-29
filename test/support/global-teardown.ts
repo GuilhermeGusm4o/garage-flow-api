@@ -1,7 +1,6 @@
 import { stopTestDatabase, type TestDatabase } from './postgres-test-container';
 
 declare global {
-   
   var __TEST_DATABASE__: TestDatabase | undefined;
 }
 
