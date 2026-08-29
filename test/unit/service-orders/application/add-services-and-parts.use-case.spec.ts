@@ -124,6 +124,20 @@ describe('AddServicesAndPartsUseCase', () => {
     );
   });
 
+  it('deve rejeitar a mesma peça repetida na entrada', async () => {
+    const dto = {
+      services: [],
+      parts: [
+        { inventoryId: 'part-1', quantity: 1 },
+        { inventoryId: 'part-1', quantity: 2 },
+      ],
+    };
+
+    await expect(useCase.execute('os-1', dto, 'mechanic-1')).rejects.toThrow(BadRequestException);
+    expect(repository.findById).not.toHaveBeenCalled();
+    expect(checkPartsAvailability.execute).not.toHaveBeenCalled();
+  });
+
   it('deve lançar DomainError se a OS não estiver em diagnóstico', async () => {
     const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     serviceOrder.update({ mechanicId: 'mechanic-1' });
@@ -239,15 +253,12 @@ describe('AddServicesAndPartsUseCase', () => {
       expect(order).toEqual(['stock', 'save', 'stock']);
     });
 
-    it('consulta o estoque em lote: uma chamada para validar, outra para o alerta', async () => {
+    it('consulta o estoque antes e depois de salvar para montar o alerta', async () => {
       await useCase.execute(
         'os-1',
         {
           services: [],
-          parts: [
-            { inventoryId: 'part-1', quantity: 1 },
-            { inventoryId: 'part-1', quantity: 2 },
-          ],
+          parts: [{ inventoryId: 'part-1', quantity: 2 }],
         },
         'mechanic-1',
       );
