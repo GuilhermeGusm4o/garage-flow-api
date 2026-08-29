@@ -1,7 +1,7 @@
 import { stopTestDatabase, type TestDatabase } from './postgres-test-container';
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATABASE__: TestDatabase | undefined;
 }
 
