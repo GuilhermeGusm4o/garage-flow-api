@@ -107,7 +107,13 @@ describe('VehicleController (integration)', () => {
     });
 
     it('returns 409 when the license plate is already registered', async () => {
-      const payload = { brand: 'Fiat', model: 'Uno', licensePlate: 'ABC1234', year: 2015, clientId };
+      const payload = {
+        brand: 'Fiat',
+        model: 'Uno',
+        licensePlate: 'ABC1234',
+        year: 2015,
+        clientId,
+      };
 
       await request(app.getHttpServer())
         .post('/vehicles')

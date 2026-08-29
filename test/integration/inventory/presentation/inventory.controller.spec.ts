@@ -103,7 +103,13 @@ describe('InventoryController (integration)', () => {
         data: { name: 'Óleo', unitOfMeasure: 'ML', unitPrice: 30, quantity: 2, minQuantity: 5 },
       });
       await prisma.inventory.create({
-        data: { name: 'Filtro', unitOfMeasure: 'UNIT', unitPrice: 20, quantity: 10, minQuantity: 5 },
+        data: {
+          name: 'Filtro',
+          unitOfMeasure: 'UNIT',
+          unitPrice: 20,
+          quantity: 10,
+          minQuantity: 5,
+        },
       });
 
       const response = await request(app.getHttpServer())
