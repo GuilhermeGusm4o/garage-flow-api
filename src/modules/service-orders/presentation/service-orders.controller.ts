@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseEnumPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
@@ -159,7 +160,7 @@ export class ServiceOrdersController {
   })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async findOne(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.findServiceOrderById.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
@@ -174,7 +175,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderTrackingLinkResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async getTrackingLink(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() request: Request,
   ): Promise<ServiceOrderTrackingLinkResponseDto> {
     const trackingLink = await this.getServiceOrderTrackingLink.execute(
@@ -199,7 +200,9 @@ export class ServiceOrdersController {
       'Returns the service order budget. In FINISHED_DIAGNOSIS, it generates the budget and changes the status to AWAITING_APPROVAL. In any later status, it retrieves the budget without changing the status.',
   })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async generateBudget(@Param('id') id: string): Promise<ServiceOrderBudgetResponseDto> {
+  async generateBudget(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ServiceOrderBudgetResponseDto> {
     const budget = await this.generateServiceOrderBudget.execute(id);
     return ServiceOrderBudgetResponseDto.fromViewModel(budget);
   }
@@ -214,7 +217,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateServiceOrderDto,
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.updateServiceOrder.execute(id, dto);
@@ -233,7 +236,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async startServiceDiagnosis(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.startDiagnosis.execute(id, request.user.id);
@@ -252,7 +255,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: AddServicesAndPartsResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async addServicesAndPartsToServiceOrder(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddServicesAndPartsDto,
     @Req() request: { user: { id: string } },
   ): Promise<AddServicesAndPartsResponseDto> {
@@ -267,7 +270,7 @@ export class ServiceOrdersController {
   @ApiOperation({ summary: 'Approves the budget for a service order' })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async approveBudget(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+  async approveBudget(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.approveServiceOrderBudget.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
@@ -282,7 +285,7 @@ export class ServiceOrdersController {
   })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async cancelService(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+  async cancelService(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.cancelServiceOrder.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
@@ -299,7 +302,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async startServiceExecution(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.startService.execute(id, request.user.id);
@@ -318,7 +321,7 @@ export class ServiceOrdersController {
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async finishServiceExecution(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() request: { user: { id: string } },
   ): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.finishService.execute(id, request.user.id);
@@ -335,7 +338,7 @@ export class ServiceOrdersController {
   })
   @ApiOkResponse({ type: ServiceOrderResponseDto })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async deliver(@Param('id') id: string): Promise<ServiceOrderResponseDto> {
+  async deliver(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceOrderResponseDto> {
     const serviceOrder = await this.deliverServiceOrder.execute(id);
     return ServiceOrderResponseDto.fromEntity(serviceOrder);
   }
@@ -350,7 +353,7 @@ export class ServiceOrdersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiNoContentResponse({ description: 'Service order deleted successfully' })
   @ApiNotFoundResponse({ description: 'Service order not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.softDeleteServiceOrder.execute(id);
   }
 

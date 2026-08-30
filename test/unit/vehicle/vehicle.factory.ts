@@ -1,4 +1,4 @@
-import { randomUUID, type UUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import { VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';
 import { LicensePlate } from '@vehicle/domain/value-objects/license-plate.vo';
 import { type VehicleRepository } from '@vehicle/domain/repositories/vehicle.repository';
@@ -7,7 +7,7 @@ import { type VehicleRepository } from '@vehicle/domain/repositories/vehicle.rep
 export const FIXED_DATE = new Date('2026-01-01T00:00:00.000Z');
 
 export interface MakeVehicleOverrides {
-  id?: UUID;
+  id?: string;
   brand?: string;
   model?: string;
   licensePlate?: string;

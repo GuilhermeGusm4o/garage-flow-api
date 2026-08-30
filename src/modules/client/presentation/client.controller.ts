@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -85,7 +86,7 @@ export class ClientController {
   })
   @ApiOkResponse({ type: ClientResponse })
   @ApiNotFoundResponse({ description: 'Client not found' })
-  async findOne(@Param('id') id: string): Promise<ClientResponse> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ClientResponse> {
     const client = await this.findClientByIdUseCase.execute(id);
     return ClientResponse.fromEntity(client);
   }
@@ -100,7 +101,7 @@ export class ClientController {
   @ApiOkResponse({ type: ClientResponse })
   @ApiNotFoundResponse({ description: 'Client not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateClientRequest,
   ): Promise<ClientResponse> {
     const client = await this.updateClientUseCase.execute(id, {
@@ -122,7 +123,7 @@ export class ClientController {
   })
   @ApiNoContentResponse({ description: 'Client deleted successfully' })
   @ApiNotFoundResponse({ description: 'Client not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteClientUseCase.execute(id);
   }
 }

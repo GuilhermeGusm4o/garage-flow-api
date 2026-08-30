@@ -11,14 +11,18 @@ export class CreatePartUseCase {
   constructor(private readonly partRepository: PartRepository) {}
 
   async execute(dto: CreatePartDto): Promise<Part> {
-    const part = new Part(
-      randomUUID(),
-      dto.name,
-      new UnitOfMeasure(dto.unitOfMeasure),
-      dto.unitPrice,
-      new Quantity(dto.quantity ?? 0),
-      new Quantity(dto.minQuantity ?? 0),
-    );
+    const now = new Date();
+
+    const part = Part.create({
+      id: randomUUID(),
+      name: dto.name,
+      unitOfMeasure: new UnitOfMeasure(dto.unitOfMeasure),
+      unitPrice: dto.unitPrice,
+      quantity: new Quantity(dto.quantity ?? 0),
+      minQuantity: new Quantity(dto.minQuantity ?? 0),
+      createdAt: now,
+      updatedAt: now,
+    });
 
     await this.partRepository.save(part);
     return part;

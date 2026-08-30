@@ -1,13 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
 import { CheckPartsAvailabilityUseCase } from '@inventory/application/use-cases/check-parts-availability.use-case';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { OPEN_SERVICE_ORDER_STATUSES } from '@service-orders/domain/value-objects/service-order-status.vo';
+import { makePart } from '../../part.factory';
 
 const buildPart = (id: string, quantity: number) =>
-  new Part(id, `Peça ${id}`, new UnitOfMeasure('UNIT'), 10, new Quantity(quantity));
+  makePart({ id, name: `Peça ${id}`, unitPrice: 10, quantity: new Quantity(quantity) });
 
 describe('CheckPartsAvailabilityUseCase', () => {
   let repository: jest.Mocked<PartRepository>;
@@ -21,7 +20,6 @@ describe('CheckPartsAvailabilityUseCase', () => {
       findAll: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
       findReservedQuantities: jest.fn(),
     };
     repository.findReservedQuantities.mockResolvedValue(new Map());

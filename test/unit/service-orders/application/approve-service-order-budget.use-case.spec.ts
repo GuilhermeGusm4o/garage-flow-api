@@ -1,13 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
 import { ApproveServiceOrderBudgetUseCase } from '@service-orders/application/use-cases/approve-service-order-budget.use-case';
-import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
+import { makeServiceOrder } from '../service-order.factory';
 
 describe('ApproveServiceOrderBudgetUseCase', () => {
   it('aprova o orçamento e salva a OS', async () => {
-    const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
-    serviceOrder.status = ServiceOrderStatus.AWAITING_APPROVAL;
+    const serviceOrder = makeServiceOrder({ status: ServiceOrderStatus.AWAITING_APPROVAL });
     const repository = {
       findById: jest.fn().mockResolvedValue(serviceOrder),
       save: jest.fn().mockResolvedValue(serviceOrder),

@@ -10,7 +10,7 @@ describe('CalculateTotalAmountUseCase', () => {
   });
 
   it('deve somar o preço total de cada ServiceItem', async () => {
-    const serviceItems = [new ServiceItem(null, 'service-1', 100)];
+    const serviceItems = [ServiceItem.create('service-1', 100)];
 
     const total = await useCase.execute(serviceItems, []);
 
@@ -18,8 +18,8 @@ describe('CalculateTotalAmountUseCase', () => {
   });
 
   it('deve somar peças ao total (quantidade * preço unitário)', async () => {
-    const serviceItems = [new ServiceItem(null, 'service-1', 100)];
-    const partItems = [new PartItem(null, 'part-1', 2, 30)];
+    const serviceItems = [ServiceItem.create('service-1', 100)];
+    const partItems = [PartItem.create('part-1', 2, 30)];
 
     const total = await useCase.execute(serviceItems, partItems);
 

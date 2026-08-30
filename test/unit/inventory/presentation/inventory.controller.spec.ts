@@ -6,22 +6,9 @@ import { type ListPartsUseCase } from '@inventory/application/use-cases/list-par
 import { type ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { type SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
-
-const makePart = (overrides: Partial<Part> = {}): Part =>
-  Object.assign(
-    new Part(
-      '123e4567-e89b-12d3-a456-426614174000',
-      'Óleo de motor 5W30',
-      new UnitOfMeasure('ML'),
-      45.9,
-      new Quantity(20),
-    ),
-    overrides,
-  );
+import { makePart } from '../part.factory';
 
 describe('InventoryController', () => {
   let controller: InventoryController;
@@ -83,14 +70,11 @@ describe('InventoryController', () => {
   });
 
   it('lista o estoque abaixo do mínimo já mapeado para o DTO de resposta', async () => {
-    const part = new Part(
-      'part-1',
-      'Óleo de motor 5W30',
-      new UnitOfMeasure('ML'),
-      45.9,
-      new Quantity(20),
-      new Quantity(15),
-    );
+    const part = makePart({
+      id: 'part-1',
+      quantity: new Quantity(20),
+      minQuantity: new Quantity(15),
+    });
     listLowStockParts.execute.mockResolvedValue([new StockLevel(part, 8)]);
 
     const result = await controller.findLowStock();

@@ -1,4 +1,4 @@
-import { randomUUID, type UUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import { ClientEntity } from '@client/domain/entities/client.entity';
 import { CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
 import { type ClientRepository } from '@client/domain/repositories/client.repository';
@@ -7,7 +7,7 @@ import { type ClientRepository } from '@client/domain/repositories/client.reposi
 export const FIXED_DATE = new Date('2026-01-01T00:00:00.000Z');
 
 export interface MakeClientOverrides {
-  id?: UUID;
+  id?: string;
   cpfCnpj?: string;
   name?: string;
   phone?: string;

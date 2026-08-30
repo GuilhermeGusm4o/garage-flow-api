@@ -28,29 +28,23 @@ export class UpdateUserUseCase {
       throw new NotFoundException('User not found');
     }
 
-    if (input.name !== undefined) {
-      user.name = input.name;
-    }
-
     if (input.email !== undefined) {
       const existingUser = await this.userRepository.findByEmail(input.email);
 
       if (existingUser) {
         throw new ConflictException('User already exists');
       }
-
-      user.email = input.email;
     }
 
-    if (input.role !== undefined) {
-      user.role = input.role;
-    }
+    const passwordHash =
+      input.password !== undefined ? await this.passwordHasher.hash(input.password) : undefined;
 
-    if (input.password !== undefined) {
-      user.passwordHash = await this.passwordHasher.hash(input.password);
-    }
-
-    user.updatedAt = new Date();
+    user.update({
+      name: input.name,
+      email: input.email,
+      role: input.role,
+      passwordHash,
+    });
 
     return this.userRepository.update(user);
   }
