@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { type StringValue } from 'ms';
 
-import { PrismaModule } from '../../infra/database/prisma/prisma.module';
+import { PrismaModule } from '@infra/database/prisma/prisma.module';
 
 import { UserRepository } from './domain/repositories/user.repository';
 

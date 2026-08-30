@@ -31,7 +31,7 @@ import { GetUserByEmailUseCase } from '@auth/application/use-cases/get-user-by-e
 import { ListUsersUseCase } from '@auth/application/use-cases/list-users.use-case';
 import { LoginUseCase } from '@auth/application/use-cases/login-user.use-case';
 import { UpdateUserUseCase } from '@auth/application/use-cases/update-user.use-case';
-import { ParseEmailPipe } from '../../../common/pipes/parse-email.pipe';
+import { ParseEmailPipe } from '@common/pipes/parse-email.pipe';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login-user.dto';
