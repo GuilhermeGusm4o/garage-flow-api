@@ -23,7 +23,7 @@ describe('Part', () => {
 
   it('deve lançar um erro ao consumir mais do que o disponível', () => {
     const part = buildPart(3);
-    expect(() => part.consume(5)).toThrow('Estoque insuficiente');
+    expect(() => part.consume(5)).toThrow('Insufficient stock');
   });
 
   it('deve atualizar nome e preço', () => {

@@ -6,6 +6,6 @@ describe('UnitOfMeasure', () => {
   });
 
   it('deve rejeitar um valor inválido', () => {
-    expect(() => new UnitOfMeasure('LITROS')).toThrow('Unidade de medida inválida: LITROS');
+    expect(() => new UnitOfMeasure('LITROS')).toThrow('Invalid unit of measure: LITROS');
   });
 });
