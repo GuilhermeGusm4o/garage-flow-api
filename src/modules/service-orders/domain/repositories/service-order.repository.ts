@@ -34,5 +34,4 @@ export abstract class ServiceOrderRepository {
     mechanicId?: string,
   ): Promise<ServiceOrderListItem[]>;
   abstract findAverageExecutionTime(from?: Date, to?: Date): Promise<AverageExecutionTimeMetrics>;
-  abstract softDelete(id: string): Promise<void>;
 }

@@ -8,7 +8,7 @@ export class ConsumePartUseCase {
 
   async execute(id: string, quantityUsed: number): Promise<Part> {
     const part = await this.partRepository.findById(id);
-    if (!part) throw new NotFoundException('Peça não encontrada');
+    if (!part) throw new NotFoundException('Part not found');
 
     part.consume(quantityUsed);
     await this.partRepository.save(part);

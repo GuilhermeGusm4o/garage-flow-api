@@ -1,17 +1,13 @@
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../part.factory';
 
 describe('Part', () => {
   const buildPart = (quantity = 10, minQuantity = 5) =>
-    new Part(
-      'part-1',
-      'Óleo de motor',
-      new UnitOfMeasure('ML'),
-      45.9,
-      new Quantity(quantity),
-      new Quantity(minQuantity),
-    );
+    makePart({
+      id: 'part-1',
+      quantity: new Quantity(quantity),
+      minQuantity: new Quantity(minQuantity),
+    });
 
   it('deve repor um estoque corretamente', () => {
     const part = buildPart(10);
@@ -27,7 +23,7 @@ describe('Part', () => {
 
   it('deve lançar um erro ao consumir mais do que o disponível', () => {
     const part = buildPart(3);
-    expect(() => part.consume(5)).toThrow('Estoque insuficiente');
+    expect(() => part.consume(5)).toThrow('Insufficient stock');
   });
 
   it('deve atualizar nome e preço', () => {
@@ -57,7 +53,11 @@ describe('Part', () => {
   });
 
   it('deve assumir mínimo zero quando não informado', () => {
-    const part = new Part('part-1', 'Óleo', new UnitOfMeasure('ML'), 45.9, new Quantity(0));
+    const part = makePart({
+      id: 'part-1',
+      quantity: new Quantity(0),
+      minQuantity: new Quantity(0),
+    });
     expect(part.minQuantity.value).toBe(0);
     expect(part.isBelowMinimum()).toBe(false);
   });
@@ -73,5 +73,24 @@ describe('Part', () => {
     const part = buildPart(8, 5);
     part.updateDetails('Óleo novo', 50);
     expect(part.minQuantity.value).toBe(5);
+  });
+
+  it('deve bumpar updatedAt ao repor estoque, consumir ou atualizar dados', () => {
+    const part = buildPart(10);
+    const before = part.updatedAt;
+
+    part.restock(5);
+
+    expect(part.updatedAt.getTime()).toBeGreaterThan(before.getTime());
+  });
+
+  it('deve marcar como excluído ao chamar softDelete', () => {
+    const part = buildPart(10);
+    expect(part.isDeleted).toBe(false);
+
+    part.softDelete();
+
+    expect(part.isDeleted).toBe(true);
+    expect(part.deletedAt).toBeInstanceOf(Date);
   });
 });

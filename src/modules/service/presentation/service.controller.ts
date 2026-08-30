@@ -6,12 +6,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
+  ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -27,9 +27,8 @@ import { DeleteServiceUseCase } from '@service/application/use-cases/delete-serv
 import { CreateServiceRequest } from '@service/presentation/dtos/create-service.request';
 import { UpdateServiceRequest } from '@service/presentation/dtos/update-service.request';
 import { ServiceResponse } from '@service/presentation/dtos/service.response';
-import { Roles } from '@auth/infrastructure/security/roles.decorator';
-import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
-import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+import { ApiAuth } from '@common/decorators/api-auth.decorator';
+import { ErrorResponseDto } from '@common/dtos/error-response.dto';
 
 @ApiTags('Services')
 @Controller('services')
@@ -43,21 +42,19 @@ export class ServiceController {
   ) {}
 
   @Post()
-  @ApiBearerAuth('access-token')
-  @Roles('ADMIN')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiAuth('ADMIN')
   @ApiOperation({
     summary: 'Creates a new service',
   })
   @ApiCreatedResponse({ type: ServiceResponse })
+  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Invalid or negative price' })
   async create(@Body() body: CreateServiceRequest): Promise<ServiceResponse> {
     const service = await this.createServiceUseCase.execute(body.name, body.price);
     return ServiceResponse.fromEntity(service);
   }
 
   @Get()
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'List all services',
   })
@@ -68,29 +65,27 @@ export class ServiceController {
   }
 
   @Get(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'Fetch a service by ID',
   })
   @ApiOkResponse({ type: ServiceResponse })
-  @ApiNotFoundResponse({ description: 'Service not found' })
-  async findOne(@Param('id') id: string): Promise<ServiceResponse> {
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Service not found' })
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceResponse> {
     const service = await this.findServiceByIdUseCase.execute(id);
     return ServiceResponse.fromEntity(service);
   }
 
   @Patch(':id')
-  @ApiBearerAuth('access-token')
-  @Roles('ADMIN')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiAuth('ADMIN')
   @ApiOperation({
     summary: 'Updates a service by ID',
   })
   @ApiOkResponse({ type: ServiceResponse })
-  @ApiNotFoundResponse({ description: 'Service not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Service not found' })
+  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Invalid or negative price' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateServiceRequest,
   ): Promise<ServiceResponse> {
     const service = await this.updateServiceUseCase.execute(id, body.name, body.price);
@@ -98,16 +93,14 @@ export class ServiceController {
   }
 
   @Delete(':id')
-  @ApiBearerAuth('access-token')
-  @Roles('ADMIN')
+  @ApiAuth('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Deletes a service by ID',
   })
   @ApiNoContentResponse({ description: 'Service deleted successfully' })
-  @ApiNotFoundResponse({ description: 'Service not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Service not found' })
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteServiceUseCase.execute(id);
   }
 }

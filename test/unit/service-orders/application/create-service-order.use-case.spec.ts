@@ -21,7 +21,6 @@ describe('CreateServiceOrderUseCase', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       findAverageExecutionTime: jest.fn(),
-      softDelete: jest.fn(),
     };
     findClientByCpfCnpj = { execute: jest.fn().mockResolvedValue(client) };
     findVehicleByLicensePlate = { execute: jest.fn().mockResolvedValue(vehicle) };

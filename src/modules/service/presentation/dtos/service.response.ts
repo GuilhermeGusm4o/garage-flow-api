@@ -2,22 +2,28 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { type ServiceEntity } from '@service/domain/entities/service.entity';
 
 export class ServiceResponse {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiProperty({ description: 'Service ID', example: '123e4567-e89b-12d3-a456-426614174000' })
   id!: string;
 
-  @ApiProperty({ example: 'Troca de óleo' })
+  @ApiProperty({ description: "Service's name", example: 'Troca de óleo' })
   name!: string;
 
-  @ApiProperty({ example: '150.00' })
+  @ApiProperty({
+    description: "Service's price, formatted with 2 decimal places",
+    example: '150.00',
+  })
   price!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Record creation timestamp' })
   createdAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Record last-update timestamp' })
   updatedAt!: Date;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: 'Soft-delete timestamp, null while the record is active',
+    nullable: true,
+  })
   deletedAt!: Date | null;
 
   static fromEntity(entity: ServiceEntity): ServiceResponse {

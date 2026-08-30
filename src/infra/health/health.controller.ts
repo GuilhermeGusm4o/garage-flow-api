@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { HealthResponseDto } from './health-response.dto';
 import { HealthService } from './health.service';
 
 @Controller('health')
@@ -9,12 +10,13 @@ export class HealthController {
 
   @Get()
   @ApiOperation({
-    summary: 'Verifica a disponibilidade da API',
+    summary: 'Checks API availability',
   })
   @ApiOkResponse({
-    description: 'API está funcionando normalmente.',
+    type: HealthResponseDto,
+    description: 'The API is running normally',
   })
-  check() {
+  check(): HealthResponseDto {
     return this.healthService.check();
   }
 }

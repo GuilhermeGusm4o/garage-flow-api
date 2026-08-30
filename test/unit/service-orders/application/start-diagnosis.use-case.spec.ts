@@ -1,9 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
-import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { DomainError } from '@common/errors/domain.error';
+import { makeServiceOrder } from '../service-order.factory';
 
 describe('StartDiagnosisUseCase', () => {
   const repository = {
@@ -13,7 +13,7 @@ describe('StartDiagnosisUseCase', () => {
   const useCase = new StartDiagnosisUseCase(repository);
 
   const makeOrder = (status: ServiceOrderStatus) =>
-    new ServiceOrder('order-1', 'vehicle-1', 'Falha no motor', null, status, null, 0, [], []);
+    makeServiceOrder({ vehicleId: 'vehicle-1', description: 'Falha no motor', status });
 
   beforeEach(() => jest.clearAllMocks());
 

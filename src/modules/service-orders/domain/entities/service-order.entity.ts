@@ -2,6 +2,23 @@ import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service
 import { type ServiceItem } from '@service-orders/domain/entities/service-item.entity';
 import { type PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { DomainError } from '@common/errors/domain.error';
+import {
+  BaseDeletableEntity,
+  type BaseDeletableEntityProps,
+} from '@common/entities/base-deletable.entity';
+
+export interface ServiceOrderProps extends BaseDeletableEntityProps {
+  vehicleId: string;
+  description: string;
+  mechanicId: string | null;
+  status: ServiceOrderStatus;
+  approvedAt: Date | null;
+  totalAmount: number;
+  serviceItems: ServiceItem[];
+  partItems: PartItem[];
+  serviceStartedAt: Date | null;
+  serviceFinishedAt: Date | null;
+}
 
 export interface UpdateServiceOrderProps {
   vehicleId?: string;
@@ -10,22 +27,31 @@ export interface UpdateServiceOrderProps {
   approvedAt?: Date | null;
 }
 
-export class ServiceOrder {
-  constructor(
-    public readonly id: string,
-    public vehicleId: string,
-    public readonly description: string,
-    public mechanicId: string | null,
-    public status: ServiceOrderStatus,
-    public approvedAt: Date | null,
-    public totalAmount: number,
-    public serviceItems: ServiceItem[],
-    public partItems: PartItem[],
-    public serviceStartedAt: Date | null = null,
-    public serviceFinishedAt: Date | null = null,
-    public readonly updatedAt: Date = new Date(),
-    public deletedAt: Date | null = null,
-  ) {}
+export class ServiceOrder extends BaseDeletableEntity {
+  private _vehicleId: string;
+  private readonly _description: string;
+  private _mechanicId: string | null;
+  private _status: ServiceOrderStatus;
+  private _approvedAt: Date | null;
+  private _totalAmount: number;
+  private _serviceItems: ServiceItem[];
+  private _partItems: PartItem[];
+  private _serviceStartedAt: Date | null;
+  private _serviceFinishedAt: Date | null;
+
+  private constructor(props: ServiceOrderProps) {
+    super(props);
+    this._vehicleId = props.vehicleId;
+    this._description = props.description;
+    this._mechanicId = props.mechanicId;
+    this._status = props.status;
+    this._approvedAt = props.approvedAt;
+    this._totalAmount = props.totalAmount;
+    this._serviceItems = props.serviceItems;
+    this._partItems = props.partItems;
+    this._serviceStartedAt = props.serviceStartedAt;
+    this._serviceFinishedAt = props.serviceFinishedAt;
+  }
 
   static create(
     vehicleId: string,
@@ -34,20 +60,67 @@ export class ServiceOrder {
     partItems: PartItem[],
     totalAmount: number,
   ): ServiceOrder {
-    return new ServiceOrder(
-      crypto.randomUUID(),
+    const now = new Date();
+
+    return new ServiceOrder({
+      id: crypto.randomUUID(),
       vehicleId,
       description,
-      null,
-      ServiceOrderStatus.RECEIVED,
-      null,
+      mechanicId: null,
+      status: ServiceOrderStatus.RECEIVED,
+      approvedAt: null,
       totalAmount,
       serviceItems,
       partItems,
-      null,
-      null,
-      new Date(),
-    );
+      serviceStartedAt: null,
+      serviceFinishedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  static reconstitute(props: ServiceOrderProps): ServiceOrder {
+    return new ServiceOrder(props);
+  }
+
+  get vehicleId(): string {
+    return this._vehicleId;
+  }
+
+  get description(): string {
+    return this._description;
+  }
+
+  get mechanicId(): string | null {
+    return this._mechanicId;
+  }
+
+  get status(): ServiceOrderStatus {
+    return this._status;
+  }
+
+  get approvedAt(): Date | null {
+    return this._approvedAt;
+  }
+
+  get totalAmount(): number {
+    return this._totalAmount;
+  }
+
+  get serviceItems(): ServiceItem[] {
+    return this._serviceItems;
+  }
+
+  get partItems(): PartItem[] {
+    return this._partItems;
+  }
+
+  get serviceStartedAt(): Date | null {
+    return this._serviceStartedAt;
+  }
+
+  get serviceFinishedAt(): Date | null {
+    return this._serviceFinishedAt;
   }
 
   updateStatus(newStatus: ServiceOrderStatus): void {
@@ -75,26 +148,23 @@ export class ServiceOrder {
       [ServiceOrderStatus.CANCELED]: [],
     };
 
-    if (!allowedTransitions[this.status].includes(newStatus)) {
+    if (!allowedTransitions[this._status].includes(newStatus)) {
       throw new DomainError(
-        `Invalid service order status transition: ${this.status} -> ${newStatus}`,
+        `Invalid service order status transition: ${this._status} -> ${newStatus}`,
       );
     }
 
-    this.status = newStatus;
+    this._status = newStatus;
+    this.touch();
   }
 
   canAccessBudget(): boolean {
-    return ![ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS].includes(this.status);
-  }
-
-  softDelete(): void {
-    this.deletedAt = new Date();
+    return ![ServiceOrderStatus.RECEIVED, ServiceOrderStatus.IN_DIAGNOSIS].includes(this._status);
   }
 
   startDiagnosis(mechanicId: string): void {
     this.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
-    this.mechanicId = mechanicId;
+    this._mechanicId = mechanicId;
   }
 
   addServicesAndParts(
@@ -102,13 +172,14 @@ export class ServiceOrder {
     partItems: PartItem[],
     totalAmount: number,
   ): void {
-    this.serviceItems = [...this.serviceItems, ...serviceItems];
-    this.partItems = [...this.partItems, ...partItems];
-    this.totalAmount = totalAmount;
+    this._serviceItems = [...this._serviceItems, ...serviceItems];
+    this._partItems = [...this._partItems, ...partItems];
+    this._totalAmount = totalAmount;
+    this.touch();
   }
 
   finishDiagnosis(mechanicId: string): void {
-    if (this.mechanicId !== mechanicId) {
+    if (this._mechanicId !== mechanicId) {
       throw new DomainError('Only the mechanic assigned to the service order can finish it');
     }
     this.updateStatus(ServiceOrderStatus.FINISHED_DIAGNOSIS);
@@ -120,30 +191,30 @@ export class ServiceOrder {
 
   approveBudget(approvedAt = new Date()): void {
     this.updateStatus(ServiceOrderStatus.AWAITING_EXECUTION);
-    this.approvedAt = approvedAt;
+    this._approvedAt = approvedAt;
   }
 
   cancelService(): void {
     this.updateStatus(ServiceOrderStatus.CANCELED);
-    this.approvedAt = null;
+    this._approvedAt = null;
   }
 
   startService(mechanicId: string, startedAt = new Date()): void {
-    if (this.mechanicId !== mechanicId) {
+    if (this._mechanicId !== mechanicId) {
       throw new DomainError('Only the mechanic assigned to the service order can start it');
     }
 
     this.updateStatus(ServiceOrderStatus.IN_EXECUTION);
-    this.serviceStartedAt = startedAt;
+    this._serviceStartedAt = startedAt;
   }
 
   finishService(mechanicId: string, finishedAt = new Date()): void {
-    if (this.mechanicId !== mechanicId) {
+    if (this._mechanicId !== mechanicId) {
       throw new DomainError('Only the mechanic assigned to the service order can finish it');
     }
 
     this.updateStatus(ServiceOrderStatus.FINISHED);
-    this.serviceFinishedAt = finishedAt;
+    this._serviceFinishedAt = finishedAt;
   }
 
   deliver(): void {
@@ -151,9 +222,10 @@ export class ServiceOrder {
   }
 
   update(props: UpdateServiceOrderProps): void {
-    if (props.vehicleId !== undefined) this.vehicleId = props.vehicleId;
-    if (props.mechanicId !== undefined) this.mechanicId = props.mechanicId;
-    if (props.approvedAt !== undefined) this.approvedAt = props.approvedAt;
+    if (props.vehicleId !== undefined) this._vehicleId = props.vehicleId;
+    if (props.mechanicId !== undefined) this._mechanicId = props.mechanicId;
+    if (props.approvedAt !== undefined) this._approvedAt = props.approvedAt;
     if (props.status !== undefined) this.updateStatus(props.status);
+    this.touch();
   }
 }

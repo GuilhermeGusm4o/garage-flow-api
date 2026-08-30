@@ -42,9 +42,7 @@ export class AddServicesAndPartsUseCase {
         ? this.findServicesByIdList
             .execute(dto.services.map((item) => item.serviceId))
             .then((services) =>
-              services.map(
-                (service) => new ServiceItem(null, service.id, service.price.getValue()),
-              ),
+              services.map((service) => ServiceItem.create(service.id, service.price.getValue())),
             )
         : Promise.resolve([]);
 
@@ -57,7 +55,7 @@ export class AddServicesAndPartsUseCase {
         if (unavailable) {
           const { part, availableQuantity } = unavailable.stockLevel;
           throw new BadRequestException(
-            `Quantidade indisponível para a peça ${part.name}. Disponível: ${availableQuantity}, solicitado: ${unavailable.requestedQuantity}`,
+            `Unavailable quantity for part ${part.name}. Available: ${availableQuantity}, requested: ${unavailable.requestedQuantity}`,
           );
         }
 
@@ -71,15 +69,9 @@ export class AddServicesAndPartsUseCase {
         return dto.parts.map((item) => {
           const part = partsById.get(item.inventoryId);
           if (!part) {
-            throw new NotFoundException(`Peça ${item.inventoryId} não encontrada`);
+            throw new NotFoundException(`Part ${item.inventoryId} not found`);
           }
-          return new PartItem(
-            null,
-            part.id,
-            item.quantity,
-            part.unitPrice,
-            part.unitOfMeasure.value,
-          );
+          return PartItem.create(part.id, item.quantity, part.unitPrice, part.unitOfMeasure.value);
         });
       });
 
@@ -124,7 +116,7 @@ export class AddServicesAndPartsUseCase {
     for (const item of dto.parts) {
       if (inventoryIds.has(item.inventoryId)) {
         throw new BadRequestException(
-          `A peça ${item.inventoryId} não pode ser adicionada mais de uma vez na mesma operação`,
+          `Part ${item.inventoryId} cannot be added more than once in the same operation`,
         );
       }
       inventoryIds.add(item.inventoryId);

@@ -6,13 +6,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -29,9 +28,8 @@ import { DeleteClientUseCase } from '@client/application/use-cases/delete-client
 import { CreateClientRequest } from '@client/presentation/dtos/create-client.request';
 import { UpdateClientRequest } from '@client/presentation/dtos/update-client.request';
 import { ClientResponse } from '@client/presentation/dtos/client.response';
-import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
-import { Roles } from '@auth/infrastructure/security/roles.decorator';
-import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+import { ApiAuth } from '@common/decorators/api-auth.decorator';
+import { ErrorResponseDto } from '@common/dtos/error-response.dto';
 
 @ApiTags('Clients')
 @Controller('clients')
@@ -45,15 +43,16 @@ export class ClientController {
   ) {}
 
   @Post()
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @ApiAuth('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Creates a new client',
   })
   @ApiCreatedResponse({ type: ClientResponse })
-  @ApiBadRequestResponse({ description: 'Invalid CPF/CNPJ or payload' })
-  @ApiConflictResponse({ description: 'Client with this CPF/CNPJ already exists' })
+  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Invalid CPF/CNPJ or payload' })
+  @ApiConflictResponse({
+    type: ErrorResponseDto,
+    description: 'Client with this CPF/CNPJ already exists',
+  })
   async create(@Body() body: CreateClientRequest): Promise<ClientResponse> {
     const client = await this.createClientUseCase.execute({
       cpfCnpj: body.cpfCnpj,
@@ -66,8 +65,7 @@ export class ClientController {
   }
 
   @Get()
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'List all clients',
   })
@@ -78,29 +76,26 @@ export class ClientController {
   }
 
   @Get(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'Fetch a client by ID',
   })
   @ApiOkResponse({ type: ClientResponse })
-  @ApiNotFoundResponse({ description: 'Client not found' })
-  async findOne(@Param('id') id: string): Promise<ClientResponse> {
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Client not found' })
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ClientResponse> {
     const client = await this.findClientByIdUseCase.execute(id);
     return ClientResponse.fromEntity(client);
   }
 
   @Patch(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @ApiAuth('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Updates a client by ID',
   })
   @ApiOkResponse({ type: ClientResponse })
-  @ApiNotFoundResponse({ description: 'Client not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Client not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateClientRequest,
   ): Promise<ClientResponse> {
     const client = await this.updateClientUseCase.execute(id, {
@@ -113,16 +108,14 @@ export class ClientController {
   }
 
   @Delete(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @ApiAuth('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Deletes a client by ID',
   })
   @ApiNoContentResponse({ description: 'Client deleted successfully' })
-  @ApiNotFoundResponse({ description: 'Client not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Client not found' })
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteClientUseCase.execute(id);
   }
 }

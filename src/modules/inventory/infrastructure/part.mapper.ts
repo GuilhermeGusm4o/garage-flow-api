@@ -8,14 +8,17 @@ import {
 
 export class PartMapper {
   static toDomain(row: PrismaInventory): Part {
-    return new Part(
-      row.id,
-      row.name,
-      new UnitOfMeasureVO(row.unitOfMeasure),
-      Number(row.unitPrice),
-      new Quantity(Number(row.quantity)),
-      new Quantity(Number(row.minQuantity)),
-    );
+    return Part.create({
+      id: row.id,
+      name: row.name,
+      unitOfMeasure: new UnitOfMeasureVO(row.unitOfMeasure),
+      unitPrice: Number(row.unitPrice),
+      quantity: new Quantity(Number(row.quantity)),
+      minQuantity: new Quantity(Number(row.minQuantity)),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at,
+    });
   }
 
   static toPersistence(part: Part) {
@@ -26,6 +29,7 @@ export class PartMapper {
       unitPrice: part.unitPrice,
       quantity: part.quantity.value,
       minQuantity: part.minQuantity.value,
+      deleted_at: part.deletedAt,
     };
   }
 }

@@ -5,7 +5,7 @@ export class Quantity {
 
   constructor(value: number, allowNegative = false) {
     if (!allowNegative && value < 0) {
-      throw new DomainError('Quantidade não pode ser negativa');
+      throw new DomainError('Quantity cannot be negative');
     }
     this.value = value;
   }
@@ -16,7 +16,7 @@ export class Quantity {
 
   subtract(amount: number): Quantity {
     if (this.value - amount < 0) {
-      throw new DomainError('Estoque insuficiente');
+      throw new DomainError('Insufficient stock');
     }
     return new Quantity(this.value - amount);
   }

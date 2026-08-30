@@ -15,9 +15,6 @@
       "@vehicle/*": [
         "src/modules/vehicle/*"
       ],
-      "@infra/*": [
-        "src/modules/infra/*"
-      ],
       "@prisma/*": [
         "generated/prisma/*"
       ],

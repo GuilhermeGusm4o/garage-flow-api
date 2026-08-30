@@ -3,9 +3,8 @@ import { GenerateServiceOrderBudgetUseCase } from '@service-orders/application/u
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { ServiceEntity } from '@service/domain/entities/service.entity';
 import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../inventory/part.factory';
 import { type FindVehicleByIdUseCase } from '@vehicle/application/use-cases/find-vehicle-by-id.use-case';
 import { type FindClientByIdUseCase } from '@client/application/use-cases/find-client-by-id.use-case';
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
@@ -39,13 +38,12 @@ describe('GenerateServiceOrderBudgetUseCase', () => {
     updatedAt: FIXED_DATE,
   });
 
-  const part = new Part(
-    crypto.randomUUID(),
-    'Filtro de óleo',
-    new UnitOfMeasure('UNIT'),
-    30,
-    new Quantity(10),
-  );
+  const part = makePart({
+    id: crypto.randomUUID(),
+    name: 'Filtro de óleo',
+    unitPrice: 30,
+    quantity: new Quantity(10),
+  });
 
   const buildServiceOrder = (overrides: Parameters<typeof makeServiceOrder>[0] = {}) =>
     makeServiceOrder({

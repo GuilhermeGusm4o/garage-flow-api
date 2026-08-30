@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ClientModule } from '../client/client.module';
+import { ClientModule } from '@client/client.module';
 import { VehicleController } from '@vehicle/presentation/vehicle.controller';
 import { CreateVehicleUseCase } from '@vehicle/application/use-cases/create-vehicle.use-case';
 import { FindAllVehiclesUseCase } from '@vehicle/application/use-cases/find-all-vehicles.use-case';

@@ -8,7 +8,7 @@ import { DeleteServiceUseCase } from '@service/application/use-cases/delete-serv
 import { FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { ServiceRepository } from '@service/domain/repositories/service.repository';
 import { PrismaServiceRepository } from '@service/infrastructure/prisma-service.repository';
-import { PrismaService } from '../../infra/database/prisma/prisma.service';
+import { PrismaService } from '@infra/database/prisma/prisma.service';
 
 @Module({
   controllers: [ServiceController],
