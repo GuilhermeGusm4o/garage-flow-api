@@ -1,23 +1,20 @@
 import { NotFoundException } from '@nestjs/common';
 import { StartServiceUseCase } from '@service-orders/application/use-cases/start-service.use-case';
-import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { DomainError } from '@common/errors/domain.error';
+import { makeServiceOrder } from '../service-order.factory';
 
 describe('StartServiceUseCase', () => {
   const makeOrder = (mechanicId: string | null) =>
-    new ServiceOrder(
-      'order-1',
-      'vehicle-1',
-      'Falha no motor',
+    makeServiceOrder({
+      vehicleId: 'vehicle-1',
+      description: 'Falha no motor',
       mechanicId,
-      ServiceOrderStatus.AWAITING_EXECUTION,
-      new Date(),
-      100,
-      [],
-      [],
-    );
+      status: ServiceOrderStatus.AWAITING_EXECUTION,
+      approvedAt: new Date(),
+      totalAmount: 100,
+    });
 
   it('inicia a execução para o mecânico atribuído', async () => {
     const order = makeOrder('mechanic-1');

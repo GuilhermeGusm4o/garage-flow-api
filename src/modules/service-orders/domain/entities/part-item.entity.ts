@@ -1,16 +1,13 @@
-import {
-  TimestampedEntity,
-  type TimestampedEntityProps,
-} from '@common/entities/timestamped.entity';
+import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
 
-export interface PartItemProps extends TimestampedEntityProps {
+export interface PartItemProps extends BaseEntityProps {
   inventoryId: string;
   quantity: number;
   unitPrice: number;
   unitOfMeasure: string | null;
 }
 
-export class PartItem extends TimestampedEntity {
+export class PartItem extends BaseEntity {
   private readonly _inventoryId: string;
   private readonly _quantity: number;
   private readonly _unitPrice: number;

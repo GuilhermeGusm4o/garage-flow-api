@@ -1,8 +1,11 @@
-import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
+import {
+  BaseDeletableEntity,
+  type BaseDeletableEntityProps,
+} from '@common/entities/base-deletable.entity';
 
 export type UserRole = 'ADMIN' | 'MECHANIC' | 'SERVICE_ADVISOR' | 'STOCK_CLERK';
 
-export interface UserProps extends BaseEntityProps {
+export interface UserProps extends BaseDeletableEntityProps {
   name: string;
   email: string;
   passwordHash: string;
@@ -16,7 +19,7 @@ export interface UpdateUserProps {
   role?: UserRole;
 }
 
-export class User extends BaseEntity {
+export class User extends BaseDeletableEntity {
   private _name: string;
   private _email: string;
   private _passwordHash: string;

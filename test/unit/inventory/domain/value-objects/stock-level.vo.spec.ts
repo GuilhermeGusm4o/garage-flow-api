@@ -1,17 +1,15 @@
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../part.factory';
 
 const buildPart = (quantity: number, minQuantity: number) =>
-  new Part(
-    'part-1',
-    'Óleo de motor',
-    new UnitOfMeasure('ML'),
-    45.9,
-    new Quantity(quantity),
-    new Quantity(minQuantity),
-  );
+  makePart({
+    id: 'part-1',
+    name: 'Óleo de motor',
+    unitPrice: 45.9,
+    quantity: new Quantity(quantity),
+    minQuantity: new Quantity(minQuantity),
+  });
 
 describe('StockLevel', () => {
   it('desconta o reservado do estoque físico', () => {

@@ -17,7 +17,6 @@ describe('RestockPartUseCase', () => {
       findReservedQuantities: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
     };
     useCase = new RestockPartUseCase(repository);
   });

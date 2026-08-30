@@ -1,12 +1,15 @@
 import { type ServicePrice } from '@service/domain/value-objects/service-price.value-object';
-import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
+import {
+  BaseDeletableEntity,
+  type BaseDeletableEntityProps,
+} from '@common/entities/base-deletable.entity';
 
-export interface ServiceProps extends BaseEntityProps {
+export interface ServiceProps extends BaseDeletableEntityProps {
   name: string;
   price: ServicePrice;
 }
 
-export class ServiceEntity extends BaseEntity {
+export class ServiceEntity extends BaseDeletableEntity {
   private _name: string;
   private _price: ServicePrice;
 

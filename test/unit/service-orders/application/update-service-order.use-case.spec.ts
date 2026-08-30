@@ -4,6 +4,7 @@ import { ServiceOrder } from '@service-orders/domain/entities/service-order.enti
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { type UpdateServiceOrderDto } from '@service-orders/presentation/dtos/update-service-order.dto';
+import { makeServiceOrder } from '../service-order.factory';
 
 describe('UpdateServiceOrderUseCase', () => {
   let repository: jest.Mocked<ServiceOrderRepository>;
@@ -50,9 +51,10 @@ describe('UpdateServiceOrderUseCase', () => {
   });
 
   it('não deve alterar campos não informados no DTO', async () => {
-    const existing = buildServiceOrder();
-    existing.update({ mechanicId: 'mechanic-1' });
-    existing.status = ServiceOrderStatus.AWAITING_EXECUTION;
+    const existing = makeServiceOrder({
+      mechanicId: 'mechanic-1',
+      status: ServiceOrderStatus.AWAITING_EXECUTION,
+    });
     repository.findById.mockResolvedValue(existing);
 
     const os = await useCase.execute('os-1', { vehicleId: 'vehicle-3' });

@@ -53,7 +53,11 @@ describe('Part', () => {
   });
 
   it('deve assumir mínimo zero quando não informado', () => {
-    const part = makePart({ id: 'part-1', quantity: new Quantity(0), minQuantity: new Quantity(0) });
+    const part = makePart({
+      id: 'part-1',
+      quantity: new Quantity(0),
+      minQuantity: new Quantity(0),
+    });
     expect(part.minQuantity.value).toBe(0);
     expect(part.isBelowMinimum()).toBe(false);
   });

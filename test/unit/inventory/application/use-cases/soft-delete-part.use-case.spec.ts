@@ -17,18 +17,18 @@ describe('SoftDeletePartUseCase', () => {
       findReservedQuantities: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
     };
     useCase = new SoftDeletePartUseCase(repository);
   });
 
-  it('deve chamar softDelete quando a peça existe', async () => {
+  it('deve marcar a peça como excluída e salvar quando ela existe', async () => {
     const part = makePart({ id: 'part-1', name: 'Óleo', quantity: new Quantity(10) });
     repository.findById.mockResolvedValue(part);
 
     await useCase.execute('part-1');
 
-    expect(repository.softDelete).toHaveBeenCalledWith('part-1');
+    expect(part.isDeleted).toBe(true);
+    expect(repository.save).toHaveBeenCalledWith(part);
   });
 
   it('deve lançar NotFoundException quando a peça não existe', async () => {

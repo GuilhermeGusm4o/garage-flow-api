@@ -15,7 +15,6 @@ describe('CreatePartUseCase', () => {
       findReservedQuantities: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
     };
     useCase = new CreatePartUseCase(repository);
   });

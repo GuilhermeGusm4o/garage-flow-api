@@ -1,12 +1,11 @@
 import { NotFoundException } from '@nestjs/common';
 import { WriteOffPartsUseCase } from '@inventory/application/use-cases/write-off-parts.use-case';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../part.factory';
 
 const buildPart = (id: string, quantity: number) =>
-  new Part(id, `Peça ${id}`, new UnitOfMeasure('UNIT'), 10, new Quantity(quantity));
+  makePart({ id, name: `Peça ${id}`, unitPrice: 10, quantity: new Quantity(quantity) });
 
 describe('WriteOffPartsUseCase', () => {
   let repository: jest.Mocked<PartRepository>;
@@ -20,7 +19,6 @@ describe('WriteOffPartsUseCase', () => {
       findAll: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
       findReservedQuantities: jest.fn(),
     };
     useCase = new WriteOffPartsUseCase(repository);

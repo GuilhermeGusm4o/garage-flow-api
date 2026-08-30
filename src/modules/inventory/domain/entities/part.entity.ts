@@ -1,6 +1,9 @@
 import { type UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { type Quantity } from '@inventory/domain/value-objects/quantity.vo';
-import { BaseDeletableEntity, type BaseDeletableEntityProps } from '@common/entities/base-deletable.entity';
+import {
+  BaseDeletableEntity,
+  type BaseDeletableEntityProps,
+} from '@common/entities/base-deletable.entity';
 
 export interface PartProps extends BaseDeletableEntityProps {
   name: string;

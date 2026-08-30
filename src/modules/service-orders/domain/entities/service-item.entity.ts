@@ -1,14 +1,11 @@
-import {
-  TimestampedEntity,
-  type TimestampedEntityProps,
-} from '@common/entities/timestamped.entity';
+import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
 
-export interface ServiceItemProps extends TimestampedEntityProps {
+export interface ServiceItemProps extends BaseEntityProps {
   serviceId: string;
   price: number;
 }
 
-export class ServiceItem extends TimestampedEntity {
+export class ServiceItem extends BaseEntity {
   private readonly _serviceId: string;
   private readonly _price: number;
 

@@ -1,30 +1,33 @@
-import {
-  TimestampedEntity,
-  type TimestampedEntityProps,
-} from '@common/entities/timestamped.entity';
-
-export interface BaseEntityProps extends TimestampedEntityProps {
-  deletedAt?: Date | null;
+export interface BaseEntityProps {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export abstract class BaseEntity extends TimestampedEntity {
-  protected _deletedAt: Date | null;
+export abstract class BaseEntity {
+  protected readonly _id: string;
+  protected _createdAt: Date;
+  protected _updatedAt: Date;
 
   protected constructor(props: BaseEntityProps) {
-    super(props);
-    this._deletedAt = props.deletedAt ?? null;
+    this._id = props.id;
+    this._createdAt = props.createdAt;
+    this._updatedAt = props.updatedAt;
   }
 
-  get deletedAt(): Date | null {
-    return this._deletedAt;
+  get id(): string {
+    return this._id;
   }
 
-  get isDeleted(): boolean {
-    return this._deletedAt !== null;
+  get createdAt(): Date {
+    return this._createdAt;
   }
 
-  softDelete(): void {
-    this._deletedAt = new Date();
-    this.touch();
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  protected touch(): void {
+    this._updatedAt = new Date();
   }
 }

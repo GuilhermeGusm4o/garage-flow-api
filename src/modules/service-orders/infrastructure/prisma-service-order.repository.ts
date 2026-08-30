@@ -61,13 +61,26 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
       orderBy: { created_at: 'desc' },
     });
 
-    return raws.map((raw) => ({
-      ...ServiceOrderMapper.toDomain(raw),
-      vehicleLicensePlate: raw.vehicle.licensePlate,
-      clientName: raw.vehicle.client.name,
-      vehicleBrand: raw.vehicle.brand,
-      vehicleModel: raw.vehicle.model,
-    }));
+    return raws.map((raw) => {
+      const serviceOrder = ServiceOrderMapper.toDomain(raw);
+      return {
+        id: serviceOrder.id,
+        vehicleId: serviceOrder.vehicleId,
+        description: serviceOrder.description,
+        mechanicId: serviceOrder.mechanicId,
+        status: serviceOrder.status,
+        approvedAt: serviceOrder.approvedAt,
+        totalAmount: serviceOrder.totalAmount,
+        serviceStartedAt: serviceOrder.serviceStartedAt,
+        serviceFinishedAt: serviceOrder.serviceFinishedAt,
+        serviceItems: serviceOrder.serviceItems,
+        partItems: serviceOrder.partItems,
+        vehicleLicensePlate: raw.vehicle.licensePlate,
+        clientName: raw.vehicle.client.name,
+        vehicleBrand: raw.vehicle.brand,
+        vehicleModel: raw.vehicle.model,
+      };
+    });
   }
 
   async findAverageExecutionTime(from?: Date, to?: Date): Promise<AverageExecutionTimeMetrics> {
