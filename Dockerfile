@@ -47,4 +47,6 @@ COPY --from=build /app/generated ./generated
 
 EXPOSE 3000
 
+USER node
+
 CMD ["node", "dist/src/main"]

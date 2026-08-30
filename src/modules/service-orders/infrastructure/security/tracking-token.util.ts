@@ -40,7 +40,9 @@ export function resolveTrackingToken(token: string): string {
     const authTag = payload.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
     const ciphertext = payload.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
 
-    const decipher = createDecipheriv(ALGORITHM, getKey(), iv);
+    const decipher = createDecipheriv(ALGORITHM, getKey(), iv, {
+      authTagLength: AUTH_TAG_LENGTH,
+    });
     decipher.setAuthTag(authTag);
 
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
