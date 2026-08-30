@@ -8,7 +8,7 @@ export class FindVehicleByLicensePlateUseCase {
 
   async execute(licensePlate: string): Promise<VehicleEntity> {
     const vehicle = await this.vehicleRepository.findByLicensePlate(licensePlate);
-    if (!vehicle) throw new NotFoundException('Veículo não encontrado');
+    if (!vehicle) throw new NotFoundException('Vehicle not found');
     return vehicle;
   }
 }

@@ -8,7 +8,7 @@ export class RestockPartUseCase {
 
   async execute(id: string, quantityReceived: number): Promise<Part> {
     const part = await this.partRepository.findById(id);
-    if (!part) throw new NotFoundException('Peça não encontrada');
+    if (!part) throw new NotFoundException('Part not found');
 
     part.restock(quantityReceived);
     await this.partRepository.save(part);

@@ -6,7 +6,7 @@ export class ServiceOrderTrackingResponseDto {
   @ApiProperty({ enum: ServiceOrderStatus })
   status!: ServiceOrderStatus;
 
-  @ApiProperty({ description: 'Data da última atualização da OS' })
+  @ApiProperty({ description: "Date of the service order's last update" })
   updatedAt!: Date;
 
   static fromEntity(entity: ServiceOrder): ServiceOrderTrackingResponseDto {

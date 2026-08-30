@@ -58,22 +58,22 @@ export class ServiceOrderResponseDto {
   @ApiProperty()
   vehicleId!: string;
 
-  @ApiPropertyOptional({ description: 'Placa do veículo' })
+  @ApiPropertyOptional({ description: "Vehicle's license plate" })
   vehicleLicensePlate?: string;
 
-  @ApiPropertyOptional({ description: 'Nome do cliente' })
+  @ApiPropertyOptional({ description: "Client's name" })
   clientName?: string;
 
-  @ApiPropertyOptional({ description: 'Marca do veículo' })
+  @ApiPropertyOptional({ description: "Vehicle's brand" })
   vehicleBrand?: string;
 
-  @ApiPropertyOptional({ description: 'Modelo do veículo' })
+  @ApiPropertyOptional({ description: "Vehicle's model" })
   vehicleModel?: string;
 
-  @ApiPropertyOptional({ description: 'Identificação amigável para seleção da OS' })
+  @ApiPropertyOptional({ description: 'Friendly identifier for selecting the service order' })
   displayLabel?: string;
 
-  @ApiProperty({ description: 'Reclamação do cliente relatada na abertura da OS' })
+  @ApiProperty({ description: 'Client complaint reported when the service order was opened' })
   description!: string;
 
   @ApiPropertyOptional({ nullable: true })

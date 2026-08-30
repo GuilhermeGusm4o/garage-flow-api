@@ -11,16 +11,16 @@ export class LowStockPartResponseDto {
   @ApiProperty({ example: 'ML' })
   unitOfMeasure!: string;
 
-  @ApiProperty({ example: 20, description: 'Quantidade física em estoque' })
+  @ApiProperty({ example: 20, description: 'Physical quantity in stock' })
   physicalQuantity!: number;
 
-  @ApiProperty({ example: 8, description: 'Quantidade comprometida com OS em aberto' })
+  @ApiProperty({ example: 8, description: 'Quantity committed to open service orders' })
   reservedQuantity!: number;
 
-  @ApiProperty({ example: 12, description: 'Estoque lógico: físico menos o comprometido' })
+  @ApiProperty({ example: 12, description: 'Logical stock: physical minus committed' })
   availableQuantity!: number;
 
-  @ApiProperty({ example: 15, description: 'Mínimo recomendado em estoque' })
+  @ApiProperty({ example: 15, description: 'Recommended minimum stock' })
   minQuantity!: number;
 
   static fromStockLevel(level: StockLevel): LowStockPartResponseDto {

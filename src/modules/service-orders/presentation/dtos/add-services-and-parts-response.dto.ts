@@ -10,16 +10,16 @@ export class StockAlertResponseDto {
   @ApiProperty({ example: 'Óleo sintético 5W40' })
   name!: string;
 
-  @ApiProperty({ example: 20, description: 'Quantidade física em estoque' })
+  @ApiProperty({ example: 20, description: 'Physical quantity in stock' })
   quantity!: number;
 
-  @ApiProperty({ example: 18, description: 'Quantidade comprometida com OS em aberto' })
+  @ApiProperty({ example: 18, description: 'Quantity committed to open service orders' })
   reservedQuantity!: number;
 
-  @ApiProperty({ example: 2, description: 'Estoque lógico: físico menos o comprometido' })
+  @ApiProperty({ example: 2, description: 'Logical stock: physical minus committed' })
   availableQuantity!: number;
 
-  @ApiProperty({ example: 10, description: 'Mínimo recomendado em estoque' })
+  @ApiProperty({ example: 10, description: 'Recommended minimum stock' })
   minQuantity!: number;
 
   static fromStockLevel(level: StockLevel): StockAlertResponseDto {
@@ -38,8 +38,8 @@ export class AddServicesAndPartsResponseDto extends ServiceOrderResponseDto {
   @ApiProperty({
     type: [StockAlertResponseDto],
     description:
-      'Peças recém-adicionadas cujo estoque lógico ficou abaixo do mínimo recomendado. ' +
-      'Vazio quando nenhuma peça disparou alerta.',
+      'Recently added parts whose logical stock fell below the recommended minimum. ' +
+      'Empty when no part triggered an alert.',
   })
   stockAlerts!: StockAlertResponseDto[];
 

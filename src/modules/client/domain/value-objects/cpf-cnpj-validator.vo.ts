@@ -2,7 +2,7 @@ import { DomainError } from '@common/errors/domain.error';
 
 export class InvalidCpfCnpjError extends DomainError {
   constructor(value: string) {
-    super(`CPF/CNPJ inválido: "${value}"`);
+    super(`Invalid CPF/CNPJ: "${value}"`);
     this.name = 'InvalidCpfCnpjError';
   }
 }

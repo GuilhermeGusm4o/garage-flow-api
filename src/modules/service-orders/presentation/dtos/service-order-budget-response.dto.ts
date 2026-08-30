@@ -66,7 +66,7 @@ export class ServiceOrderBudgetResponseDto {
   @ApiProperty()
   serviceOrderId!: string;
 
-  @ApiProperty({ description: 'Reclamação do cliente relatada na abertura da OS' })
+  @ApiProperty({ description: 'Client complaint reported when the service order was opened' })
   description!: string;
 
   @ApiProperty()
