@@ -1,12 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
-import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { makePart } from '../../part.factory';
 
-describe('SoftDeletePartUseCase', () => {
+describe('DeletePartUseCase', () => {
   let repository: jest.Mocked<PartRepository>;
-  let useCase: SoftDeletePartUseCase;
+  let useCase: DeletePartUseCase;
 
   beforeEach(() => {
     repository = {
@@ -18,7 +18,7 @@ describe('SoftDeletePartUseCase', () => {
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
     };
-    useCase = new SoftDeletePartUseCase(repository);
+    useCase = new DeletePartUseCase(repository);
   });
 
   it('deve marcar a peça como excluída e salvar quando ela existe', async () => {

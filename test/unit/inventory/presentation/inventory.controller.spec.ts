@@ -5,7 +5,7 @@ import { type ConsumePartUseCase } from '@inventory/application/use-cases/consum
 import { type ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
 import { type ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { type SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { type DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 import { makePart } from '../part.factory';
@@ -18,7 +18,7 @@ describe('InventoryController', () => {
   let listParts: jest.Mocked<ListPartsUseCase>;
   let listLowStockParts: jest.Mocked<ListLowStockPartsUseCase>;
   let updatePart: jest.Mocked<UpdatePartUseCase>;
-  let softDeletePart: jest.Mocked<SoftDeletePartUseCase>;
+  let deletePart: jest.Mocked<DeletePartUseCase>;
 
   beforeEach(() => {
     createPart = { execute: jest.fn() } as unknown as jest.Mocked<CreatePartUseCase>;
@@ -29,7 +29,7 @@ describe('InventoryController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<ListLowStockPartsUseCase>;
     updatePart = { execute: jest.fn() } as unknown as jest.Mocked<UpdatePartUseCase>;
-    softDeletePart = { execute: jest.fn() } as unknown as jest.Mocked<SoftDeletePartUseCase>;
+    deletePart = { execute: jest.fn() } as unknown as jest.Mocked<DeletePartUseCase>;
 
     controller = new InventoryController(
       createPart,
@@ -38,7 +38,7 @@ describe('InventoryController', () => {
       listParts,
       listLowStockParts,
       updatePart,
-      softDeletePart,
+      deletePart,
     );
   });
 
@@ -120,9 +120,9 @@ describe('InventoryController', () => {
   });
 
   it('faz soft delete', async () => {
-    softDeletePart.execute.mockResolvedValue(undefined);
+    deletePart.execute.mockResolvedValue(undefined);
 
     await expect(controller.remove('part-id')).resolves.toBeUndefined();
-    expect(softDeletePart.execute).toHaveBeenCalledWith('part-id');
+    expect(deletePart.execute).toHaveBeenCalledWith('part-id');
   });
 });

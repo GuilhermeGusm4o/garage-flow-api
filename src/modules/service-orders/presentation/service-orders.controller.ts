@@ -32,7 +32,7 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
-import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
+import { DeleteServiceOrderUseCase } from '@service-orders/application/use-cases/delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
@@ -66,7 +66,7 @@ export class ServiceOrdersController {
     private readonly findServiceOrderById: FindServiceOrderByIdUseCase,
     private readonly findAllServiceOrders: FindAllServiceOrdersUseCase,
     private readonly updateServiceOrder: UpdateServiceOrderUseCase,
-    private readonly softDeleteServiceOrder: SoftDeleteServiceOrderUseCase,
+    private readonly deleteServiceOrder: DeleteServiceOrderUseCase,
     private readonly addServicesAndParts: AddServicesAndPartsUseCase,
     private readonly startDiagnosis: StartDiagnosisUseCase,
     private readonly finishService: FinishServiceUseCase,
@@ -354,7 +354,7 @@ export class ServiceOrdersController {
   @ApiNoContentResponse({ description: 'Service order deleted successfully' })
   @ApiNotFoundResponse({ description: 'Service order not found' })
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    await this.softDeleteServiceOrder.execute(id);
+    await this.deleteServiceOrder.execute(id);
   }
 
   private getBaseUrl(request: Request): string {

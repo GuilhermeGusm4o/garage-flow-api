@@ -4,7 +4,7 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
-import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
+import { DeleteServiceOrderUseCase } from '@service-orders/application/use-cases/delete-service-order.use-case';
 import { CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
@@ -32,7 +32,7 @@ import { InventoryModule } from '@inventory/inventory.module';
     FindServiceOrderByIdUseCase,
     FindAllServiceOrdersUseCase,
     UpdateServiceOrderUseCase,
-    SoftDeleteServiceOrderUseCase,
+    DeleteServiceOrderUseCase,
     CalculateTotalAmountUseCase,
     AddServicesAndPartsUseCase,
     StartDiagnosisUseCase,

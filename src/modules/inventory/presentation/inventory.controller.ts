@@ -27,7 +27,7 @@ import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-par
 import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
 import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { CreatePartDto } from '@inventory/presentation/dtos/create-part.dto';
 import { RestockPartDto } from '@inventory/presentation/dtos/restock-part.dto';
 import { UpdatePartDto } from '@inventory/presentation/dtos/update-part.dto';
@@ -47,7 +47,7 @@ export class InventoryController {
     private readonly listParts: ListPartsUseCase,
     private readonly listLowStockParts: ListLowStockPartsUseCase,
     private readonly updatePart: UpdatePartUseCase,
-    private readonly softDeletePart: SoftDeletePartUseCase,
+    private readonly deletePart: DeletePartUseCase,
   ) {}
 
   @Post()
@@ -143,6 +143,6 @@ export class InventoryController {
   @ApiNoContentResponse({ description: 'Inventory item deleted successfully' })
   @ApiNotFoundResponse({ description: 'Inventory item not found' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.softDeletePart.execute(id);
+    return this.deletePart.execute(id);
   }
 }
