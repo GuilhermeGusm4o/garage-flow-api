@@ -9,7 +9,7 @@ import { CreateServiceOrderUseCase } from '@service-orders/application/use-cases
 import { FindServiceOrderByIdUseCase } from '@service-orders/application/use-cases/find-service-order-by-id.use-case';
 import { FindAllServiceOrdersUseCase } from '@service-orders/application/use-cases/find-all-service-orders.use-case';
 import { UpdateServiceOrderUseCase } from '@service-orders/application/use-cases/update-service-order.use-case';
-import { SoftDeleteServiceOrderUseCase } from '@service-orders/application/use-cases/soft-delete-service-order.use-case';
+import { DeleteServiceOrderUseCase } from '@service-orders/application/use-cases/delete-service-order.use-case';
 import { AddServicesAndPartsUseCase } from '@service-orders/application/use-cases/add-services-and-parts.use-case';
 import { StartDiagnosisUseCase } from '@service-orders/application/use-cases/start-diagnosis.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
@@ -176,7 +176,7 @@ describe('ServiceOrdersController (security)', () => {
           useValue: { execute: jest.fn().mockResolvedValue(makeServiceOrder()) },
         },
         {
-          provide: SoftDeleteServiceOrderUseCase,
+          provide: DeleteServiceOrderUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(undefined) },
         },
         {

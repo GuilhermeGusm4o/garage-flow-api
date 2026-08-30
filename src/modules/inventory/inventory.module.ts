@@ -8,7 +8,7 @@ import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-
 import { CheckPartsAvailabilityUseCase } from '@inventory/application/use-cases/check-parts-availability.use-case';
 import { WriteOffPartsUseCase } from '@inventory/application/use-cases/write-off-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { CalculateAvailabilityUseCase } from '@inventory/application/use-cases/calculate-availability.use-case';
 import { PartRepository } from '@inventory/domain/repositories/part.repository';
 import { PrismaPartRepository } from '@inventory/infrastructure/prisma-part.repository';
@@ -26,7 +26,7 @@ import { FindPartsByIdListUseCase } from '@inventory/application/use-cases/find-
     WriteOffPartsUseCase,
     ListLowStockPartsUseCase,
     UpdatePartUseCase,
-    SoftDeletePartUseCase,
+    DeletePartUseCase,
     CalculateAvailabilityUseCase,
     FindPartByIdUseCase,
     FindPartsByIdListUseCase,

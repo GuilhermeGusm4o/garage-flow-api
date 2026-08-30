@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PartRepository } from '@inventory/domain/repositories/part.repository';
 
 @Injectable()
-export class SoftDeletePartUseCase {
+export class DeletePartUseCase {
   constructor(private readonly partRepository: PartRepository) {}
 
   async execute(id: string): Promise<void> {
