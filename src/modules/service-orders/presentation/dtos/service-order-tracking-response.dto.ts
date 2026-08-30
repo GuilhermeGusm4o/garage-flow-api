@@ -3,7 +3,11 @@ import { type ServiceOrder } from '@service-orders/domain/entities/service-order
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 
 export class ServiceOrderTrackingResponseDto {
-  @ApiProperty({ enum: ServiceOrderStatus })
+  @ApiProperty({
+    description: 'Current status',
+    enum: ServiceOrderStatus,
+    example: ServiceOrderStatus.IN_EXECUTION,
+  })
   status!: ServiceOrderStatus;
 
   @ApiProperty({ description: "Date of the service order's last update" })

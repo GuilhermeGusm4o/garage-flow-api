@@ -2,34 +2,41 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { type ClientEntity } from '@client/domain/entities/client.entity';
 
 export class ClientResponse {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiProperty({ description: 'Client ID', example: '123e4567-e89b-12d3-a456-426614174000' })
   id!: string;
 
-  @ApiProperty({ example: '529.982.247-25' })
+  @ApiProperty({ description: "Client's formatted CPF or CNPJ", example: '529.982.247-25' })
   cpfCnpj!: string;
 
-  @ApiProperty({ example: 'CPF', enum: ['CPF', 'CNPJ'] })
+  @ApiProperty({ description: 'Document type', example: 'CPF', enum: ['CPF', 'CNPJ'] })
   documentType!: string;
 
-  @ApiProperty({ example: 'João da Silva' })
+  @ApiProperty({ description: "Client's name", example: 'João da Silva' })
   name!: string;
 
-  @ApiProperty({ example: '11999998888' })
+  @ApiProperty({ description: "Client's phone number", example: '11999998888' })
   phone!: string;
 
-  @ApiProperty({ example: 'Rua das Flores, 123 - São Paulo/SP' })
+  @ApiProperty({ description: 'Address', example: 'Rua das Flores, 123 - São Paulo/SP' })
   address!: string;
 
-  @ApiPropertyOptional({ example: 'joao@email.com', nullable: true })
+  @ApiPropertyOptional({
+    description: "Client's email",
+    example: 'joao@email.com',
+    nullable: true,
+  })
   email!: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Record creation timestamp' })
   createdAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Record last-update timestamp' })
   updatedAt!: Date;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: 'Soft-delete timestamp, null while the record is active',
+    nullable: true,
+  })
   deletedAt!: Date | null;
 
   static fromEntity(entity: ClientEntity): ClientResponse {

@@ -2,13 +2,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import { type StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 
 export class LowStockPartResponseDto {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiProperty({
+    description: 'Inventory item ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   id!: string;
 
-  @ApiProperty({ example: 'Óleo sintético 5W40' })
+  @ApiProperty({ description: 'Inventory item name', example: 'Óleo sintético 5W40' })
   name!: string;
 
-  @ApiProperty({ example: 'ML' })
+  @ApiProperty({ description: 'Unit of measure', example: 'ML' })
   unitOfMeasure!: string;
 
   @ApiProperty({ example: 20, description: 'Physical quantity in stock' })

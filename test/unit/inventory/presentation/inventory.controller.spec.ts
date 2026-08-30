@@ -8,6 +8,7 @@ import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-
 import { type DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
+import { PartResponseDto } from '@inventory/presentation/dtos/part-response.dto';
 import { makePart } from '../part.factory';
 
 describe('InventoryController', () => {
@@ -53,7 +54,7 @@ describe('InventoryController', () => {
         unitPrice: 45.9,
         quantity: 20,
       }),
-    ).resolves.toBe(part);
+    ).resolves.toEqual(PartResponseDto.fromEntity(part));
     expect(createPart.execute).toHaveBeenCalledWith({
       name: 'Óleo de motor 5W30',
       unitOfMeasure: 'ML',
@@ -66,7 +67,7 @@ describe('InventoryController', () => {
     const parts = [makePart()];
     listParts.execute.mockResolvedValue(parts);
 
-    await expect(controller.findAll()).resolves.toBe(parts);
+    await expect(controller.findAll()).resolves.toEqual(parts.map(PartResponseDto.fromEntity));
   });
 
   it('lista o estoque abaixo do mínimo já mapeado para o DTO de resposta', async () => {
@@ -104,7 +105,7 @@ describe('InventoryController', () => {
 
     await expect(
       controller.update('part-id', { name: 'Filtro de óleo premium', unitPrice: 25 }),
-    ).resolves.toBe(part);
+    ).resolves.toEqual(PartResponseDto.fromEntity(part));
     expect(updatePart.execute).toHaveBeenCalledWith('part-id', {
       name: 'Filtro de óleo premium',
       unitPrice: 25,
@@ -115,7 +116,9 @@ describe('InventoryController', () => {
     const part = makePart({ quantity: new Quantity(16) });
     consumePart.execute.mockResolvedValue(part);
 
-    await expect(controller.consume('part-id', { quantity: 4 })).resolves.toBe(part);
+    await expect(controller.consume('part-id', { quantity: 4 })).resolves.toEqual(
+      PartResponseDto.fromEntity(part),
+    );
     expect(consumePart.execute).toHaveBeenCalledWith('part-id', 4);
   });
 

@@ -3,7 +3,10 @@ import { type ServiceOrder } from '@service-orders/domain/entities/service-order
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
 
 export class ServiceOrderCreatedResponseDto extends ServiceOrderResponseDto {
-  @ApiProperty({ description: "Public link for the client to track the service order's status" })
+  @ApiProperty({
+    description: "Public link for the client to track the service order's status",
+    example: 'https://garage-flow.example.com/service-orders/track/eyJhbGciOiJIUzI1NiJ9',
+  })
   trackingLink!: string;
 
   static fromEntityWithLink(
