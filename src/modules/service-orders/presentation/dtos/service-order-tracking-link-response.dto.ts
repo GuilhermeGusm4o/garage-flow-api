@@ -5,6 +5,6 @@ export class ServiceOrderTrackingLinkResponseDto {
     this.trackingLink = trackingLink;
   }
 
-  @ApiProperty({ description: 'Link público para o cliente acompanhar o status da OS' })
+  @ApiProperty({ description: "Public link for the client to track the service order's status" })
   trackingLink!: string;
 }

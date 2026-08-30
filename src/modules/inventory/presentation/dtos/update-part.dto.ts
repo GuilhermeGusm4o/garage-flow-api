@@ -12,7 +12,7 @@ export class UpdatePartDto {
   @Min(0)
   unitPrice!: number;
 
-  @ApiPropertyOptional({ example: 15, description: 'Mínimo recomendado em estoque' })
+  @ApiPropertyOptional({ example: 15, description: 'Recommended minimum stock' })
   @IsNumber()
   @Min(0)
   @IsOptional()

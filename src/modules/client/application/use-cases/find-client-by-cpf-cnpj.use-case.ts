@@ -10,7 +10,7 @@ export class FindClientByCpfCnpjUseCase {
   async execute(cpfCnpj: string): Promise<ClientEntity> {
     const normalized = this.parseCpfCnpj(cpfCnpj);
     const client = await this.clientRepository.findByCpfCnpj(normalized.value);
-    if (!client) throw new NotFoundException('Cliente não encontrado');
+    if (!client) throw new NotFoundException('Client not found');
     return client;
   }
 

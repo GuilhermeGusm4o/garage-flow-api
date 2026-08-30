@@ -5,7 +5,7 @@ export class UnitOfMeasure {
 
   constructor(public readonly value: string) {
     if (!UnitOfMeasure.VALID_VALUES.includes(value)) {
-      throw new DomainError(`Unidade de medida inválida: ${value}`);
+      throw new DomainError(`Invalid unit of measure: ${value}`);
     }
   }
 

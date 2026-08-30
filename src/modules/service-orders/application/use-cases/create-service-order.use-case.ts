@@ -18,7 +18,7 @@ export class CreateServiceOrderUseCase {
 
     const vehicle = await this.findVehicleByLicensePlate.execute(dto.licensePlate);
     if (vehicle.clientId !== client.id) {
-      throw new BadRequestException('Veículo não pertence ao cliente informado');
+      throw new BadRequestException('Vehicle does not belong to the informed client');
     }
 
     const serviceOrder = ServiceOrder.create(vehicle.id, dto.description, [], [], 0);

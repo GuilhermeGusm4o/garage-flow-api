@@ -23,7 +23,7 @@ export class WriteOffPartsUseCase {
       items.map(async (item) => {
         const part = await this.partRepository.findById(item.inventoryId);
         if (!part) {
-          throw new NotFoundException(`Peça ${item.inventoryId} não encontrada`);
+          throw new NotFoundException(`Part ${item.inventoryId} not found`);
         }
         return { part, quantity: item.quantity };
       }),

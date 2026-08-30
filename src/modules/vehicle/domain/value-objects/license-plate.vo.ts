@@ -2,7 +2,7 @@ import { DomainError } from '@common/errors/domain.error';
 
 export class InvalidLicensePlateError extends DomainError {
   constructor(value: string) {
-    super(`Placa inválida: "${value}"`);
+    super(`Invalid license plate: "${value}"`);
     this.name = 'InvalidLicensePlateError';
   }
 }

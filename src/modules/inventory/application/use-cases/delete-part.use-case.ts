@@ -7,7 +7,7 @@ export class DeletePartUseCase {
 
   async execute(id: string): Promise<void> {
     const part = await this.partRepository.findById(id);
-    if (!part) throw new NotFoundException('Peça não encontrada');
+    if (!part) throw new NotFoundException('Part not found');
 
     part.softDelete();
     await this.partRepository.save(part);
