@@ -36,7 +36,6 @@ describe('Auth Use Cases', () => {
       findAll: jest.fn(),
       findById: jest.fn(),
       findByEmail: jest.fn(),
-      findActiveByEmail: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
     };
@@ -147,7 +146,7 @@ describe('Auth Use Cases', () => {
   describe('LoginUseCase', () => {
     it('should login a user', async () => {
       const user = createUser();
-      repository.findActiveByEmail.mockResolvedValue(user);
+      repository.findByEmail.mockResolvedValue(user);
       passwordHasher.compare.mockResolvedValue(true);
       jwtService.sign.mockReturnValue('jwt-token');
 
@@ -170,7 +169,7 @@ describe('Auth Use Cases', () => {
     });
 
     it('should reject invalid credentials', async () => {
-      repository.findActiveByEmail.mockResolvedValue(createUser());
+      repository.findByEmail.mockResolvedValue(createUser());
       passwordHasher.compare.mockResolvedValue(false);
 
       const useCase = new LoginUseCase(repository, passwordHasher, jwtService);
