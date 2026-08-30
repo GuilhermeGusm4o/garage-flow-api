@@ -10,7 +10,7 @@ export abstract class PartRepository {
 
   /**
    * Soma, por peça, a quantidade já comprometida com ordens de serviço nos status
-   * informados. Sem `partIds`, cobre todo o estoque. Peças sem reserva não aparecem no mapa.
+   * informados. Sem `partIds`, cobre o estoque inteiro. Peças sem reserva não aparecem no mapa.
    */
   abstract findReservedQuantities(
     serviceOrderStatuses: string[],
