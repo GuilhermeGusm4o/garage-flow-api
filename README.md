@@ -10,10 +10,10 @@ Backend de um sistema de gerenciamento para oficina mecânica, desenvolvido como
 - **Docker / Docker Compose**
 - **Swagger**
 - **class-validator**
-- **Jest**
+- **Jest + Supertest**
 - **ESLint + Prettier**
 - **Husky**
-- **SonarQube** (análise estática de código e vulnerabilidades)
+- **SonarQube** (análise estática de código, apenas em desenvolvimento)
 
 ## Arquitetura
 
@@ -133,7 +133,7 @@ Além dos contextos de negócio, `common` contém elementos compartilhados pela 
 Crie o arquivo `.env` a partir do `.env.example`:
 
 ```env
-NODE_ENV=development
+NODE_ENV=production
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/garage-flow?schema=public
 
 # Autenticação (JWT)
@@ -144,16 +144,24 @@ JWT_EXPIRES_IN=1d
 TRACKING_TOKEN_SECRET=troque-por-outro-segredo-forte
 ```
 
-> **Importante:** sem `JWT_SECRET`, `JWT_EXPIRES_IN` e `TRACKING_TOKEN_SECRET` definidos, a aplicação não sobe — o login e a geração de link de rastreamento dependem dessas variáveis.
+> **Importante:** sem `JWT_SECRET`, `JWT_EXPIRES_IN` e `TRACKING_TOKEN_SECRET` definidos, a aplicação não sobe - o login e a geração de link de rastreamento dependem dessas variáveis.
 
 O projeto tem dois arquivos de Docker Compose, um por ambiente:
 
-- `docker-compose.development.yaml`: builda o estágio `development` do `Dockerfile` (com devDependencies), monta o código como volume e roda com **hot reload** (`start:debug`).
 - `docker-compose.production.yaml`: builda o estágio `production` (imagem enxuta, sem devDependencies) e roda a aplicação já compilada (`node dist/src/main`).
+- `docker-compose.development.yaml`: builda o estágio `development` do `Dockerfile` (com devDependencies), monta o código como volume e roda com **hot reload** (`start:debug`).
 
 ### 2. Subir a aplicação
 
-Na raiz do projeto:
+Para avaliação (ambiente de produção), na raiz do projeto:
+
+```bash
+docker compose -f docker-compose.production.yaml up --build
+```
+
+Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy`), um container `seed` (que cria os usuários e dados de demonstração) e só então a API. Os containers `migrate` e `seed` usam o estágio `build`, que ainda possui a CLI do Prisma, e encerram após concluir. A API só inicia quando ambos terminam com sucesso. Os usuários do seed usam a senha padrão `Password123!`, adequada para o ambiente de avaliação local.
+
+### Ambiente de desenvolvimento
 
 ```bash
 docker compose -f docker-compose.development.yaml up --build
@@ -168,19 +176,11 @@ O Docker Compose inicia:
 
 A aplicação aguarda o PostgreSQL estar saudável antes de iniciar. O código é montado como volume, permitindo **hot reload** durante o desenvolvimento.
 
-### Ambiente de produção
-
-```bash
-docker compose -f docker-compose.production.yaml up --build
-```
-
-Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy`), um container `seed` (que cria os usuários e dados de demonstração) e só então a API. Os containers `migrate` e `seed` usam o estágio `build`, que ainda possui a CLI do Prisma, e encerram após concluir. A API só inicia quando ambos terminam com sucesso. Os usuários do seed usam a senha padrão `Password123!`, adequada para o ambiente de avaliação local.
-
 ### 3. Acessos
 
 - **API:** `http://localhost:3000`
 - **Swagger:** `http://localhost:3000/docs`
-- **SonarQube:** `http://localhost:9000` (usuário/senha padrão `admin`/`admin` no primeiro acesso)
+- **SonarQube:** `http://localhost:9000` (usuário/senha padrão `admin`/`admin` no primeiro acesso) - disponível apenas ao subir com `docker-compose.development.yaml`.
 
 ### Prisma Studio
 
@@ -195,6 +195,147 @@ Acesse:
 `http://localhost:5555`
 
 O Prisma Studio é utilizado para visualizar e manipular os dados do banco durante o desenvolvimento.
+
+## Fluxo de teste: da abertura à entrega da OS
+
+### 1. Login e usuários disponíveis
+
+O seed já popula o banco com clientes, veículos, serviços, peças e ordens de serviço em todos os estágios do fluxo - não é necessário cadastrar nada manualmente para testar a API.
+
+Para autenticar, use `POST /auth/login` com um dos usuários abaixo (senha padrão `Password123!` para todos):
+
+| E-mail                 | Role            |
+| ---------------------- | --------------- |
+| `admin@example.com`    | ADMIN           |
+| `advisor@example.com`  | SERVICE_ADVISOR |
+| `mechanic@example.com` | MECHANIC        |
+| `stock@example.com`    | STOCK_CLERK     |
+
+Exemplo de login:
+
+```bash
+POST /auth/login
+{ "email": "mechanic@example.com", "password": "Password123!" }
+```
+
+A resposta traz um `access_token` (JWT), que deve ser enviado no header `Authorization: Bearer <token>` nas chamadas seguintes (ou colado no botão **Authorize** do Swagger).
+
+#### O que cada role pode fazer
+
+| Role                | Pode fazer                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| **ADMIN**           | Acesso completo: CRUD de clientes, veículos e peças; todas as ações sobre ordens de serviço             |
+| **SERVICE_ADVISOR** | Cadastrar/editar clientes e veículos; abrir OS, gerar e aprovar orçamento, cancelar e confirmar entrega |
+| **MECHANIC**        | Iniciar diagnóstico, adicionar serviços/peças à OS, iniciar e finalizar a execução do serviço           |
+| **STOCK_CLERK**     | Cadastrar, reabastecer e dar baixa manual em peças; consultar peças com estoque abaixo do mínimo        |
+
+> Consultas de leitura (`GET`) na maioria dos recursos estão disponíveis para qualquer usuário autenticado, independente da role. As exceções (ex.: `GET /inventory/low-stock`) exigem a role específica indicada no Swagger. `GET /service-orders/track/:token` é a única rota pública, sem necessidade de autenticação.
+
+### 2. Percorrendo o ciclo de vida da OS
+
+Esta seção descreve, passo a passo, como percorrer o ciclo de vida completo de uma Ordem de Serviço via API. Cada passo indica qual role pode executá-lo - autentique-se com o usuário correspondente antes de cada chamada.
+
+#### 2.1 Abertura da OS (`SERVICE_ADVISOR` ou `ADMIN`)
+
+```bash
+POST /service-orders
+{ "clientCpfCnpj": "529.982.247-25", "licensePlate": "ABC1D23", "description": "Ruído no motor" }
+```
+
+A OS nasce com status `RECEIVED`. A resposta inclui um `trackingLink` - um link público que o cliente pode usar para acompanhar o status sem autenticação (`GET /service-orders/track/:token`) e o `totalAmount` começa zerado.
+
+#### 2.2 Diagnóstico (`MECHANIC`)
+
+```bash
+PATCH /service-orders/:id/start-diagnosis
+```
+
+Transiciona a OS para `IN_DIAGNOSIS`. Não é necessário informar o mecânico no corpo da requisição, ele é identificado automaticamente pelo token de autenticação de quem faz a chamada.
+
+#### 2.3 Adição de serviços e peças (`MECHANIC`)
+
+```bash
+PATCH /service-orders/:id/add-services-and-parts
+{
+  "services": [{ "serviceId": "<id-do-servico>" }],
+  "parts": [{ "inventoryId": "<id-da-peca>", "quantity": 2 }]
+}
+```
+
+Só é permitido enquanto a OS está em `IN_DIAGNOSIS`. Verifica a disponibilidade de estoque lógico antes de aceitar a peça. A resposta pode incluir `stockAlerts` quando a peça adicionada ficar com estoque lógico abaixo do mínimo configurado. Ao concluir, a OS avança para `FINISHED_DIAGNOSIS`.
+
+#### 2.4 Geração do orçamento (`SERVICE_ADVISOR` ou `ADMIN`)
+
+```bash
+PATCH /service-orders/:id/budget
+```
+
+Gera o orçamento com base nos serviços e peças adicionados (cliente, veículo, itens e valor total). Só disponível quando a OS possui ao menos um serviço ou peça.
+
+#### 2.5 Aprovação ou cancelamento (`SERVICE_ADVISOR` ou `ADMIN`)
+
+```bash
+PATCH /service-orders/:id/approve-budget
+```
+
+Registra a aprovação do cliente e transiciona a OS para `AWAITING_EXECUTION`.
+
+> Alternativamente, `PATCH /service-orders/:id/cancel-service` cancela a OS neste ponto (ex.: cliente não aprova o orçamento), transicionando-a para `CANCELED`.
+
+#### 2.6 Execução do serviço (`MECHANIC`)
+
+```bash
+PATCH /service-orders/:id/start-service
+```
+
+Transiciona a OS para `IN_EXECUTION`.
+
+#### 2.7 Finalização (`MECHANIC`)
+
+```bash
+PATCH /service-orders/:id/finish-service
+```
+
+Transiciona a OS para `FINISHED` e dispara a baixa definitiva das peças utilizadas no estoque.
+
+#### 2.8 Entrega (`SERVICE_ADVISOR` ou `ADMIN`)
+
+```bash
+PATCH /service-orders/:id/deliver
+```
+
+Transiciona a OS para `DELIVERED`, encerrando o ciclo.
+
+### 3. Outras consultas úteis
+
+```bash
+GET /service-orders                                 # lista todas as OS
+GET /service-orders/:id                              # detalhes de uma OS
+GET /service-orders/:id/tracking-link                # reobtém o link público de rastreamento
+GET /service-orders/track/:token                     # consulta pública de status, sem autenticação
+GET /service-orders/metrics/average-execution-time   # tempo médio de execução das OS finalizadas
+DELETE /service-orders/:id                           # soft delete da OS
+```
+
+- **`GET /:id/tracking-link`** (`ADMIN`, `SERVICE_ADVISOR`): reobtém o link público de rastreamento de uma OS já existente (`{ "trackingLink": "..." }`) - útil caso o cliente perca o link enviado na criação.
+
+- **`GET /track/:token`**: consulta pública de status via o token do link de rastreamento, sem necessidade de autenticação.
+
+- **`GET /metrics/average-execution-time`** (qualquer usuário autenticado): calcula o tempo médio de execução das ordens de serviço com status `FINISHED` ou `DELIVERED`. Aceita filtro opcional por período via query params `from` e `to` (formato `AAAA-MM-DD`); sem os filtros, considera todas as OS concluídas. Retorna:
+
+  ```json
+  {
+    "averageExecutionTimeMinutes": 127.3,
+    "averageExecutionTimeFormatted": "2h 7min",
+    "completedServiceOrders": 35
+  }
+  ```
+
+  Exemplo com filtro por período:
+
+  ```bash
+  GET /service-orders/metrics/average-execution-time?from=2026-08-01&to=2026-08-31
+  ```
 
 ## Validações
 
@@ -212,120 +353,9 @@ Antes de cada `git push`, o Husky executa automaticamente:
 
 O push é interrompido caso alguma dessas verificações falhe.
 
-## Fluxo de teste: da abertura à entrega da OS
-
-Esta seção descreve, passo a passo, como percorrer o ciclo de vida completo de uma Ordem de Serviço via API - útil para testar manualmente pelo Swagger ou para entender a sequência esperada de chamadas.
-
-> Os exemplos usam `curl`, mas os mesmos endpoints podem ser testados pelo Swagger em `http://localhost:3000/docs`. Rotas administrativas exigem um token JWT (`Authorization: Bearer <token>`), obtido via `POST /auth/login` com um usuário do seed.
-
-### 1. Pré-requisitos: cliente, veículo, serviço e peça
-
-Antes de abrir uma OS, é necessário ter cadastrado:
-
-```bash
-# Cliente
-POST /clients
-{ "cpfCnpj": "52998224725", "name": "Cliente Teste", "address": "Rua X", "phone": "11999990000" }
-
-# Veículo (vinculado ao cliente)
-POST /vehicles
-{ "brand": "Fiat", "model": "Uno", "licensePlate": "TST1234", "year": 2020, "clientId": "<id-do-cliente>" }
-
-# Serviço no catálogo
-POST /services
-{ "name": "Troca de óleo", "price": 100 }
-
-# Peça no estoque
-POST /inventory
-{ "name": "Óleo 5W30", "unitOfMeasure": "ML", "unitPrice": 30, "quantity": 10, "minQuantity": 2 }
-```
-
-### 2. Abertura da OS
-
-```bash
-POST /service-orders
-{ "clientCpfCnpj": "529.982.247-25", "licensePlate": "TST1234", "description": "Ruído no motor" }
-```
-
-A OS nasce com status `RECEIVED`. A resposta inclui um `trackingLink` - um link público que o cliente pode usar para acompanhar o status sem autenticação (`GET /service-orders/track/:token`), e o `totalAmount` começa zerado.
-
-### 3. Diagnóstico
-
-```bash
-PATCH /service-orders/:id/start-diagnosis
-{ "mechanicId": "<id-do-mecanico>" }
-```
-
-Transiciona a OS para `IN_DIAGNOSIS` e atribui o mecânico responsável.
-
-### 4. Adição de serviços e peças
-
-```bash
-PATCH /service-orders/:id/add-services-and-parts
-{
-  "services": [{ "serviceId": "<id-do-servico>" }],
-  "parts": [{ "inventoryId": "<id-da-peca>", "quantity": 2 }]
-}
-```
-
-Só é permitido enquanto a OS está em `IN_DIAGNOSIS`. Verifica a disponibilidade de estoque lógico antes de aceitar a peça. A resposta pode incluir `stockAlerts` quando a peça adicionada ficar com estoque lógico abaixo do mínimo configurado. Ao concluir, a OS avança para `AWAITING_APPROVAL`.
-
-### 5. Orçamento
-
-```bash
-GET /service-orders/:id/budget
-```
-
-Retorna o detalhamento do orçamento (cliente, veículo, serviços, peças e valor total) com base nos itens adicionados. Só disponível quando a OS possui ao menos um serviço ou peça.
-
-### 6. Aprovação do orçamento
-
-```bash
-PATCH /service-orders/:id/approve-budget
-```
-
-Registra a aprovação do cliente e prepara a OS para execução.
-
-> Alternativamente, `PATCH /service-orders/:id/cancel-service` cancela a OS neste ponto (ex.: cliente não aprova o orçamento).
-
-### 7. Execução do serviço
-
-```bash
-PATCH /service-orders/:id/start-service
-```
-
-Transiciona a OS para `IN_EXECUTION`.
-
-### 8. Finalização
-
-```bash
-PATCH /service-orders/:id/finish-service
-```
-
-Transiciona a OS para `FINISHED` e dispara a baixa definitiva das peças utilizadas no estoque.
-
-### 9. Entrega
-
-```bash
-PATCH /service-orders/:id/deliver
-```
-
-Transiciona a OS para `DELIVERED`, encerrando o ciclo.
-
-### Outras consultas úteis
-
-```bash
-GET /service-orders                                 # lista todas as OS
-GET /service-orders/:id                             # detalhes de uma OS
-GET /service-orders/:id/tracking-link               # (re)obtém o link público de rastreamento
-GET /service-orders/track/:token                    # consulta pública de status, sem autenticação
-GET /service-orders/metrics/average-execution-time  # tempo médio de execução das OS finalizadas
-DELETE /service-orders/:id                          # soft delete da OS
-```
-
 ## Testes
 
-O projeto utiliza **Jest** para testes unitários e de integração. Todos os testes ficam na pasta `test/`, separados por tipo e organizados de acordo com os contextos e fluxos da aplicação.
+O projeto utiliza **Jest** para testes unitários e **Jest + Supertest** para testes de integração. Todos os testes ficam na pasta `test/`, separados por tipo e organizados de acordo com os contextos e fluxos da aplicação.
 
 ```text
 test/
@@ -339,7 +369,10 @@ test/
 │   └── service-orders/
 │
 └── integration/
+    ├── client/
+    ├── vehicle/
     ├── service/
+    ├── inventory/
     └── service-orders/
 ```
 
@@ -351,7 +384,7 @@ Validam componentes de forma isolada, sem depender de outros componentes externo
 
 Validam a interação entre diferentes componentes da aplicação, incluindo a integração com **Prisma e PostgreSQL**. Alguns testes podem abranger mais de um contexto quando o fluxo exigir a interação entre eles (por exemplo, `service-orders` consumindo `client`, `vehicle`, `service` e `inventory`).
 
-Os testes de integração rodam de forma sequencial (`--runInBand`), já que compartilham o mesmo banco de dados — rodar em paralelo pode causar falhas intermitentes por concorrência entre suítes.
+Os testes de integração rodam de forma sequencial (`--runInBand`), já que compartilham o mesmo banco de dados - rodar em paralelo pode causar falhas intermitentes por concorrência entre suítes.
 
 A organização por contexto facilita a localização e manutenção dos testes, sem limitar um teste de integração a apenas um contexto.
 
