@@ -20,10 +20,10 @@
     "lint:check": "eslint \"{src,test}/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "pretest": "prisma generate",
-    "test": "jest --setupFiles dotenv/config",
-    "test:watch": "jest --watch --setupFiles dotenv/config",
-    "test:cov": "jest --coverage --setupFiles dotenv/config",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest",
+    "test": "jest --setupFiles dotenv/config --runInBand",
+    "test:watch": "jest --watch --setupFiles dotenv/config --runInBand",
+    "test:cov": "jest --coverage --setupFiles dotenv/config --runInBand",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "prepare": "husky"
   },
   "dependencies": {

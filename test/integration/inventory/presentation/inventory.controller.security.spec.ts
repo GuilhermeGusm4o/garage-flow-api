@@ -26,28 +26,19 @@ const mockId = '123e4567-e89b-12d3-a456-426614174000' as UUID;
 
 const ALL_ROLES: UserRole[] = ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR', 'STOCK_CLERK'];
 
-const makePart = () => ({
-  id: mockId,
-  name: 'Óleo',
-  unitOfMeasure: 'ML',
-  unitPrice: 30,
-  quantity: 10,
-});
+const makePart = (): Part =>
+  Part.create({
+    id: mockId,
+    name: 'Óleo',
+    unitOfMeasure: new UnitOfMeasure('ML'),
+    unitPrice: 30,
+    quantity: new Quantity(10),
+    minQuantity: new Quantity(5),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
-const makeStockLevel = (): StockLevel =>
-  new StockLevel(
-    Part.create({
-      id: mockId,
-      name: 'Óleo',
-      unitOfMeasure: new UnitOfMeasure('ML'),
-      unitPrice: 30,
-      quantity: new Quantity(2),
-      minQuantity: new Quantity(5),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }),
-    0,
-  );
+const makeStockLevel = (): StockLevel => new StockLevel(makePart(), 0);
 
 type Endpoint = {
   description: string;
