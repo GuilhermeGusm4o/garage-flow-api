@@ -269,4 +269,30 @@ describe('ServiceOrder', () => {
     expect(os.isDeleted).toBe(true);
     expect(os.deletedAt).toBeInstanceOf(Date);
   });
+
+  it('deve definir createdAt e updatedAt na criação', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+
+    expect(os.createdAt).toBeInstanceOf(Date);
+    expect(os.updatedAt).toBeInstanceOf(Date);
+  });
+
+  it('deve bumpar updatedAt ao atualizar o status', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    const before = os.updatedAt;
+
+    os.updateStatus(ServiceOrderStatus.IN_DIAGNOSIS);
+
+    expect(os.updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+  });
+
+  it('deve marcar como excluído ao chamar softDelete', () => {
+    const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
+    expect(os.isDeleted).toBe(false);
+
+    os.softDelete();
+
+    expect(os.isDeleted).toBe(true);
+    expect(os.deletedAt).toBeInstanceOf(Date);
+  });
 });
