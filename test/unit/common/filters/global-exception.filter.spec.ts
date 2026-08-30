@@ -102,10 +102,7 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(new InternalServerErrorException('Something broke'), host);
 
     expect(status).toHaveBeenCalledWith(500);
-    expect(logErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('500'),
-      expect.anything(),
-    );
+    expect(logErrorSpy).toHaveBeenCalledWith(expect.stringContaining('500'), expect.anything());
   });
 
   it('returns a plain string HTTP exception response as-is', () => {
