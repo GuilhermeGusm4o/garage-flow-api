@@ -1,7 +1,8 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 import { CreateClientUseCase } from '@client/application/use-cases/create-client.use-case';
 import { type ClientRepository } from '@client/domain/repositories/client.repository';
 import { type ClientEntity } from '@client/domain/entities/client.entity';
+import { InvalidCpfCnpjError } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
 import { makeClientRepositoryMock } from '../../client.factory';
 
 describe('CreateClientUseCase', () => {
@@ -49,7 +50,7 @@ describe('CreateClientUseCase', () => {
 
   it('rejeita CPF/CNPJ inválido com 400 antes de tocar o repositório', async () => {
     await expect(useCase.execute({ ...input, cpfCnpj: '11111111111' })).rejects.toThrow(
-      BadRequestException,
+      InvalidCpfCnpjError,
     );
     expect(repository.findByCpfCnpj).not.toHaveBeenCalled();
     expect(repository.create).not.toHaveBeenCalled();
