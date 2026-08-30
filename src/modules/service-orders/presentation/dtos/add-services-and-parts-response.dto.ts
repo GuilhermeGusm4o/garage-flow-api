@@ -4,10 +4,13 @@ import { type AddServicesAndPartsResult } from '@service-orders/application/use-
 import { ServiceOrderResponseDto } from '@service-orders/presentation/dtos/service-order-response.dto';
 
 export class StockAlertResponseDto {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiProperty({
+    description: 'Inventory item ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   inventoryId!: string;
 
-  @ApiProperty({ example: 'Óleo sintético 5W40' })
+  @ApiProperty({ description: 'Inventory item name', example: 'Óleo sintético 5W40' })
   name!: string;
 
   @ApiProperty({ example: 20, description: 'Physical quantity in stock' })

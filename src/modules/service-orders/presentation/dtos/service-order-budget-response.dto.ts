@@ -5,19 +5,23 @@ import {
 } from '@service-orders/application/use-cases/generate-service-order-budget.use-case';
 
 export class ServiceOrderBudgetLineItemResponseDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Service or part name', example: 'Troca de óleo' })
   name!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Quantity billed', example: 1 })
   quantity!: number;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: 'Unit of measure, null for services',
+    example: 'UNIT',
+    nullable: true,
+  })
   unitOfMeasure!: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Unit price', example: 150.0 })
   unitPrice!: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'quantity * unitPrice', example: 150.0 })
   subtotal!: number;
 
   static fromViewModel(item: ServiceOrderBudgetLineItem): ServiceOrderBudgetLineItemResponseDto {
@@ -32,62 +36,81 @@ export class ServiceOrderBudgetLineItemResponseDto {
 }
 
 export class ServiceOrderBudgetClientResponseDto {
-  @ApiProperty()
+  @ApiProperty({ description: "Client's name", example: 'João da Silva' })
   name!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "Client's formatted CPF or CNPJ", example: '529.982.247-25' })
   cpfCnpj!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "Client's phone number", example: '11999998888' })
   phone!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Address', example: 'Rua das Flores, 123 - São Paulo/SP' })
   address!: string;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Client's email",
+    example: 'joao@email.com',
+    nullable: true,
+  })
   email!: string | null;
 }
 
 export class ServiceOrderBudgetVehicleResponseDto {
-  @ApiProperty()
+  @ApiProperty({ description: "Vehicle's brand", example: 'Volkswagen' })
   brand!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "Vehicle's model", example: 'Gol' })
   model!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "Vehicle's formatted license plate", example: 'ABC1D23' })
   licensePlate!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "Vehicle's model year", example: 2020 })
   year!: number;
 }
 
 export class ServiceOrderBudgetResponseDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Service order ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   serviceOrderId!: string;
 
   @ApiProperty({ description: 'Client complaint reported when the service order was opened' })
   description!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Current status', example: 'AWAITING_APPROVAL' })
   status!: string;
 
-  @ApiProperty({ type: ServiceOrderBudgetClientResponseDto })
+  @ApiProperty({
+    description: 'The client this budget is for',
+    type: ServiceOrderBudgetClientResponseDto,
+  })
   client!: ServiceOrderBudgetClientResponseDto;
 
-  @ApiProperty({ type: ServiceOrderBudgetVehicleResponseDto })
+  @ApiProperty({
+    description: 'The vehicle this budget is for',
+    type: ServiceOrderBudgetVehicleResponseDto,
+  })
   vehicle!: ServiceOrderBudgetVehicleResponseDto;
 
-  @ApiProperty({ type: [ServiceOrderBudgetLineItemResponseDto] })
+  @ApiProperty({
+    description: 'Services billed in this budget',
+    type: [ServiceOrderBudgetLineItemResponseDto],
+  })
   services!: ServiceOrderBudgetLineItemResponseDto[];
 
-  @ApiProperty({ type: [ServiceOrderBudgetLineItemResponseDto] })
+  @ApiProperty({
+    description: 'Parts billed in this budget',
+    type: [ServiceOrderBudgetLineItemResponseDto],
+  })
   parts!: ServiceOrderBudgetLineItemResponseDto[];
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Sum of all services and parts subtotals', example: 410.0 })
   totalAmount!: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'When this budget was generated' })
   generatedAt!: Date;
 
   static fromViewModel(budget: ServiceOrderBudget): ServiceOrderBudgetResponseDto {

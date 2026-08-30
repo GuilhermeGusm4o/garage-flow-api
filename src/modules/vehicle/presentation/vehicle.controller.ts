@@ -9,11 +9,9 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -30,9 +28,8 @@ import { DeleteVehicleUseCase } from '@vehicle/application/use-cases/delete-vehi
 import { CreateVehicleRequest } from '@vehicle/presentation/dtos/create-vehicle.request';
 import { UpdateVehicleRequest } from '@vehicle/presentation/dtos/update-vehicle.request';
 import { VehicleResponse } from '@vehicle/presentation/dtos/vehicle.response';
-import { Roles } from '@auth/infrastructure/security/roles.decorator';
-import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
-import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
+import { ApiAuth } from '@common/decorators/api-auth.decorator';
+import { ErrorResponseDto } from '@common/dtos/error-response.dto';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
@@ -46,16 +43,20 @@ export class VehicleController {
   ) {}
 
   @Post()
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @ApiAuth('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Creates a new vehicle',
   })
   @ApiCreatedResponse({ type: VehicleResponse })
-  @ApiBadRequestResponse({ description: 'Invalid license plate or payload' })
-  @ApiNotFoundResponse({ description: 'Client not found' })
-  @ApiConflictResponse({ description: 'Vehicle with this license plate already exists' })
+  @ApiBadRequestResponse({
+    type: ErrorResponseDto,
+    description: 'Invalid license plate or payload',
+  })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Client not found' })
+  @ApiConflictResponse({
+    type: ErrorResponseDto,
+    description: 'Vehicle with this license plate already exists',
+  })
   async create(@Body() body: CreateVehicleRequest): Promise<VehicleResponse> {
     const vehicle = await this.createVehicleUseCase.execute({
       brand: body.brand,
@@ -68,8 +69,7 @@ export class VehicleController {
   }
 
   @Get()
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'List all vehicles',
   })
@@ -80,27 +80,24 @@ export class VehicleController {
   }
 
   @Get(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'Fetch a vehicle by ID',
   })
   @ApiOkResponse({ type: VehicleResponse })
-  @ApiNotFoundResponse({ description: 'Vehicle not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Vehicle not found' })
   async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<VehicleResponse> {
     const vehicle = await this.findVehicleByIdUseCase.execute(id);
     return VehicleResponse.fromEntity(vehicle);
   }
 
   @Patch(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SERVICE_ADVISOR')
+  @ApiAuth('ADMIN', 'SERVICE_ADVISOR')
   @ApiOperation({
     summary: 'Updates a vehicle by ID',
   })
   @ApiOkResponse({ type: VehicleResponse })
-  @ApiNotFoundResponse({ description: 'Vehicle not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Vehicle not found' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateVehicleRequest,
@@ -114,15 +111,13 @@ export class VehicleController {
   }
 
   @Delete(':id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @ApiAuth('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Deletes a vehicle by ID',
   })
   @ApiNoContentResponse({ description: 'Vehicle deleted successfully' })
-  @ApiNotFoundResponse({ description: 'Vehicle not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Vehicle not found' })
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.deleteVehicleUseCase.execute(id);
   }

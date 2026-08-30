@@ -11,11 +11,9 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 
 import {
-  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -24,6 +22,7 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { CreateUserUseCase } from '@auth/application/use-cases/create-user.use-case';
@@ -39,11 +38,10 @@ import { LoginDto } from './dto/login-user.dto';
 import { LoginResponseDto } from './dto/login-user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { Roles } from '@auth/infrastructure/security/roles.decorator';
-import { JwtAuthGuard } from '@auth/infrastructure/security/jwt-auth.guard';
-import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 import { type UserRole } from '@auth/domain/entities/user.entity';
 import { UserRole as PrismaUserRole } from '@generated/prisma/enums';
+import { ApiAuth } from '@common/decorators/api-auth.decorator';
+import { ErrorResponseDto } from '@common/dtos/error-response.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -58,9 +56,7 @@ export class AuthController {
   ) {}
 
   @Post('users')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @ApiAuth('ADMIN')
   @ApiOperation({
     summary: 'Create a user',
   })
@@ -68,6 +64,7 @@ export class AuthController {
     type: UserResponseDto,
   })
   @ApiConflictResponse({
+    type: ErrorResponseDto,
     description: 'User already exists',
   })
   async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
@@ -85,7 +82,12 @@ export class AuthController {
     type: LoginResponseDto,
   })
   @ApiNotFoundResponse({
+    type: ErrorResponseDto,
     description: 'User not found',
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+    description: 'Invalid email or password',
   })
   async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
     const { access_token, user } = await this.loginUseCase.execute({
@@ -97,8 +99,7 @@ export class AuthController {
   }
 
   @Get('users')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'List all users',
   })
@@ -122,8 +123,7 @@ export class AuthController {
   }
 
   @Get('users/:email')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @ApiAuth()
   @ApiOperation({
     summary: 'Get a user by email',
   })
@@ -131,6 +131,7 @@ export class AuthController {
     type: UserResponseDto,
   })
   @ApiNotFoundResponse({
+    type: ErrorResponseDto,
     description: 'User not found',
   })
   async getUserByEmail(@Param('email', ParseEmailPipe) email: string): Promise<UserResponseDto> {
@@ -140,9 +141,7 @@ export class AuthController {
   }
 
   @Patch('users/:id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @ApiAuth('ADMIN')
   @ApiOperation({
     summary: 'Update a user',
   })
@@ -150,7 +149,12 @@ export class AuthController {
     type: UserResponseDto,
   })
   @ApiNotFoundResponse({
+    type: ErrorResponseDto,
     description: 'User not found',
+  })
+  @ApiConflictResponse({
+    type: ErrorResponseDto,
+    description: 'Another user already uses this email',
   })
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
@@ -165,9 +169,7 @@ export class AuthController {
   }
 
   @Delete('users/:id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @ApiAuth('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Soft delete a user',
@@ -176,6 +178,7 @@ export class AuthController {
     description: 'User successfully deleted',
   })
   @ApiNotFoundResponse({
+    type: ErrorResponseDto,
     description: 'User not found',
   })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
