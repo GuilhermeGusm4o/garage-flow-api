@@ -11,7 +11,10 @@ export class ErrorResponseDto {
   })
   message!: string | string[];
 
-  @ApiProperty({ description: 'When the error occurred (ISO 8601)', example: '2026-08-30T12:00:00.000Z' })
+  @ApiProperty({
+    description: 'When the error occurred (ISO 8601)',
+    example: '2026-08-30T12:00:00.000Z',
+  })
   timestamp!: string;
 
   @ApiProperty({

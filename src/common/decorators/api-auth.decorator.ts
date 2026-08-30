@@ -6,7 +6,6 @@ import { Roles } from '@auth/infrastructure/security/roles.decorator';
 import { RolesGuard } from '@auth/infrastructure/security/roles.guard';
 import { ErrorResponseDto } from '@common/dtos/error-response.dto';
 
-
 export function ApiAuth(...roles: UserRole[]) {
   const guards = roles.length > 0 ? [JwtAuthGuard, RolesGuard] : [JwtAuthGuard];
 
