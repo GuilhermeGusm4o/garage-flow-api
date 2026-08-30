@@ -39,4 +39,17 @@ describe('UpdatePartUseCase', () => {
       NotFoundException,
     );
   });
+
+  it('deve atualizar a quantidade mínima quando informada', async () => {
+    const part = makePart({ id: 'part-1', name: 'Óleo', quantity: new Quantity(10) });
+    repository.findById.mockResolvedValue(part);
+
+    const result = await useCase.execute('part-1', {
+      name: 'Óleo',
+      unitPrice: 10,
+      minQuantity: 3,
+    });
+
+    expect(result.minQuantity.value).toBe(3);
+  });
 });

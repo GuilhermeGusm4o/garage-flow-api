@@ -56,6 +56,14 @@ describe('tracking-token.util', () => {
     expect(() => resolveTrackingToken(token)).toThrow(InvalidTrackingTokenError);
   });
 
+  it('deve lançar erro ao gerar token sem TRACKING_TOKEN_SECRET configurado', () => {
+    delete process.env.TRACKING_TOKEN_SECRET;
+
+    expect(() => generateTrackingToken('123e4567-e89b-12d3-a456-426614174000')).toThrow(
+      'TRACKING_TOKEN_SECRET is not defined',
+    );
+  });
+
   it('buildTrackingLink deve montar um link absoluto sob o baseUrl informado', () => {
     const serviceOrderId = '123e4567-e89b-12d3-a456-426614174000';
 

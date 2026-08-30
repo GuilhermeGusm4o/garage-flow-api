@@ -1,4 +1,12 @@
-import { BadRequestException, Logger, NotFoundException, type ArgumentsHost } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  type ArgumentsHost,
+} from '@nestjs/common';
 import { type Request, type Response } from 'express';
 import { DomainError } from '@common/errors/domain.error';
 import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
@@ -85,6 +93,30 @@ describe('GlobalExceptionFilter', () => {
     );
     expect(json).not.toHaveBeenCalledWith(
       expect.objectContaining({ message: 'Database connection details' }),
+    );
+  });
+
+  it('logs 5xx HTTP exceptions as errors instead of warnings', () => {
+    const logErrorSpy = jest.spyOn(Logger.prototype, 'error');
+
+    filter.catch(new InternalServerErrorException('Something broke'), host);
+
+    expect(status).toHaveBeenCalledWith(500);
+    expect(logErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('500'),
+      expect.anything(),
+    );
+  });
+
+  it('returns a plain string HTTP exception response as-is', () => {
+    filter.catch(new HttpException('Forbidden action', HttpStatus.FORBIDDEN), host);
+
+    expect(status).toHaveBeenCalledWith(403);
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 403,
+        message: 'Forbidden action',
+      }),
     );
   });
 
