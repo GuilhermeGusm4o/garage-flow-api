@@ -212,6 +212,117 @@ Antes de cada `git push`, o Husky executa automaticamente:
 
 O push é interrompido caso alguma dessas verificações falhe.
 
+## Fluxo de teste: da abertura à entrega da OS
+
+Esta seção descreve, passo a passo, como percorrer o ciclo de vida completo de uma Ordem de Serviço via API - útil para testar manualmente pelo Swagger ou para entender a sequência esperada de chamadas.
+
+> Os exemplos usam `curl`, mas os mesmos endpoints podem ser testados pelo Swagger em `http://localhost:3000/docs`. Rotas administrativas exigem um token JWT (`Authorization: Bearer <token>`), obtido via `POST /auth/login` com um usuário do seed.
+
+### 1. Pré-requisitos: cliente, veículo, serviço e peça
+
+Antes de abrir uma OS, é necessário ter cadastrado:
+
+```bash
+# Cliente
+POST /clients
+{ "cpfCnpj": "52998224725", "name": "Cliente Teste", "address": "Rua X", "phone": "11999990000" }
+
+# Veículo (vinculado ao cliente)
+POST /vehicles
+{ "brand": "Fiat", "model": "Uno", "licensePlate": "TST1234", "year": 2020, "clientId": "<id-do-cliente>" }
+
+# Serviço no catálogo
+POST /services
+{ "name": "Troca de óleo", "price": 100 }
+
+# Peça no estoque
+POST /inventory
+{ "name": "Óleo 5W30", "unitOfMeasure": "ML", "unitPrice": 30, "quantity": 10, "minQuantity": 2 }
+```
+
+### 2. Abertura da OS
+
+```bash
+POST /service-orders
+{ "clientCpfCnpj": "529.982.247-25", "licensePlate": "TST1234", "description": "Ruído no motor" }
+```
+
+A OS nasce com status `RECEIVED`. A resposta inclui um `trackingLink` - um link público que o cliente pode usar para acompanhar o status sem autenticação (`GET /service-orders/track/:token`), e o `totalAmount` começa zerado.
+
+### 3. Diagnóstico
+
+```bash
+PATCH /service-orders/:id/start-diagnosis
+{ "mechanicId": "<id-do-mecanico>" }
+```
+
+Transiciona a OS para `IN_DIAGNOSIS` e atribui o mecânico responsável.
+
+### 4. Adição de serviços e peças
+
+```bash
+PATCH /service-orders/:id/add-services-and-parts
+{
+  "services": [{ "serviceId": "<id-do-servico>" }],
+  "parts": [{ "inventoryId": "<id-da-peca>", "quantity": 2 }]
+}
+```
+
+Só é permitido enquanto a OS está em `IN_DIAGNOSIS`. Verifica a disponibilidade de estoque lógico antes de aceitar a peça. A resposta pode incluir `stockAlerts` quando a peça adicionada ficar com estoque lógico abaixo do mínimo configurado. Ao concluir, a OS avança para `AWAITING_APPROVAL`.
+
+### 5. Orçamento
+
+```bash
+GET /service-orders/:id/budget
+```
+
+Retorna o detalhamento do orçamento (cliente, veículo, serviços, peças e valor total) com base nos itens adicionados. Só disponível quando a OS possui ao menos um serviço ou peça.
+
+### 6. Aprovação do orçamento
+
+```bash
+PATCH /service-orders/:id/approve-budget
+```
+
+Registra a aprovação do cliente e prepara a OS para execução.
+
+> Alternativamente, `PATCH /service-orders/:id/cancel-service` cancela a OS neste ponto (ex.: cliente não aprova o orçamento).
+
+### 7. Execução do serviço
+
+```bash
+PATCH /service-orders/:id/start-service
+```
+
+Transiciona a OS para `IN_EXECUTION`.
+
+### 8. Finalização
+
+```bash
+PATCH /service-orders/:id/finish-service
+```
+
+Transiciona a OS para `FINISHED` e dispara a baixa definitiva das peças utilizadas no estoque.
+
+### 9. Entrega
+
+```bash
+PATCH /service-orders/:id/deliver
+```
+
+Transiciona a OS para `DELIVERED`, encerrando o ciclo.
+
+### Outras consultas úteis
+
+```bash
+GET /service-orders                                 # lista todas as OS
+GET /service-orders/:id                             # detalhes de uma OS
+GET /service-orders/:id/tracking-link               # (re)obtém o link público de rastreamento
+GET /service-orders/track/:token                    # consulta pública de status, sem autenticação
+GET /service-orders/metrics/average-execution-time  # tempo médio de execução das OS finalizadas
+DELETE /service-orders/:id                          # soft delete da OS
+```
+
 ## Testes
 
 O projeto utiliza **Jest** para testes unitários e de integração. Todos os testes ficam na pasta `test/`, separados por tipo e organizados de acordo com os contextos e fluxos da aplicação.
