@@ -11,7 +11,7 @@ import { ConsumePartUseCase } from '@inventory/application/use-cases/consume-par
 import { ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
 import { ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { Part } from '@inventory/domain/entities/part.entity';
 import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
@@ -36,7 +36,16 @@ const makePart = () => ({
 
 const makeStockLevel = (): StockLevel =>
   new StockLevel(
-    new Part(mockId, 'Óleo', new UnitOfMeasure('ML'), 30, new Quantity(2), new Quantity(5)),
+    Part.create({
+      id: mockId,
+      name: 'Óleo',
+      unitOfMeasure: new UnitOfMeasure('ML'),
+      unitPrice: 30,
+      quantity: new Quantity(2),
+      minQuantity: new Quantity(5),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
     0,
   );
 
@@ -143,7 +152,7 @@ describe('InventoryController (security)', () => {
           useValue: { execute: jest.fn().mockResolvedValue(makePart()) },
         },
         {
-          provide: SoftDeletePartUseCase,
+          provide: DeletePartUseCase,
           useValue: { execute: jest.fn().mockResolvedValue(undefined) },
         },
         JwtStrategy,

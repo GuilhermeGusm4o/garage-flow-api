@@ -22,7 +22,16 @@ const mockId = '123e4567-e89b-12d3-a456-426614174000' as UUID;
 const ALL_ROLES: UserRole[] = ['ADMIN', 'MECHANIC', 'SERVICE_ADVISOR', 'STOCK_CLERK'];
 
 const makeUser = (): User =>
-  new User(mockId, 'John Doe', 'john@example.com', 'hash', 'ADMIN', new Date(), new Date(), null);
+  User.create({
+    id: mockId,
+    name: 'John Doe',
+    email: 'john@example.com',
+    passwordHash: 'hash',
+    role: 'ADMIN',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+  });
 
 type Endpoint = {
   description: string;
