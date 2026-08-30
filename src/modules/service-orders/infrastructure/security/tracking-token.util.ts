@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { DomainError } from '@common/errors/domain.error';
 
 const ALGORITHM = 'aes-256-gcm';

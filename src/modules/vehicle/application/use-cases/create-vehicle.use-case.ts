@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { ClientRepository } from '@client/domain/repositories/client.repository';
 import { VehicleRepository } from '@vehicle/domain/repositories/vehicle.repository';
 import { VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';

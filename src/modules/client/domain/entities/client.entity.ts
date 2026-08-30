@@ -20,7 +20,7 @@ export interface UpdateClientProps {
 }
 
 export class ClientEntity extends BaseDeletableEntity {
-  private _cpfCnpj: CpfCnpj;
+  private readonly _cpfCnpj: CpfCnpj;
   private _name: string;
   private _phone: string;
   private _address: string;
