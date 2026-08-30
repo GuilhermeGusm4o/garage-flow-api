@@ -1,8 +1,8 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { ClientRepository } from '@client/domain/repositories/client.repository';
 import { ClientEntity } from '@client/domain/entities/client.entity';
-import { CpfCnpj, InvalidCpfCnpjError } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
+import { CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
 
 export interface CreateClientInput {
   cpfCnpj: string;
@@ -17,7 +17,7 @@ export class CreateClientUseCase {
   constructor(private readonly clientRepository: ClientRepository) {}
 
   async execute(input: CreateClientInput): Promise<ClientEntity> {
-    const cpfCnpj = this.parseCpfCnpj(input.cpfCnpj);
+    const cpfCnpj = CpfCnpj.create(input.cpfCnpj);
 
     const existing = await this.clientRepository.findByCpfCnpj(cpfCnpj.value);
     if (existing) {
@@ -38,17 +38,5 @@ export class CreateClientUseCase {
     });
 
     return this.clientRepository.create(client);
-  }
-
-  /** Traduz o erro de domínio do VO para o erro HTTP correspondente. */
-  private parseCpfCnpj(value: string): CpfCnpj {
-    try {
-      return CpfCnpj.create(value);
-    } catch (error) {
-      if (error instanceof InvalidCpfCnpjError) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
-    }
   }
 }

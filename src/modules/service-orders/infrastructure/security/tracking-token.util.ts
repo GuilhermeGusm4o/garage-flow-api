@@ -1,10 +1,11 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import { DomainError } from '@common/errors/domain.error';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
 
-export class InvalidTrackingTokenError extends Error {
+export class InvalidTrackingTokenError extends DomainError {
   constructor() {
     super('Invalid tracking token');
     this.name = 'InvalidTrackingTokenError';

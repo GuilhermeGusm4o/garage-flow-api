@@ -48,7 +48,7 @@ src/modules/<name>/
 
 Contexts (actual folder names, singular): `auth`, `client`, `vehicle`, `service`, `service-orders`, `inventory`. (README describes these as "Clients/Vehicles/..." — the code uses singular directory names.) Cross-cutting code lives outside `modules/`:
 
-- `src/common/` — `BaseEntity` (shared id/timestamps/soft-delete), global `DomainExceptionFilter`, shared pipes/decorators/guards.
+- `src/common/` — `BaseEntity` (shared id/timestamps/soft-delete), global `GlobalExceptionFilter`, shared pipes/decorators/guards.
 - `src/infra/` — `PrismaModule`/`PrismaService` (DB access) and the `health` module; infrastructure not owned by a single bounded context.
 
 ### Path aliases
@@ -61,7 +61,7 @@ Entities extend `BaseEntity` (`src/common/entities/base.entity.ts`): private con
 
 ### Error flow
 
-Value objects/domain code throw plain `Error` subclasses. Use-cases catch these where they need to translate them into Nest HTTP exceptions (`BadRequestException`, `ConflictException`, `NotFoundException`, etc.) — see `create-client.use-case.ts` for the pattern. Any exception not deliberately translated is caught globally by `DomainExceptionFilter` (registered in `main.ts`): `HttpException`s pass through as-is, other `Error`s become a 400, anything else becomes a 500.
+Value objects/domain code throw `DomainError` subclasses (e.g. `InvalidCpfCnpjError`, `InvalidLicensePlateError`). These propagate uncaught by default: `GlobalExceptionFilter` (`src/common/filters/global-exception.filter.ts`, registered in `main.ts`) is a catch-all — `HttpException`s pass through as-is, any `DomainError` becomes a uniform 400 with the domain message, anything else becomes a 500 with a generic message. A use-case only adds its own `try/catch` when it needs to *change* that default outcome — e.g. `find-service-order-by-tracking-token.use-case.ts` maps any token-resolution failure to a 404 instead of the filter's default 400.
 
 ### Repository pattern
 
