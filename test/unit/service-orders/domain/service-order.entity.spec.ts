@@ -244,14 +244,14 @@ describe('ServiceOrder', () => {
     expect(os.status).toBe(ServiceOrderStatus.FINISHED_DIAGNOSIS);
   });
 
-  it('deve definir createdAt e updatedAt na criação', () => {
+  it('deve definir createdAt e updatedAt na criação quando a OS foi finalizada no diagnóstico', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
 
     expect(os.createdAt).toBeInstanceOf(Date);
     expect(os.updatedAt).toBeInstanceOf(Date);
   });
 
-  it('deve bumpar updatedAt ao atualizar o status', () => {
+  it('deve bumpar updatedAt ao atualizar o status quando a OS foi finalizada no diagnóstico', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     const before = os.updatedAt;
 
@@ -260,7 +260,7 @@ describe('ServiceOrder', () => {
     expect(os.updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
   });
 
-  it('deve marcar como excluído ao chamar softDelete', () => {
+  it('deve marcar como excluído ao chamar softDelete quando a OS foi finalizada no diagnóstico', () => {
     const os = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
     expect(os.isDeleted).toBe(false);
 

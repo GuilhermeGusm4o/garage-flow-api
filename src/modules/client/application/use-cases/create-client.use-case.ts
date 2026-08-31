@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { ClientRepository } from '@client/domain/repositories/client.repository';
 import { ClientEntity } from '@client/domain/entities/client.entity';
 import { CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';

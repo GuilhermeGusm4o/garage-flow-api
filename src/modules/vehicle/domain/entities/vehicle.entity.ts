@@ -21,9 +21,9 @@ export interface UpdateVehicleProps {
 export class VehicleEntity extends BaseDeletableEntity {
   private _brand: string;
   private _model: string;
-  private _licensePlate: LicensePlate;
+  private readonly _licensePlate: LicensePlate;
   private _year: number;
-  private _clientId: string;
+  private readonly _clientId: string;
 
   private constructor(props: VehicleProps) {
     super(props);

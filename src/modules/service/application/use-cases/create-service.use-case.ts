@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { ServiceRepository } from '@service/domain/repositories/service.repository';
 import { ServiceEntity } from '@service/domain/entities/service.entity';
 import { ServicePrice } from '@service/domain/value-objects/service-price.value-object';
