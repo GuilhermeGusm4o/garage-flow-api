@@ -1,17 +1,9 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { ClientRepository } from '@client/domain/repositories/client.repository';
 import { VehicleRepository } from '@vehicle/domain/repositories/vehicle.repository';
 import { VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';
-import {
-  InvalidLicensePlateError,
-  LicensePlate,
-} from '@vehicle/domain/value-objects/license-plate.vo';
+import { LicensePlate } from '@vehicle/domain/value-objects/license-plate.vo';
 
 export interface CreateVehicleInput {
   brand: string;
@@ -29,7 +21,7 @@ export class CreateVehicleUseCase {
   ) {}
 
   async execute(input: CreateVehicleInput): Promise<VehicleEntity> {
-    const licensePlate = this.parseLicensePlate(input.licensePlate);
+    const licensePlate = LicensePlate.create(input.licensePlate);
 
     const client = await this.clientRepository.findById(input.clientId);
     if (!client) {
@@ -55,17 +47,5 @@ export class CreateVehicleUseCase {
     });
 
     return this.vehicleRepository.create(vehicle);
-  }
-
-  /** Traduz o erro de domínio do VO para o erro HTTP correspondente. */
-  private parseLicensePlate(value: string): LicensePlate {
-    try {
-      return LicensePlate.create(value);
-    } catch (error) {
-      if (error instanceof InvalidLicensePlateError) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
-    }
   }
 }

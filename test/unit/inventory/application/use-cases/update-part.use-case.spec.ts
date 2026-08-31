@@ -1,9 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../part.factory';
 
 describe('UpdatePartUseCase', () => {
   let repository: jest.Mocked<PartRepository>;
@@ -18,13 +17,12 @@ describe('UpdatePartUseCase', () => {
       findReservedQuantities: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
     };
     useCase = new UpdatePartUseCase(repository);
   });
 
   it('deve atualizar nome e preço de uma peça existente', async () => {
-    const part = new Part('part-1', 'Óleo', new UnitOfMeasure('ML'), 45.9, new Quantity(10));
+    const part = makePart({ id: 'part-1', name: 'Óleo', quantity: new Quantity(10) });
     repository.findById.mockResolvedValue(part);
 
     const result = await useCase.execute('part-1', { name: 'Óleo sintético', unitPrice: 59.9 });

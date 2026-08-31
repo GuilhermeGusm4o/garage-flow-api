@@ -5,23 +5,11 @@ import { type ConsumePartUseCase } from '@inventory/application/use-cases/consum
 import { type ListPartsUseCase } from '@inventory/application/use-cases/list-parts.use-case';
 import { type ListLowStockPartsUseCase } from '@inventory/application/use-cases/list-low-stock-parts.use-case';
 import { type UpdatePartUseCase } from '@inventory/application/use-cases/update-part.use-case';
-import { type SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
+import { type DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
-
-const makePart = (overrides: Partial<Part> = {}): Part =>
-  Object.assign(
-    new Part(
-      '123e4567-e89b-12d3-a456-426614174000',
-      'Óleo de motor 5W30',
-      new UnitOfMeasure('ML'),
-      45.9,
-      new Quantity(20),
-    ),
-    overrides,
-  );
+import { PartResponseDto } from '@inventory/presentation/dtos/part-response.dto';
+import { makePart } from '../part.factory';
 
 describe('InventoryController', () => {
   let controller: InventoryController;
@@ -31,7 +19,7 @@ describe('InventoryController', () => {
   let listParts: jest.Mocked<ListPartsUseCase>;
   let listLowStockParts: jest.Mocked<ListLowStockPartsUseCase>;
   let updatePart: jest.Mocked<UpdatePartUseCase>;
-  let softDeletePart: jest.Mocked<SoftDeletePartUseCase>;
+  let deletePart: jest.Mocked<DeletePartUseCase>;
 
   beforeEach(() => {
     createPart = { execute: jest.fn() } as unknown as jest.Mocked<CreatePartUseCase>;
@@ -42,7 +30,7 @@ describe('InventoryController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<ListLowStockPartsUseCase>;
     updatePart = { execute: jest.fn() } as unknown as jest.Mocked<UpdatePartUseCase>;
-    softDeletePart = { execute: jest.fn() } as unknown as jest.Mocked<SoftDeletePartUseCase>;
+    deletePart = { execute: jest.fn() } as unknown as jest.Mocked<DeletePartUseCase>;
 
     controller = new InventoryController(
       createPart,
@@ -51,7 +39,7 @@ describe('InventoryController', () => {
       listParts,
       listLowStockParts,
       updatePart,
-      softDeletePart,
+      deletePart,
     );
   });
 
@@ -66,7 +54,7 @@ describe('InventoryController', () => {
         unitPrice: 45.9,
         quantity: 20,
       }),
-    ).resolves.toBe(part);
+    ).resolves.toEqual(PartResponseDto.fromEntity(part));
     expect(createPart.execute).toHaveBeenCalledWith({
       name: 'Óleo de motor 5W30',
       unitOfMeasure: 'ML',
@@ -79,18 +67,15 @@ describe('InventoryController', () => {
     const parts = [makePart()];
     listParts.execute.mockResolvedValue(parts);
 
-    await expect(controller.findAll()).resolves.toBe(parts);
+    await expect(controller.findAll()).resolves.toEqual(parts.map(PartResponseDto.fromEntity));
   });
 
   it('lista o estoque abaixo do mínimo já mapeado para o DTO de resposta', async () => {
-    const part = new Part(
-      'part-1',
-      'Óleo de motor 5W30',
-      new UnitOfMeasure('ML'),
-      45.9,
-      new Quantity(20),
-      new Quantity(15),
-    );
+    const part = makePart({
+      id: 'part-1',
+      quantity: new Quantity(20),
+      minQuantity: new Quantity(15),
+    });
     listLowStockParts.execute.mockResolvedValue([new StockLevel(part, 8)]);
 
     const result = await controller.findLowStock();
@@ -120,7 +105,7 @@ describe('InventoryController', () => {
 
     await expect(
       controller.update('part-id', { name: 'Filtro de óleo premium', unitPrice: 25 }),
-    ).resolves.toBe(part);
+    ).resolves.toEqual(PartResponseDto.fromEntity(part));
     expect(updatePart.execute).toHaveBeenCalledWith('part-id', {
       name: 'Filtro de óleo premium',
       unitPrice: 25,
@@ -131,14 +116,16 @@ describe('InventoryController', () => {
     const part = makePart({ quantity: new Quantity(16) });
     consumePart.execute.mockResolvedValue(part);
 
-    await expect(controller.consume('part-id', { quantity: 4 })).resolves.toBe(part);
+    await expect(controller.consume('part-id', { quantity: 4 })).resolves.toEqual(
+      PartResponseDto.fromEntity(part),
+    );
     expect(consumePart.execute).toHaveBeenCalledWith('part-id', 4);
   });
 
   it('faz soft delete', async () => {
-    softDeletePart.execute.mockResolvedValue(undefined);
+    deletePart.execute.mockResolvedValue(undefined);
 
     await expect(controller.remove('part-id')).resolves.toBeUndefined();
-    expect(softDeletePart.execute).toHaveBeenCalledWith('part-id');
+    expect(deletePart.execute).toHaveBeenCalledWith('part-id');
   });
 });

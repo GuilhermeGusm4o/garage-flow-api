@@ -1,6 +1,7 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { FindClientByCpfCnpjUseCase } from '@client/application/use-cases/find-client-by-cpf-cnpj.use-case';
 import { type ClientRepository } from '@client/domain/repositories/client.repository';
+import { InvalidCpfCnpjError } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
 import { makeClient, makeClientRepositoryMock } from '../../client.factory';
 
 describe('FindClientByCpfCnpjUseCase', () => {
@@ -35,7 +36,7 @@ describe('FindClientByCpfCnpjUseCase', () => {
   });
 
   it('lança 400 quando o CPF/CNPJ é inválido', async () => {
-    await expect(useCase.execute('123')).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute('123')).rejects.toThrow(InvalidCpfCnpjError);
     expect(repository.findByCpfCnpj).not.toHaveBeenCalled();
   });
 });

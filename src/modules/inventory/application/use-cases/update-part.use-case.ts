@@ -10,7 +10,7 @@ export class UpdatePartUseCase {
 
   async execute(id: string, dto: UpdatePartDto): Promise<Part> {
     const part = await this.partRepository.findById(id);
-    if (!part) throw new NotFoundException('Peça não encontrada');
+    if (!part) throw new NotFoundException('Part not found');
 
     part.updateDetails(
       dto.name,

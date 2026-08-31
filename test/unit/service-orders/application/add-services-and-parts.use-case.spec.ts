@@ -9,9 +9,8 @@ import {
   type PartAvailability,
 } from '@inventory/application/use-cases/check-parts-availability.use-case';
 import { StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../inventory/part.factory';
 import { type FindServicesByIdListUseCase } from '@service/application/use-cases/find-services-by-id-list.use-case';
 import { type CalculateTotalAmountUseCase } from '@service-orders/application/use-cases/calculate-total-amount.use-case';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
@@ -34,14 +33,13 @@ describe('AddServicesAndPartsUseCase', () => {
     minQuantity = 0,
   ): PartAvailability => {
     const stockLevel = new StockLevel(
-      new Part(
-        'part-1',
-        'Óleo',
-        new UnitOfMeasure('ML'),
-        30,
-        new Quantity(physical),
-        new Quantity(minQuantity),
-      ),
+      makePart({
+        id: 'part-1',
+        name: 'Óleo',
+        unitPrice: 30,
+        quantity: new Quantity(physical),
+        minQuantity: new Quantity(minQuantity),
+      }),
       reserved,
     );
     return {
@@ -64,7 +62,6 @@ describe('AddServicesAndPartsUseCase', () => {
       findById: jest.fn().mockResolvedValue(buildServiceOrder()),
       findAll: jest.fn(),
       findAverageExecutionTime: jest.fn(),
-      softDelete: jest.fn(),
     };
     findServicesByIdList = { execute: jest.fn().mockResolvedValue([service]) };
     checkPartsAvailability = { execute: jest.fn().mockResolvedValue([buildAvailability(10)]) };
@@ -104,8 +101,7 @@ describe('AddServicesAndPartsUseCase', () => {
 
   it('deve preservar os itens já existentes na OS ao adicionar novos', async () => {
     const existingServiceOrder = buildServiceOrder();
-    existingServiceOrder.serviceItems = [new ServiceItem(null, 'service-existing', 50)];
-    existingServiceOrder.totalAmount = 50;
+    existingServiceOrder.addServicesAndParts([ServiceItem.create('service-existing', 50)], [], 50);
     repository.findById.mockResolvedValue(existingServiceOrder);
 
     const { serviceOrder: os } = await useCase.execute('os-1', buildDto(), 'mechanic-1');

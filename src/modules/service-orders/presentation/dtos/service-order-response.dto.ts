@@ -6,13 +6,16 @@ import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service
 import { type ServiceOrderListItem } from '@service-orders/domain/repositories/service-order.repository';
 
 export class ServiceItemResponseDto {
-  @ApiPropertyOptional({ nullable: true })
-  id!: string | null;
+  @ApiProperty({
+    description: 'Service line item ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  id!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Service ID', example: '123e4567-e89b-12d3-a456-426614174000' })
   serviceId!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Price billed for this service', example: 150.0 })
   price!: number;
 
   static fromEntity(entity: ServiceItem): ServiceItemResponseDto {
@@ -25,19 +28,29 @@ export class ServiceItemResponseDto {
 }
 
 export class PartItemResponseDto {
-  @ApiPropertyOptional({ nullable: true })
-  id!: string | null;
+  @ApiProperty({
+    description: 'Part line item ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  id!: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Inventory item ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   inventoryId!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Quantity used', example: 2 })
   quantity!: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Unit price billed', example: 59.9 })
   unitPrice!: number;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: 'Unit of measure',
+    example: 'UNIT',
+    nullable: true,
+  })
   unitOfMeasure!: string | null;
 
   static fromEntity(entity: PartItem): PartItemResponseDto {
@@ -52,46 +65,66 @@ export class PartItemResponseDto {
 }
 
 export class ServiceOrderResponseDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Service order ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   id!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "Vehicle's ID", example: '123e4567-e89b-12d3-a456-426614174000' })
   vehicleId!: string;
 
-  @ApiPropertyOptional({ description: 'Placa do veículo' })
+  @ApiPropertyOptional({ description: "Vehicle's license plate", example: 'ABC1D23' })
   vehicleLicensePlate?: string;
 
-  @ApiPropertyOptional({ description: 'Nome do cliente' })
+  @ApiPropertyOptional({ description: "Client's name", example: 'João da Silva' })
   clientName?: string;
 
-  @ApiPropertyOptional({ description: 'Marca do veículo' })
+  @ApiPropertyOptional({ description: "Vehicle's brand", example: 'Volkswagen' })
   vehicleBrand?: string;
 
-  @ApiPropertyOptional({ description: 'Modelo do veículo' })
+  @ApiPropertyOptional({ description: "Vehicle's model", example: 'Gol' })
   vehicleModel?: string;
 
-  @ApiPropertyOptional({ description: 'Identificação amigável para seleção da OS' })
+  @ApiPropertyOptional({
+    description: 'Friendly identifier for selecting the service order',
+    example: 'ABC1D23 - João da Silva',
+  })
   displayLabel?: string;
 
-  @ApiProperty({ description: 'Reclamação do cliente relatada na abertura da OS' })
+  @ApiProperty({ description: 'Client complaint reported when the service order was opened' })
   description!: string;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: 'Mechanic assigned to the service order, null until diagnosis starts',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    nullable: true,
+  })
   mechanicId!: string | null;
 
-  @ApiProperty({ enum: ServiceOrderStatus })
+  @ApiProperty({
+    description: 'Current status',
+    enum: ServiceOrderStatus,
+    example: ServiceOrderStatus.RECEIVED,
+  })
   status!: ServiceOrderStatus;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({
+    description: 'When the budget was approved, null until then',
+    nullable: true,
+  })
   approvedAt!: Date | null;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Sum of all services and parts', example: 410.0 })
   totalAmount!: number;
 
-  @ApiProperty({ type: [ServiceItemResponseDto] })
+  @ApiProperty({
+    description: 'Services performed on this service order',
+    type: [ServiceItemResponseDto],
+  })
   serviceItems!: ServiceItemResponseDto[];
 
-  @ApiProperty({ type: [PartItemResponseDto] })
+  @ApiProperty({ description: 'Parts used on this service order', type: [PartItemResponseDto] })
   partItems!: PartItemResponseDto[];
 
   static fromEntity(entity: ServiceOrder): ServiceOrderResponseDto {

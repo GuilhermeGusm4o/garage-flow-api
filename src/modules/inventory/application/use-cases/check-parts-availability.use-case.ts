@@ -46,7 +46,7 @@ export class CheckPartsAvailabilityUseCase {
     return partIds.map((partId) => {
       const part = partsById.get(partId);
       if (!part) {
-        throw new NotFoundException(`Peça ${partId} não encontrada`);
+        throw new NotFoundException(`Part ${partId} not found`);
       }
 
       const stockLevel = new StockLevel(part, reservedByPart.get(partId) ?? 0);

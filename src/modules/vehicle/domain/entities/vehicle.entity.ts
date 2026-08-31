@@ -1,7 +1,10 @@
 import { type LicensePlate } from '@vehicle/domain/value-objects/license-plate.vo';
-import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
+import {
+  BaseDeletableEntity,
+  type BaseDeletableEntityProps,
+} from '@common/entities/base-deletable.entity';
 
-export interface VehicleProps extends BaseEntityProps {
+export interface VehicleProps extends BaseDeletableEntityProps {
   brand: string;
   model: string;
   licensePlate: LicensePlate;
@@ -15,12 +18,12 @@ export interface UpdateVehicleProps {
   year?: number;
 }
 
-export class VehicleEntity extends BaseEntity {
+export class VehicleEntity extends BaseDeletableEntity {
   private _brand: string;
   private _model: string;
-  private _licensePlate: LicensePlate;
+  private readonly _licensePlate: LicensePlate;
   private _year: number;
-  private _clientId: string;
+  private readonly _clientId: string;
 
   private constructor(props: VehicleProps) {
     super(props);

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from '../../../../infra/database/prisma/prisma.service';
+import { PrismaService } from '@infra/database/prisma/prisma.service';
 
 import { User, UserRole } from '@auth/domain/entities/user.entity';
 import { UserRepository } from '@auth/domain/repositories/user.repository';
@@ -25,21 +25,7 @@ export class PrismaUserRepository implements UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     const raw = await this.prisma.user.findFirst({
-      where: {
-        email,
-        deleted_at: null,
-      },
-    });
-
-    return raw ? UserMapper.toDomain(raw) : null;
-  }
-
-  async findActiveByEmail(email: string): Promise<User | null> {
-    const raw = await this.prisma.user.findFirst({
-      where: {
-        email,
-        deleted_at: null,
-      },
+      where: { email, deleted_at: null },
     });
 
     return raw ? UserMapper.toDomain(raw) : null;

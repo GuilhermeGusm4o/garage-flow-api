@@ -75,11 +75,4 @@ export class PrismaPartRepository extends PartRepository {
     });
     return rows.map(PartMapper.toDomain).filter((part: Part) => part.isBelowMinimum());
   }
-
-  async softDelete(id: string): Promise<void> {
-    await this.prisma.inventory.update({
-      where: { id, deleted_at: null },
-      data: { deleted_at: new Date() },
-    });
-  }
 }

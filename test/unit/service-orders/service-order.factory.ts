@@ -18,44 +18,52 @@ export interface MakeServiceOrderOverrides {
   totalAmount?: number;
   serviceItems?: ServiceItem[];
   partItems?: PartItem[];
+  serviceStartedAt?: Date | null;
+  serviceFinishedAt?: Date | null;
+  createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
 }
 
 export function makeServiceOrder(overrides: MakeServiceOrderOverrides = {}): ServiceOrder {
-  return new ServiceOrder(
-    overrides.id ?? randomUUID(),
-    overrides.vehicleId ?? randomUUID(),
-    overrides.description ?? 'Ruído no motor',
-    overrides.mechanicId ?? null,
-    overrides.status ?? ServiceOrderStatus.RECEIVED,
-    overrides.approvedAt ?? null,
-    overrides.totalAmount ?? 0,
-    overrides.serviceItems ?? [],
-    overrides.partItems ?? [],
-    null,
-    null,
-    overrides.updatedAt ?? FIXED_DATE,
-    overrides.deletedAt ?? null,
-  );
+  return ServiceOrder.reconstitute({
+    id: overrides.id ?? randomUUID(),
+    vehicleId: overrides.vehicleId ?? randomUUID(),
+    description: overrides.description ?? 'Ruído no motor',
+    mechanicId: overrides.mechanicId ?? null,
+    status: overrides.status ?? ServiceOrderStatus.RECEIVED,
+    approvedAt: overrides.approvedAt ?? null,
+    totalAmount: overrides.totalAmount ?? 0,
+    serviceItems: overrides.serviceItems ?? [],
+    partItems: overrides.partItems ?? [],
+    serviceStartedAt: overrides.serviceStartedAt ?? null,
+    serviceFinishedAt: overrides.serviceFinishedAt ?? null,
+    createdAt: overrides.createdAt ?? FIXED_DATE,
+    updatedAt: overrides.updatedAt ?? FIXED_DATE,
+    deletedAt: overrides.deletedAt ?? null,
+  });
 }
 
 export function makeServiceItem(overrides: Partial<ServiceItem> = {}): ServiceItem {
-  return new ServiceItem(
-    overrides.id ?? randomUUID(),
-    overrides.serviceId ?? randomUUID(),
-    overrides.price ?? 100,
-  );
+  return ServiceItem.reconstitute({
+    id: overrides.id ?? randomUUID(),
+    serviceId: overrides.serviceId ?? randomUUID(),
+    price: overrides.price ?? 100,
+    createdAt: FIXED_DATE,
+    updatedAt: FIXED_DATE,
+  });
 }
 
 export function makePartItem(overrides: Partial<PartItem> = {}): PartItem {
-  return new PartItem(
-    overrides.id ?? randomUUID(),
-    overrides.inventoryId ?? randomUUID(),
-    overrides.quantity ?? 1,
-    overrides.unitPrice ?? 50,
-    overrides.unitOfMeasure ?? 'UNIT',
-  );
+  return PartItem.reconstitute({
+    id: overrides.id ?? randomUUID(),
+    inventoryId: overrides.inventoryId ?? randomUUID(),
+    quantity: overrides.quantity ?? 1,
+    unitPrice: overrides.unitPrice ?? 50,
+    unitOfMeasure: overrides.unitOfMeasure ?? 'UNIT',
+    createdAt: FIXED_DATE,
+    updatedAt: FIXED_DATE,
+  });
 }
 
 export function makeServiceOrderRepositoryMock(): jest.Mocked<ServiceOrderRepository> {
@@ -64,6 +72,5 @@ export function makeServiceOrderRepositoryMock(): jest.Mocked<ServiceOrderReposi
     findById: jest.fn(),
     findAll: jest.fn(),
     findAverageExecutionTime: jest.fn(),
-    softDelete: jest.fn(),
   };
 }

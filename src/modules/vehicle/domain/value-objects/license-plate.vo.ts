@@ -2,7 +2,7 @@ import { DomainError } from '@common/errors/domain.error';
 
 export class InvalidLicensePlateError extends DomainError {
   constructor(value: string) {
-    super(`Placa inválida: "${value}"`);
+    super(`Invalid license plate: "${value}"`);
     this.name = 'InvalidLicensePlateError';
   }
 }
@@ -10,10 +10,10 @@ export class InvalidLicensePlateError extends DomainError {
 export type LicensePlateFormat = 'OLD' | 'MERCOSUL';
 
 /** Padrão brasileiro anterior ao Mercosul: 3 letras + 4 dígitos (ABC1234). */
-const OLD_PATTERN = /^[A-Z]{3}[0-9]{4}$/;
+const OLD_PATTERN = /^[A-Z]{3}\d{4}$/;
 
 /** Padrão Mercosul: 3 letras + dígito + letra + 2 dígitos (ABC1D23). */
-const MERCOSUL_PATTERN = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
+const MERCOSUL_PATTERN = /^[A-Z]{3}\d[A-Z]\d{2}$/;
 
 /**
  * Value Object da placa do veículo.

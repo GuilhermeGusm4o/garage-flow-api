@@ -19,21 +19,30 @@ describe('UserMapper', () => {
 
     expect(result).toBeInstanceOf(User);
     expect(result).toEqual(
-      new User(
-        prismaUser.id,
-        prismaUser.name,
-        prismaUser.email,
-        prismaUser.passwordHash,
-        prismaUser.role,
-        prismaUser.created_at,
-        prismaUser.updated_at,
-        prismaUser.deleted_at,
-      ),
+      User.create({
+        id: prismaUser.id,
+        name: prismaUser.name,
+        email: prismaUser.email,
+        passwordHash: prismaUser.passwordHash,
+        role: prismaUser.role,
+        createdAt: prismaUser.created_at,
+        updatedAt: prismaUser.updated_at,
+        deletedAt: prismaUser.deleted_at,
+      }),
     );
   });
 
   it('should map domain user to persistence', () => {
-    const user = new User('user-id', 'John Doe', 'john@example.com', 'hashed-password', 'MECHANIC');
+    const now = new Date();
+    const user = User.create({
+      id: 'user-id',
+      name: 'John Doe',
+      email: 'john@example.com',
+      passwordHash: 'hashed-password',
+      role: 'MECHANIC',
+      createdAt: now,
+      updatedAt: now,
+    });
 
     expect(UserMapper.toPersistence(user)).toEqual({
       id: user.id,
@@ -45,17 +54,18 @@ describe('UserMapper', () => {
   });
 
   it('should map domain user to update persistence', () => {
+    const now = new Date();
     const deletedAt = new Date('2026-01-03T10:00:00.000Z');
-    const user = new User(
-      'user-id',
-      'John Doe',
-      'john@example.com',
-      'hashed-password',
-      'MECHANIC',
-      undefined,
-      undefined,
+    const user = User.create({
+      id: 'user-id',
+      name: 'John Doe',
+      email: 'john@example.com',
+      passwordHash: 'hashed-password',
+      role: 'MECHANIC',
+      createdAt: now,
+      updatedAt: now,
       deletedAt,
-    );
+    });
 
     expect(UserMapper.toUpdatePersistence(user)).toEqual({
       name: user.name,

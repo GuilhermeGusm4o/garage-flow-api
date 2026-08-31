@@ -7,7 +7,7 @@ export class CalculateAvailabilityUseCase {
 
   async execute(partId: string): Promise<number> {
     const part = await this.partRepository.findById(partId);
-    if (!part) throw new NotFoundException('Peça não encontrada');
+    if (!part) throw new NotFoundException('Part not found');
 
     return part.quantity.value;
   }

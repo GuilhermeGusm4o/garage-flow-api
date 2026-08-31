@@ -7,11 +7,10 @@ export abstract class PartRepository {
   abstract findAll(): Promise<Part[]>;
   abstract findByIdList(idList: string[]): Promise<Part[]>;
   abstract findBelowMinimum(): Promise<Part[]>;
-  abstract softDelete(id: string): Promise<void>;
 
   /**
    * Soma, por peça, a quantidade já comprometida com ordens de serviço nos status
-   * informados. Sem `partIds`, cobre todo o estoque. Peças sem reserva não aparecem no mapa.
+   * informados. Sem `partIds`, cobre o estoque inteiro. Peças sem reserva não aparecem no mapa.
    */
   abstract findReservedQuantities(
     serviceOrderStatuses: string[],

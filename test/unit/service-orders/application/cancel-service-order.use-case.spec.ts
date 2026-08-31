@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { CancelServiceOrderUseCase } from '@service-orders/application/use-cases/cancel-service-order.use-case';
-import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
+import { makeServiceOrder } from '../service-order.factory';
 
 describe('CancelServiceOrderUseCase', () => {
   it.each([
@@ -13,8 +13,7 @@ describe('CancelServiceOrderUseCase', () => {
     ServiceOrderStatus.AWAITING_EXECUTION,
     ServiceOrderStatus.IN_EXECUTION,
   ])('cancela a OS no status %s', async (status) => {
-    const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
-    serviceOrder.status = status;
+    const serviceOrder = makeServiceOrder({ status });
     const repository = {
       findById: jest.fn().mockResolvedValue(serviceOrder),
       save: jest.fn().mockResolvedValue(serviceOrder),
@@ -29,8 +28,7 @@ describe('CancelServiceOrderUseCase', () => {
   it.each([ServiceOrderStatus.FINISHED, ServiceOrderStatus.DELIVERED])(
     'não permite cancelar uma OS no status %s',
     async (status) => {
-      const serviceOrder = ServiceOrder.create('vehicle-1', 'Ruído no motor', [], [], 0);
-      serviceOrder.status = status;
+      const serviceOrder = makeServiceOrder({ status });
       const repository = {
         findById: jest.fn().mockResolvedValue(serviceOrder),
         save: jest.fn(),

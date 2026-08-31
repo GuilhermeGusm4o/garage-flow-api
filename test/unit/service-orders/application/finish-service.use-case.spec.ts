@@ -1,11 +1,11 @@
 import { NotFoundException } from '@nestjs/common';
 import { type WriteOffPartsUseCase } from '@inventory/application/use-cases/write-off-parts.use-case';
 import { FinishServiceUseCase } from '@service-orders/application/use-cases/finish-service.use-case';
-import { ServiceOrder } from '@service-orders/domain/entities/service-order.entity';
-import { PartItem } from '@service-orders/domain/entities/part-item.entity';
+import { type PartItem } from '@service-orders/domain/entities/part-item.entity';
 import { type ServiceOrderRepository } from '@service-orders/domain/repositories/service-order.repository';
 import { ServiceOrderStatus } from '@service-orders/domain/value-objects/service-order-status.vo';
 import { DomainError } from '@common/errors/domain.error';
+import { makeServiceOrder, makePartItem } from '../service-order.factory';
 
 describe('FinishServiceUseCase', () => {
   const repository = {
@@ -18,14 +18,25 @@ describe('FinishServiceUseCase', () => {
     writeOffParts as unknown as WriteOffPartsUseCase,
   );
 
-  const makeOrder = (status: ServiceOrderStatus, mechanicId: string | null) =>
-    new ServiceOrder('order-1', 'vehicle-1', 'Falha no motor', mechanicId, status, null, 0, [], []);
+  const makeOrder = (
+    status: ServiceOrderStatus,
+    mechanicId: string | null,
+    partItems: PartItem[] = [],
+  ) =>
+    makeServiceOrder({
+      vehicleId: 'vehicle-1',
+      description: 'Falha no motor',
+      mechanicId,
+      status,
+      partItems,
+    });
 
   beforeEach(() => jest.clearAllMocks());
 
   it('finishes an order in execution for the assigned mechanic', async () => {
-    const order = makeOrder(ServiceOrderStatus.IN_EXECUTION, 'mechanic-1');
-    order.partItems = [new PartItem(null, 'part-1', 2, 30)];
+    const order = makeOrder(ServiceOrderStatus.IN_EXECUTION, 'mechanic-1', [
+      makePartItem({ inventoryId: 'part-1', quantity: 2, unitPrice: 30 }),
+    ]);
     repository.findById.mockResolvedValue(order);
     repository.save.mockResolvedValue(order);
 

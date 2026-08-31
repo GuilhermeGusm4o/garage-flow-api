@@ -21,7 +21,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
 
     const raw = await this.prisma.$transaction(async (tx) => {
       await tx.serviceOrder.upsert({
-        where: { id: serviceOrder.id, deleted_at: null },
+        where: { id: serviceOrder.id },
         create: data,
         update: data,
       });
@@ -30,7 +30,7 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
       await this.deleteAndCreatePartItems(tx, serviceOrder.id, serviceOrder.partItems);
 
       return tx.serviceOrder.findUniqueOrThrow({
-        where: { id: serviceOrder.id, deleted_at: null },
+        where: { id: serviceOrder.id },
         include: { services: true, inventory: { include: { inventory: true } } },
       });
     });
@@ -61,13 +61,26 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
       orderBy: { created_at: 'desc' },
     });
 
-    return raws.map((raw) => ({
-      ...ServiceOrderMapper.toDomain(raw),
-      vehicleLicensePlate: raw.vehicle.licensePlate,
-      clientName: raw.vehicle.client.name,
-      vehicleBrand: raw.vehicle.brand,
-      vehicleModel: raw.vehicle.model,
-    }));
+    return raws.map((raw) => {
+      const serviceOrder = ServiceOrderMapper.toDomain(raw);
+      return {
+        id: serviceOrder.id,
+        vehicleId: serviceOrder.vehicleId,
+        description: serviceOrder.description,
+        mechanicId: serviceOrder.mechanicId,
+        status: serviceOrder.status,
+        approvedAt: serviceOrder.approvedAt,
+        totalAmount: serviceOrder.totalAmount,
+        serviceStartedAt: serviceOrder.serviceStartedAt,
+        serviceFinishedAt: serviceOrder.serviceFinishedAt,
+        serviceItems: serviceOrder.serviceItems,
+        partItems: serviceOrder.partItems,
+        vehicleLicensePlate: raw.vehicle.licensePlate,
+        clientName: raw.vehicle.client.name,
+        vehicleBrand: raw.vehicle.brand,
+        vehicleModel: raw.vehicle.model,
+      };
+    });
   }
 
   async findAverageExecutionTime(from?: Date, to?: Date): Promise<AverageExecutionTimeMetrics> {
@@ -89,13 +102,6 @@ export class PrismaServiceOrderRepository implements ServiceOrderRepository {
     `);
 
     return metrics;
-  }
-
-  async softDelete(id: string): Promise<void> {
-    await this.prisma.serviceOrder.update({
-      where: { id, deleted_at: null },
-      data: { deleted_at: new Date() },
-    });
   }
 
   private async deleteAndCreateServiceItems(

@@ -1,7 +1,8 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateVehicleUseCase } from '@vehicle/application/use-cases/create-vehicle.use-case';
 import { type VehicleRepository } from '@vehicle/domain/repositories/vehicle.repository';
 import { type VehicleEntity } from '@vehicle/domain/entities/vehicle.entity';
+import { InvalidLicensePlateError } from '@vehicle/domain/value-objects/license-plate.vo';
 import { type ClientRepository } from '@client/domain/repositories/client.repository';
 import { type ClientEntity } from '@client/domain/entities/client.entity';
 import { makeVehicleRepositoryMock } from '../../vehicle.factory';
@@ -51,7 +52,7 @@ describe('CreateVehicleUseCase', () => {
 
   it('rejeita placa inválida com 400 antes de tocar os repositórios', async () => {
     await expect(useCase.execute({ ...input, licensePlate: 'AB12' })).rejects.toThrow(
-      BadRequestException,
+      InvalidLicensePlateError,
     );
     expect(clientRepository.findById).not.toHaveBeenCalled();
     expect(vehicleRepository.findByLicensePlate).not.toHaveBeenCalled();

@@ -1,13 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
-import { SoftDeletePartUseCase } from '@inventory/application/use-cases/soft-delete-part.use-case';
+import { DeletePartUseCase } from '@inventory/application/use-cases/delete-part.use-case';
 import { type PartRepository } from '@inventory/domain/repositories/part.repository';
-import { Part } from '@inventory/domain/entities/part.entity';
-import { UnitOfMeasure } from '@inventory/domain/value-objects/unit-of-measure.vo';
 import { Quantity } from '@inventory/domain/value-objects/quantity.vo';
+import { makePart } from '../../part.factory';
 
-describe('SoftDeletePartUseCase', () => {
+describe('DeletePartUseCase', () => {
   let repository: jest.Mocked<PartRepository>;
-  let useCase: SoftDeletePartUseCase;
+  let useCase: DeletePartUseCase;
 
   beforeEach(() => {
     repository = {
@@ -18,18 +17,18 @@ describe('SoftDeletePartUseCase', () => {
       findReservedQuantities: jest.fn(),
       findByIdList: jest.fn(),
       findBelowMinimum: jest.fn(),
-      softDelete: jest.fn(),
     };
-    useCase = new SoftDeletePartUseCase(repository);
+    useCase = new DeletePartUseCase(repository);
   });
 
-  it('deve chamar softDelete quando a peça existe', async () => {
-    const part = new Part('part-1', 'Óleo', new UnitOfMeasure('ML'), 45.9, new Quantity(10));
+  it('deve marcar a peça como excluída e salvar quando ela existe', async () => {
+    const part = makePart({ id: 'part-1', name: 'Óleo', quantity: new Quantity(10) });
     repository.findById.mockResolvedValue(part);
 
     await useCase.execute('part-1');
 
-    expect(repository.softDelete).toHaveBeenCalledWith('part-1');
+    expect(part.isDeleted).toBe(true);
+    expect(repository.save).toHaveBeenCalledWith(part);
   });
 
   it('deve lançar NotFoundException quando a peça não existe', async () => {

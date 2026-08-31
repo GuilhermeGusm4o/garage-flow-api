@@ -2,25 +2,28 @@ import { ApiProperty } from '@nestjs/swagger';
 import { type StockLevel } from '@inventory/domain/value-objects/stock-level.vo';
 
 export class LowStockPartResponseDto {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiProperty({
+    description: 'Inventory item ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   id!: string;
 
-  @ApiProperty({ example: 'Óleo sintético 5W40' })
+  @ApiProperty({ description: 'Inventory item name', example: 'Óleo sintético 5W40' })
   name!: string;
 
-  @ApiProperty({ example: 'ML' })
+  @ApiProperty({ description: 'Unit of measure', example: 'ML' })
   unitOfMeasure!: string;
 
-  @ApiProperty({ example: 20, description: 'Quantidade física em estoque' })
+  @ApiProperty({ example: 20, description: 'Physical quantity in stock' })
   physicalQuantity!: number;
 
-  @ApiProperty({ example: 8, description: 'Quantidade comprometida com OS em aberto' })
+  @ApiProperty({ example: 8, description: 'Quantity committed to open service orders' })
   reservedQuantity!: number;
 
-  @ApiProperty({ example: 12, description: 'Estoque lógico: físico menos o comprometido' })
+  @ApiProperty({ example: 12, description: 'Logical stock: physical minus committed' })
   availableQuantity!: number;
 
-  @ApiProperty({ example: 15, description: 'Mínimo recomendado em estoque' })
+  @ApiProperty({ example: 15, description: 'Recommended minimum stock' })
   minQuantity!: number;
 
   static fromStockLevel(level: StockLevel): LowStockPartResponseDto {

@@ -1,12 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AverageExecutionTimeResponseDto {
-  @ApiProperty({ example: 127.3 })
+  @ApiProperty({
+    description: 'Average execution time, in minutes',
+    example: 127.3,
+  })
   averageExecutionTimeMinutes!: number;
 
-  @ApiProperty({ example: '2h 7min' })
+  @ApiProperty({
+    description: 'Average execution time, formatted for display',
+    example: '2h 7min',
+  })
   averageExecutionTimeFormatted!: string;
 
-  @ApiProperty({ example: 35 })
+  @ApiProperty({ description: 'Number of completed service orders considered', example: 35 })
   completedServiceOrders!: number;
 }

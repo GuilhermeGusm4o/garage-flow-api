@@ -1,7 +1,10 @@
 import { type CpfCnpj } from '@client/domain/value-objects/cpf-cnpj-validator.vo';
-import { BaseEntity, type BaseEntityProps } from '@common/entities/base.entity';
+import {
+  BaseDeletableEntity,
+  type BaseDeletableEntityProps,
+} from '@common/entities/base-deletable.entity';
 
-export interface ClientProps extends BaseEntityProps {
+export interface ClientProps extends BaseDeletableEntityProps {
   cpfCnpj: CpfCnpj;
   name: string;
   phone: string;
@@ -16,8 +19,8 @@ export interface UpdateClientProps {
   email?: string | null;
 }
 
-export class ClientEntity extends BaseEntity {
-  private _cpfCnpj: CpfCnpj;
+export class ClientEntity extends BaseDeletableEntity {
+  private readonly _cpfCnpj: CpfCnpj;
   private _name: string;
   private _phone: string;
   private _address: string;
