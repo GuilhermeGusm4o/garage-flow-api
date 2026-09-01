@@ -144,11 +144,10 @@ JWT_EXPIRES_IN=1d
 TRACKING_TOKEN_SECRET=troque-por-outro-segredo-forte
 ```
 
-> **Importante:** sem `JWT_SECRET`, `JWT_EXPIRES_IN` e `TRACKING_TOKEN_SECRET` definidos, a aplicação não sobe - o login e a geração de link de rastreamento dependem dessas variáveis.
 
 O projeto tem dois arquivos de Docker Compose, um por ambiente:
 
-- `docker-compose.production.yaml`: builda o estágio `production` (imagem enxuta, sem devDependencies) e roda a aplicação já compilada (`node dist/src/main`).
+- `docker-compose.production.yaml`: builda o estágio `production` (imagem enxuta, sem devDependencies), repassa as variáveis de autenticação e rastreamento definidas no `.env` e roda a aplicação já compilada (`node dist/src/main`).
 - `docker-compose.development.yaml`: builda o estágio `development` do `Dockerfile` (com devDependencies), monta o código como volume e roda com **hot reload** (`start:debug`).
 
 ### 2. Subir a aplicação
@@ -159,7 +158,11 @@ Para avaliação (ambiente de produção), na raiz do projeto:
 docker compose -f docker-compose.production.yaml up --build
 ```
 
-Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy`), um container `seed` (que cria os usuários e dados de demonstração) e só então a API. Os containers `migrate` e `seed` usam o estágio `build`, que ainda possui a CLI do Prisma, e encerram após concluir. A API só inicia quando ambos terminam com sucesso. Os usuários do seed usam a senha padrão `Password123!`, adequada para o ambiente de avaliação local.
+Esse compose sobe, nessa ordem: PostgreSQL, um container `migrate` (que roda `prisma migrate deploy`), um container `seed` (que cria os usuários e dados de demonstração) e só então a API.
+
+Os containers `migrate` e `seed` usam o estágio `build`, que ainda possui a CLI do Prisma, e encerram após concluir. A API só inicia quando ambos terminam com sucesso.
+
+Os usuários do seed usam a senha padrão `Password123!`, adequada para o ambiente de avaliação local.
 
 ### Ambiente de desenvolvimento
 
@@ -184,7 +187,7 @@ A aplicação aguarda o PostgreSQL estar saudável antes de iniciar. O código �
 
 ### Prisma Studio
 
-Com o PostgreSQL em execução, o Prisma Studio pode ser aberto localmente:
+Com o PostgreSQL em execução e estando em ambiente de DESENVOLVIMENTO, o Prisma Studio pode ser aberto localmente:
 
 ```bash
 npx prisma studio
@@ -196,7 +199,7 @@ Acesse:
 
 O Prisma Studio é utilizado para visualizar e manipular os dados do banco durante o desenvolvimento.
 
-## Fluxo de teste: da abertura à entrega da OS
+## Como usar e testar a API
 
 ### 1. Login e usuários disponíveis
 
@@ -229,13 +232,50 @@ A resposta traz um `access_token` (JWT), que deve ser enviado no header `Authori
 | **MECHANIC**        | Iniciar diagnóstico, adicionar serviços/peças à OS, iniciar e finalizar a execução do serviço           |
 | **STOCK_CLERK**     | Cadastrar, reabastecer e dar baixa manual em peças; consultar peças com estoque abaixo do mínimo        |
 
-> Consultas de leitura (`GET`) na maioria dos recursos estão disponíveis para qualquer usuário autenticado, independente da role. As exceções (ex.: `GET /inventory/low-stock`) exigem a role específica indicada no Swagger. `GET /service-orders/track/:token` é a única rota pública, sem necessidade de autenticação.
+> Consultas de leitura (`GET`) na maioria dos recursos estão disponíveis para qualquer usuário autenticado, independente da role. As exceções (ex.: `GET /inventory/low-stock`) exigem a role MECHANIC. `GET /service-orders/track/:token` e `POST /auth/login` são as únicas rotas públicas, sem necessidade de autenticação.
 
-### 2. Percorrendo o ciclo de vida da OS
+### 2. Clientes
+
+- `POST /clients` (`ADMIN`, `SERVICE_ADVISOR`): cadastra um cliente com CPF/CNPJ, nome e dados de contato.
+- `GET /clients` e `GET /clients/:id`: listam e consultam clientes.
+- `PATCH /clients/:id` (`ADMIN`, `SERVICE_ADVISOR`): atualiza os dados de contato; o CPF/CNPJ não é alterado.
+- `DELETE /clients/:id` (`ADMIN`): remove o cliente por soft delete.
+
+### 3. Veículos
+
+- `POST /vehicles` (`ADMIN`, `SERVICE_ADVISOR`): cadastra marca, modelo, placa, ano e associa o veículo a um cliente pelo `clientId`.
+- `GET /vehicles` e `GET /vehicles/:id`: listam e consultam veículos.
+- `PATCH /vehicles/:id` (`ADMIN`, `SERVICE_ADVISOR`): atualiza marca, modelo ou ano.
+- `DELETE /vehicles/:id` (`ADMIN`): remove o veículo por soft delete.
+
+### 4. Catálogo de serviços
+
+- `POST /services` (`ADMIN`): cadastra um serviço e seu preço.
+- `GET /services` e `GET /services/:id`: listam e consultam o catálogo usado no diagnóstico da OS.
+- `PATCH /services/:id` e `DELETE /services/:id` (`ADMIN`): atualizam ou removem um serviço.
+
+### 5. Estoque
+
+- `POST /inventory` (`ADMIN`, `STOCK_CLERK`): cadastra uma peça com nome, unidade (`ML`, `G`, `KG` ou `UNIT`), preço, quantidade física e estoque mínimo.
+- `GET /inventory`: lista as peças e suas quantidades físicas.
+- `PATCH /inventory/:id` (`ADMIN`, `STOCK_CLERK`): atualiza nome, preço e estoque mínimo.
+- `PATCH /inventory/:id/restock` (`ADMIN`, `STOCK_CLERK`): adiciona quantidade ao estoque físico.
+- `PATCH /inventory/:id/consume` (`ADMIN`, `STOCK_CLERK`): realiza uma baixa manual. A baixa das peças usadas em uma OS ocorre automaticamente ao finalizar o serviço.
+- `DELETE /inventory/:id` (`ADMIN`): remove a peça por soft delete.
+
+`GET /inventory/low-stock` (`ADMIN`, `STOCK_CLERK`) lista as peças cujo estoque lógico está abaixo do mínimo configurado. O cálculo considera:
+
+```text
+estoque lógico = quantidade física - quantidade reservada em OS abertas
+```
+
+São consideradas abertas as OS entre `RECEIVED` e `IN_EXECUTION`. Ordens `FINISHED`, `DELIVERED` ou `CANCELED` não permanecem como reserva. A resposta informa `physicalQuantity`, `reservedQuantity`, `availableQuantity` e `minQuantity`. Por exemplo, uma peça com 10 unidades físicas, 7 reservadas e mínimo 5 aparece no resultado porque possui apenas 3 unidades disponíveis.
+
+### 6. Ciclo de vida da OS
 
 Esta seção descreve, passo a passo, como percorrer o ciclo de vida completo de uma Ordem de Serviço via API. Cada passo indica qual role pode executá-lo - autentique-se com o usuário correspondente antes de cada chamada.
 
-#### 2.1 Abertura da OS (`SERVICE_ADVISOR` ou `ADMIN`)
+#### 6.1 Abertura da OS (`SERVICE_ADVISOR` ou `ADMIN`)
 
 ```bash
 POST /service-orders
@@ -244,15 +284,15 @@ POST /service-orders
 
 A OS nasce com status `RECEIVED`. A resposta inclui um `trackingLink` - um link público que o cliente pode usar para acompanhar o status sem autenticação (`GET /service-orders/track/:token`) e o `totalAmount` começa zerado.
 
-#### 2.2 Diagnóstico (`MECHANIC`)
+#### 6.2 Diagnóstico (`MECHANIC`)
 
 ```bash
 PATCH /service-orders/:id/start-diagnosis
 ```
 
-Transiciona a OS para `IN_DIAGNOSIS`. Não é necessário informar o mecânico no corpo da requisição, ele é identificado automaticamente pelo token de autenticação de quem faz a chamada.
+Transiciona a OS para `IN_DIAGNOSIS`. Não é informado o mecânico no corpo da requisição, ele é identificado automaticamente pelo token de autenticação de quem faz a chamada.
 
-#### 2.3 Adição de serviços e peças (`MECHANIC`)
+#### 6.3 Adição de serviços e peças (`MECHANIC`)
 
 ```bash
 PATCH /service-orders/:id/add-services-and-parts
@@ -264,15 +304,15 @@ PATCH /service-orders/:id/add-services-and-parts
 
 Só é permitido enquanto a OS está em `IN_DIAGNOSIS`. Verifica a disponibilidade de estoque lógico antes de aceitar a peça. A resposta pode incluir `stockAlerts` quando a peça adicionada ficar com estoque lógico abaixo do mínimo configurado. Ao concluir, a OS avança para `FINISHED_DIAGNOSIS`.
 
-#### 2.4 Geração do orçamento (`SERVICE_ADVISOR` ou `ADMIN`)
+#### 6.4 Geração do orçamento (`SERVICE_ADVISOR` ou `ADMIN`)
 
 ```bash
 PATCH /service-orders/:id/budget
 ```
 
-Gera o orçamento com base nos serviços e peças adicionados (cliente, veículo, itens e valor total). Só disponível quando a OS possui ao menos um serviço ou peça.
+Gera o orçamento com base nos serviços e peças adicionados (cliente, veículo, itens e valor total). Só disponível quando a OS possui ao menos um serviço ou peça. Ao concluir, a OS avança para `AWAITING_APPROVAL`.
 
-#### 2.5 Aprovação ou cancelamento (`SERVICE_ADVISOR` ou `ADMIN`)
+#### 6.5 Aprovação ou cancelamento (`SERVICE_ADVISOR` ou `ADMIN`)
 
 ```bash
 PATCH /service-orders/:id/approve-budget
@@ -282,23 +322,25 @@ Registra a aprovação do cliente e transiciona a OS para `AWAITING_EXECUTION`.
 
 > Alternativamente, `PATCH /service-orders/:id/cancel-service` cancela a OS neste ponto (ex.: cliente não aprova o orçamento), transicionando-a para `CANCELED`.
 
-#### 2.6 Execução do serviço (`MECHANIC`)
+#### 6.6 Execução do serviço (`MECHANIC`)
 
 ```bash
 PATCH /service-orders/:id/start-service
 ```
 
 Transiciona a OS para `IN_EXECUTION`.
+Marca no banco de dados o timestamp do início da execução do serviço.
 
-#### 2.7 Finalização (`MECHANIC`)
+#### 6.7 Finalização (`MECHANIC`)
 
 ```bash
 PATCH /service-orders/:id/finish-service
 ```
 
 Transiciona a OS para `FINISHED` e dispara a baixa definitiva das peças utilizadas no estoque.
+Marca no banco de dados o timestampo do fim da execução do serviço.
 
-#### 2.8 Entrega (`SERVICE_ADVISOR` ou `ADMIN`)
+#### 6.8 Entrega (`SERVICE_ADVISOR` ou `ADMIN`)
 
 ```bash
 PATCH /service-orders/:id/deliver
@@ -306,21 +348,19 @@ PATCH /service-orders/:id/deliver
 
 Transiciona a OS para `DELIVERED`, encerrando o ciclo.
 
-### 3. Outras consultas úteis
+### 7. Consultas e métricas da OS
 
 ```bash
 GET /service-orders                                 # lista todas as OS
 GET /service-orders/:id                              # detalhes de uma OS
 GET /service-orders/:id/tracking-link                # reobtém o link público de rastreamento
-GET /service-orders/track/:token                     # consulta pública de status, sem autenticação
 GET /service-orders/metrics/average-execution-time   # tempo médio de execução das OS finalizadas
 DELETE /service-orders/:id                           # soft delete da OS
 ```
 
-- **`GET /:id/tracking-link`** (`ADMIN`, `SERVICE_ADVISOR`): reobtém o link público de rastreamento de uma OS já existente (`{ "trackingLink": "..." }`) - útil caso o cliente perca o link enviado na criação.
+
 
 - **`GET /track/:token`**: consulta pública de status via o token do link de rastreamento, sem necessidade de autenticação.
-
 - **`GET /metrics/average-execution-time`** (qualquer usuário autenticado): calcula o tempo médio de execução das ordens de serviço com status `FINISHED` ou `DELIVERED`. Aceita filtro opcional por período via query params `from` e `to` (formato `AAAA-MM-DD`); sem os filtros, considera todas as OS concluídas. Retorna:
 
   ```json
@@ -388,7 +428,7 @@ Os testes de integração rodam de forma sequencial (`--runInBand`), já que com
 
 A organização por contexto facilita a localização e manutenção dos testes, sem limitar um teste de integração a apenas um contexto.
 
-Para rodar todos os testes:
+Para rodar todos os testes (é necessário o docker rodando para os testes de integração):
 
 ```bash
 npm run test
