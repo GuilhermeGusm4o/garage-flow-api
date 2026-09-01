@@ -57,6 +57,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/garage-flow?schema=public
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      TRACKING_TOKEN_SECRET: ${TRACKING_TOKEN_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
